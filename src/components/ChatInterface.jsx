@@ -207,7 +207,7 @@ const MessageComponent = memo(({
                                 </div>
                             ) }
                             <div className="text-sm font-medium text-gray-900 dark:text-white">
-                                { message.type === 'error' ? 'Error' : 'Claude' }
+                                { message.type === 'error' ? '错误' : 'Claude' }
                             </div>
                         </div>
                     ) }
@@ -242,7 +242,7 @@ const MessageComponent = memo(({
                                                 onShowSettings();
                                             } }
                                             className="p-1 rounded hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors"
-                                            title="Tool Settings"
+                                            title="工具设置"
                                         >
                                             <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none"
                                                  stroke="currentColor" viewBox="0 0 24 24">
@@ -267,7 +267,7 @@ const MessageComponent = memo(({
                                                             <path strokeLinecap="round" strokeLinejoin="round"
                                                                   strokeWidth={ 2 } d="M19 9l-7 7-7-7"/>
                                                         </svg>
-                                                        📝 View edit diff for
+                                                        📝 查看编辑差异为
                                                         <button
                                                             onClick={ (e) => {
                                                                 e.preventDefault();
@@ -298,7 +298,7 @@ const MessageComponent = memo(({
                                                                 </button>
                                                                 <span
                                                                     className="text-xs text-gray-500 dark:text-gray-400">
-                                  Diff
+                                  差异
                                 </span>
                                                             </div>
                                                             <div className="text-xs font-mono">
@@ -384,7 +384,7 @@ const MessageComponent = memo(({
                                                                 <path strokeLinecap="round" strokeLinejoin="round"
                                                                       strokeWidth={ 2 } d="M19 9l-7 7-7-7"/>
                                                             </svg>
-                                                            📄 Creating new file:
+                                                            📄 正在创建新文件:
                                                             <button
                                                                 onClick={ (e) => {
                                                                     e.preventDefault();
@@ -415,7 +415,7 @@ const MessageComponent = memo(({
                                                                     </button>
                                                                     <span
                                                                         className="text-xs text-gray-500 dark:text-gray-400">
-                                    New File
+                                    新文件
                                   </span>
                                                                 </div>
                                                                 <div className="text-xs font-mono">
@@ -476,7 +476,7 @@ const MessageComponent = memo(({
                                                                 <path strokeLinecap="round" strokeLinejoin="round"
                                                                       strokeWidth={ 2 } d="M19 9l-7 7-7-7"/>
                                                             </svg>
-                                                            Updating Todo List
+                                                            更新任务列表
                                                         </summary>
                                                         <div className="mt-3">
                                                             <TodoList todos={ input.todos }/>
@@ -514,7 +514,7 @@ const MessageComponent = memo(({
                                                             <path strokeLinecap="round" strokeLinejoin="round"
                                                                   strokeWidth={ 2 } d="M19 9l-7 7-7-7"/>
                                                         </svg>
-                                                        Running command
+                                                        正在运行命令
                                                     </summary>
                                                     <div className="mt-3 space-y-2">
                                                         <div
@@ -526,7 +526,7 @@ const MessageComponent = memo(({
                                                                           strokeWidth={ 2 }
                                                                           d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                                                                 </svg>
-                                                                <span className="text-xs">Terminal</span>
+                                                                <span className="text-xs">终端</span>
                                                             </div>
                                                             <div
                                                                 className="whitespace-pre-wrap break-all text-green-400">
@@ -660,7 +660,7 @@ const MessageComponent = memo(({
                                                     ? 'text-red-700 dark:text-red-300'
                                                     : 'text-green-700 dark:text-green-300'
                                             }` }>
-                        { message.toolResult.isError ? 'Tool Error' : 'Tool Result' }
+                        { message.toolResult.isError ? '工具错误' : '工具结果' }
                       </span>
                                         </div>
 
@@ -837,8 +837,8 @@ const MessageComponent = memo(({
                                                                             <div
                                                                                 className="bg-amber-100 dark:bg-amber-800/30 rounded-lg p-3">
                                                                                 <p className="text-amber-900 dark:text-amber-100 text-sm font-medium mb-1">
-                                                                                    ✓ Claude selected
-                                                                                    option { selectedOption }
+                                                                                    ✓ Claude 选择了
+                                                                                    选项 { selectedOption }
                                                                                 </p>
                                                                                 <p className="text-amber-800 dark:text-amber-200 text-xs">
                                                                                     In the CLI, you would select this
@@ -1052,8 +1052,7 @@ const MessageComponent = memo(({
                                                             ⏳ Waiting for your response in the CLI
                                                         </p>
                                                         <p className="text-amber-800 dark:text-amber-200 text-xs">
-                                                            Please select an option in your terminal where Claude is
-                                                            running.
+                                                            请在您运行 Claude 的终端中选择一个选项。
                                                         </p>
                                                     </div>
                                                 </>
@@ -2378,7 +2377,7 @@ function ChatInterface({
         return (
             <div className="flex items-center justify-center h-full">
                 <div className="text-center text-gray-500 dark:text-gray-400">
-                    <p>Select a project to start chatting with Claude</p>
+                    <p>选择一个项目开始与 Claude 聊天</p>
                 </div>
             </div>
         );
@@ -2403,15 +2402,15 @@ function ChatInterface({
                         <div className="text-center text-gray-500 dark:text-gray-400 mt-8">
                             <div className="flex items-center justify-center space-x-2">
                                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-400"></div>
-                                <p>Loading session messages...</p>
+                                <p>正在加载会话消息...</p>
                             </div>
                         </div>
                     ) : chatMessages.length === 0 ? (
                         <div className="flex items-center justify-center h-full">
                             <div className="text-center text-gray-500 dark:text-gray-400 px-6 sm:px-4">
-                                <p className="font-bold text-lg sm:text-xl mb-3">Start a conversation with Claude</p>
+                                <p className="font-bold text-lg sm:text-xl mb-3">与 Claude 开始对话</p>
                                 <p className="text-sm sm:text-base leading-relaxed">
-                                    Ask questions about your code, request changes, or get help with development tasks
+                                    提问有关您代码的问题，请求更改，或获取开发任务的帮助
                                 </p>
                             </div>
                         </div>
@@ -2420,12 +2419,12 @@ function ChatInterface({
                             { chatMessages.length > visibleMessageCount && (
                                 <div
                                     className="text-center text-gray-500 dark:text-gray-400 text-sm py-2 border-b border-gray-200 dark:border-gray-700">
-                                    Showing last { visibleMessageCount } messages ({ chatMessages.length } total) •
+                                    显示最后 { visibleMessageCount } 条消息（共 { chatMessages.length } 条）•
                                     <button
                                         className="ml-1 text-blue-600 hover:text-blue-700 underline"
                                         onClick={ loadEarlierMessages }
                                     >
-                                        Load earlier messages
+                                        加载更早的消息
                                     </button>
                                 </div>
                             ) }
@@ -2466,7 +2465,7 @@ function ChatInterface({
                                         <div className="animate-pulse">●</div>
                                         <div className="animate-pulse" style={ { animationDelay: '0.2s' } }>●</div>
                                         <div className="animate-pulse" style={ { animationDelay: '0.4s' } }>●</div>
-                                        <span className="ml-2">Thinking...</span>
+                                        <span className="ml-2">正在思考...</span>
                                     </div>
                                 </div>
                             </div>
@@ -2503,7 +2502,7 @@ function ChatInterface({
                                                 ? 'bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300 border-orange-300 dark:border-orange-600 hover:bg-orange-100 dark:hover:bg-orange-900/30'
                                                 : 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900/30'
                                 }` }
-                                title="Click to change permission mode (or press Tab in input)"
+                                title="点击更改权限模式（或在输入框中按 Tab）"
                             >
                                 <div className="flex items-center gap-2">
                                     <div className={ `w-2 h-2 rounded-full ${
@@ -2516,10 +2515,10 @@ function ChatInterface({
                                                     : 'bg-blue-500'
                                     }` }/>
                                     <span>
-                  { permissionMode === 'default' && 'Default Mode' }
-                                        { permissionMode === 'acceptEdits' && 'Accept Edits' }
-                                        { permissionMode === 'bypassPermissions' && 'Bypass Permissions' }
-                                        { permissionMode === 'plan' && 'Plan Mode' }
+                  { permissionMode === 'default' && '默认模式' }
+                                        { permissionMode === 'acceptEdits' && '接受编辑' }
+                                        { permissionMode === 'bypassPermissions' && '绕过权限' }
+                                        { permissionMode === 'plan' && '计划模式' }
                 </span>
                                 </div>
                             </button>
@@ -2529,7 +2528,7 @@ function ChatInterface({
                                 <button
                                     onClick={ scrollToBottom }
                                     className="w-8 h-8 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg flex items-center justify-center transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:ring-offset-gray-800"
-                                    title="Scroll to bottom"
+                                    title="滚动到底部"
                                 >
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={ 2 }
@@ -2551,7 +2550,7 @@ function ChatInterface({
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={ 2 }
                                               d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
                                     </svg>
-                                    <p className="text-sm font-medium">Drop images here</p>
+                                    <p className="text-sm font-medium">在此放置图像</p>
                                 </div>
                             </div>
                         ) }

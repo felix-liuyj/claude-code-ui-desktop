@@ -518,8 +518,8 @@ function Shell({ selectedProject, selectedSession, isActive }) {
                                   d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2z"/>
                         </svg>
                     </div>
-                    <h3 className="text-lg font-semibold mb-2">Select a Project</h3>
-                    <p>Choose a project to open an interactive shell in that directory</p>
+                    <h3 className="text-lg font-semibold mb-2">选择项目</h3>
+                    <p>选择一个项目在该目录中打开交互式终端</p>
                 </div>
             </div>
         );
@@ -538,13 +538,13 @@ function Shell({ selectedProject, selectedSession, isActive }) {
               </span>
                         ) }
                         { !selectedSession && (
-                            <span className="text-xs text-gray-400">(New Session)</span>
+                            <span className="text-xs text-gray-400">(新会话)</span>
                         ) }
                         { !isInitialized && (
-                            <span className="text-xs text-yellow-400">(Initializing...)</span>
+                            <span className="text-xs text-yellow-400">(正在初始化...)</span>
                         ) }
                         { isRestarting && (
-                            <span className="text-xs text-blue-400">(Restarting...)</span>
+                            <span className="text-xs text-blue-400">(正在重启...)</span>
                         ) }
                     </div>
                     <div className="flex items-center space-x-3">
@@ -552,13 +552,13 @@ function Shell({ selectedProject, selectedSession, isActive }) {
                             <button
                                 onClick={ disconnectFromShell }
                                 className="px-3 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700 flex items-center space-x-1"
-                                title="Disconnect from shell"
+                                title="从终端断开连接"
                             >
                                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={ 2 }
                                           d="M6 18L18 6M6 6l12 12"/>
                                 </svg>
-                                <span>Disconnect</span>
+                                <span>断开连接</span>
                             </button>
                         ) }
 
@@ -566,13 +566,13 @@ function Shell({ selectedProject, selectedSession, isActive }) {
                             onClick={ restartShell }
                             disabled={ isRestarting || isConnected }
                             className="text-xs text-gray-400 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1"
-                            title="Restart Shell (disconnect first)"
+                            title="重启终端（请先断开连接）"
                         >
                             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={ 2 }
                                       d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                             </svg>
-                            <span>Restart</span>
+                            <span>重启</span>
                         </button>
                     </div>
                 </div>

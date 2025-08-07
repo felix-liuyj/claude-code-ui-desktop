@@ -566,13 +566,13 @@ function GitPanel({ selectedProject, isMobile }) {
     const getStatusLabel = (status) => {
         switch (status) {
             case 'M':
-                return 'Modified';
+                return '已修改';
             case 'A':
-                return 'Added';
+                return '已添加';
             case 'D':
-                return 'Deleted';
+                return '已删除';
             case 'U':
-                return 'Untracked';
+                return '未跟踪';
             default:
                 return status;
         }
@@ -655,14 +655,14 @@ function GitPanel({ selectedProject, isMobile }) {
                                         setConfirmAction({
                                             type: 'discard',
                                             file: filePath,
-                                            message: `Discard all changes to "${ filePath }"? This action cannot be undone.`
+                                            message: `放弃对 "${ filePath }" 的所有更改？此操作无法撤销。`
                                         });
                                     } }
                                     className={ `${ isMobile ? 'px-2 py-1 text-xs' : 'p-1' } hover:bg-red-100 dark:hover:bg-red-900 rounded text-red-600 dark:text-red-400 font-medium flex items-center gap-1` }
-                                    title="Discard changes"
+                                    title="放弃更改"
                                 >
                                     <Trash2 className={ `${ isMobile ? 'w-3 h-3' : 'w-3 h-3' }` }/>
-                                    { isMobile && <span>Discard</span> }
+                                    { isMobile && <span>放弃</span> }
                                 </button>
                             ) }
                             { status === 'U' && (
@@ -672,14 +672,14 @@ function GitPanel({ selectedProject, isMobile }) {
                                         setConfirmAction({
                                             type: 'delete',
                                             file: filePath,
-                                            message: `Delete untracked file "${ filePath }"? This action cannot be undone.`
+                                            message: `删除未跟踪文件 "${ filePath }"？此操作无法撤销。`
                                         });
                                     } }
                                     className={ `${ isMobile ? 'px-2 py-1 text-xs' : 'p-1' } hover:bg-red-100 dark:hover:bg-red-900 rounded text-red-600 dark:text-red-400 font-medium flex items-center gap-1` }
-                                    title="Delete untracked file"
+                                    title="删除未跟踪文件"
                                 >
                                     <Trash2 className={ `${ isMobile ? 'w-3 h-3' : 'w-3 h-3' }` }/>
-                                    { isMobile && <span>Delete</span> }
+                                    { isMobile && <span>删除</span> }
                                 </button>
                             ) }
                             <span
@@ -726,9 +726,9 @@ function GitPanel({ selectedProject, isMobile }) {
                                     setWrapText(!wrapText);
                                 } }
                                 className="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-                                title={ wrapText ? "Switch to horizontal scroll" : "Switch to text wrap" }
+                                title={ wrapText ? "切换到水平滚动" : "切换到文本折行" }
                             >
-                                { wrapText ? '↔️ Scroll' : '↩️ Wrap' }
+                                { wrapText ? '↔️ 滚动' : '↩️ 折行' }
                             </button>
                         ) }
                     </div>
@@ -768,19 +768,19 @@ function GitPanel({ selectedProject, isMobile }) {
                                 <div className="flex items-center gap-1 text-xs">
                                     { remoteStatus.ahead > 0 && (
                                         <span className="text-green-600 dark:text-green-400"
-                                              title={ `${ remoteStatus.ahead } commit${ remoteStatus.ahead !== 1 ? 's' : '' } ahead` }>
+                                              title={ `领先 ${ remoteStatus.ahead } 个提交` }>
                       ↑{ remoteStatus.ahead }
                     </span>
                                     ) }
                                     { remoteStatus.behind > 0 && (
                                         <span className="text-blue-600 dark:text-blue-400"
-                                              title={ `${ remoteStatus.behind } commit${ remoteStatus.behind !== 1 ? 's' : '' } behind` }>
+                                              title={ `落后 ${ remoteStatus.behind } 个提交` }>
                       ↓{ remoteStatus.behind }
                     </span>
                                     ) }
                                     { remoteStatus.isUpToDate && (
                                         <span className="text-gray-500 dark:text-gray-400"
-                                              title="Up to date with remote">
+                                              title="与远程保持同步">
                       ✓
                     </span>
                                     ) }
@@ -822,7 +822,7 @@ function GitPanel({ selectedProject, isMobile }) {
                                     className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center space-x-2"
                                 >
                                     <Plus className="w-3 h-3"/>
-                                    <span>Create new branch</span>
+                                    <span>创建新分支</span>
                                 </button>
                             </div>
                         </div>
@@ -845,7 +845,7 @@ function GitPanel({ selectedProject, isMobile }) {
                                     title={ `Publish branch "${ currentBranch }" to ${ remoteStatus.remoteName }` }
                                 >
                                     <Upload className={ `w-3 h-3 ${ isPublishing ? 'animate-pulse' : '' }` }/>
-                                    <span>{ isPublishing ? 'Publishing...' : 'Publish' }</span>
+                                    <span>{ isPublishing ? '正在发布...' : '发布' }</span>
                                 </button>
                             ) }
 
@@ -864,7 +864,7 @@ function GitPanel({ selectedProject, isMobile }) {
                                             title={ `Pull ${ remoteStatus.behind } commit${ remoteStatus.behind !== 1 ? 's' : '' } from ${ remoteStatus.remoteName }` }
                                         >
                                             <Download className={ `w-3 h-3 ${ isPulling ? 'animate-pulse' : '' }` }/>
-                                            <span>{ isPulling ? 'Pulling...' : `Pull ${ remoteStatus.behind }` }</span>
+                                            <span>{ isPulling ? '正在拉取...' : `拉取 ${ remoteStatus.behind }` }</span>
                                         </button>
                                     ) }
 
@@ -880,7 +880,7 @@ function GitPanel({ selectedProject, isMobile }) {
                                             title={ `Push ${ remoteStatus.ahead } commit${ remoteStatus.ahead !== 1 ? 's' : '' } to ${ remoteStatus.remoteName }` }
                                         >
                                             <Upload className={ `w-3 h-3 ${ isPushing ? 'animate-pulse' : '' }` }/>
-                                            <span>{ isPushing ? 'Pushing...' : `Push ${ remoteStatus.ahead }` }</span>
+                                            <span>{ isPushing ? '正在推送...' : `推送 ${ remoteStatus.ahead }` }</span>
                                         </button>
                                     ) }
 
@@ -893,7 +893,7 @@ function GitPanel({ selectedProject, isMobile }) {
                                             title={ `Fetch from ${ remoteStatus.remoteName }` }
                                         >
                                             <RefreshCw className={ `w-3 h-3 ${ isFetching ? 'animate-spin' : '' }` }/>
-                                            <span>{ isFetching ? 'Fetching...' : 'Fetch' }</span>
+                                            <span>{ isFetching ? '正在获取...' : '获取' }</span>
                                         </button>
                                     ) }
                                 </>
@@ -953,7 +953,7 @@ function GitPanel({ selectedProject, isMobile }) {
                         >
                             <div className="flex items-center justify-center gap-2">
                                 <FileText className="w-4 h-4"/>
-                                <span>Changes</span>
+                                <span>更改</span>
                             </div>
                         </button>
                         <button
@@ -966,7 +966,7 @@ function GitPanel({ selectedProject, isMobile }) {
                         >
                             <div className="flex items-center justify-center gap-2">
                                 <History className="w-4 h-4"/>
-                                <span>History</span>
+                                <span>历史</span>
                             </div>
                         </button>
                     </div>
@@ -987,7 +987,7 @@ function GitPanel({ selectedProject, isMobile }) {
                                             className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700"
                                         >
                                             <GitCommit className="w-4 h-4"/>
-                                            <span>Commit { selectedFiles.size } file{ selectedFiles.size !== 1 ? 's' : '' }</span>
+                                            <span>提交 { selectedFiles.size } 个文件</span>
                                             <ChevronDown className="w-3 h-3"/>
                                         </button>
                                     </div>
@@ -998,7 +998,7 @@ function GitPanel({ selectedProject, isMobile }) {
                                             {/* Mobile collapse button */ }
                                             { isMobile && (
                                                 <div className="flex items-center justify-between mb-2">
-                                                    <span className="text-sm font-medium">Commit Changes</span>
+                                                    <span className="text-sm font-medium">提交更改</span>
                                                     <button
                                                         onClick={ () => setIsCommitAreaCollapsed(true) }
                                                         className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
@@ -1013,7 +1013,7 @@ function GitPanel({ selectedProject, isMobile }) {
                           ref={ textareaRef }
                           value={ commitMessage }
                           onChange={ (e) => setCommitMessage(e.target.value) }
-                          placeholder="Message (Ctrl+Enter to commit)"
+                          placeholder="提交消息 (Ctrl+Enter 提交)"
                           className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 resize-none pr-20"
                           rows="3"
                           onKeyDown={ (e) => {
@@ -1046,18 +1046,18 @@ function GitPanel({ selectedProject, isMobile }) {
                                             </div>
                                             <div className="flex items-center justify-between mt-2">
                       <span className="text-xs text-gray-500">
-                        { selectedFiles.size } file{ selectedFiles.size !== 1 ? 's' : '' } selected
+                        已选择 { selectedFiles.size } 个文件
                       </span>
                                                 <button
                                                     onClick={ () => setConfirmAction({
                                                         type: 'commit',
-                                                        message: `Commit ${ selectedFiles.size } file${ selectedFiles.size !== 1 ? 's' : '' } with message: "${ commitMessage.trim() }"?`
+                                                        message: `提交 ${ selectedFiles.size } 个文件，消息为："${ commitMessage.trim() }"？`
                                                     }) }
                                                     disabled={ !commitMessage.trim() || selectedFiles.size === 0 || isCommitting }
                                                     className="px-3 py-1 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1"
                                                 >
                                                     <Check className="w-3 h-3"/>
-                                                    <span>{ isCommitting ? 'Committing...' : 'Commit' }</span>
+                                                    <span>{ isCommitting ? '正在提交...' : '提交' }</span>
                                                 </button>
                                             </div>
                                         </div>
@@ -1076,7 +1076,7 @@ function GitPanel({ selectedProject, isMobile }) {
                                     : 'max-h-0 opacity-0 -translate-y-2 overflow-hidden'
                             }` }>
               <span className={ `text-gray-600 dark:text-gray-400 ${ isMobile ? 'text-xs' : 'text-xs' }` }>
-                { selectedFiles.size } of { (gitStatus?.modified?.length || 0) + (gitStatus?.added?.length || 0) + (gitStatus?.deleted?.length || 0) + (gitStatus?.untracked?.length || 0) } { isMobile ? '' : 'files' } selected
+                已选择 { selectedFiles.size } / { (gitStatus?.modified?.length || 0) + (gitStatus?.added?.length || 0) + (gitStatus?.deleted?.length || 0) + (gitStatus?.untracked?.length || 0) } 个文件
               </span>
                             <div className={ `flex ${ isMobile ? 'gap-1' : 'gap-2' }` }>
                                 <button
@@ -1091,14 +1091,14 @@ function GitPanel({ selectedProject, isMobile }) {
                                     } }
                                     className={ `text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 ${ isMobile ? 'text-xs' : 'text-xs' }` }
                                 >
-                                    { isMobile ? 'All' : 'Select All' }
+                                    { isMobile ? '全选' : '全选' }
                                 </button>
                                 <span className="text-gray-300 dark:text-gray-600">|</span>
                                 <button
                                     onClick={ () => setSelectedFiles(new Set()) }
                                     className={ `text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 ${ isMobile ? 'text-xs' : 'text-xs' }` }
                                 >
-                                    { isMobile ? 'None' : 'Deselect All' }
+                                    { isMobile ? '取消' : '取消全选' }
                                 </button>
                             </div>
                         </div>
@@ -1112,7 +1112,7 @@ function GitPanel({ selectedProject, isMobile }) {
                                 className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-750 text-xs text-gray-600 dark:text-gray-400 flex items-center justify-center gap-1"
                             >
                                 <Info className="w-3 h-3"/>
-                                <span>File Status Guide</span>
+                                <span>文件状态指南</span>
                                 { showLegend ? <ChevronDown className="w-3 h-3"/> :
                                     <ChevronRight className="w-3 h-3"/> }
                             </button>
@@ -1126,28 +1126,28 @@ function GitPanel({ selectedProject, isMobile }) {
                           className="inline-flex items-center justify-center w-5 h-5 bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300 rounded border border-yellow-200 dark:border-yellow-800 font-bold text-xs">
                         M
                       </span>
-                                            <span className="text-gray-600 dark:text-gray-400 italic">Modified</span>
+                                            <span className="text-gray-600 dark:text-gray-400 italic">已修改</span>
                                         </div>
                                         <div className="flex items-center gap-2">
                       <span
                           className="inline-flex items-center justify-center w-5 h-5 bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 rounded border border-green-200 dark:border-green-800 font-bold text-xs">
                         A
                       </span>
-                                            <span className="text-gray-600 dark:text-gray-400 italic">Added</span>
+                                            <span className="text-gray-600 dark:text-gray-400 italic">已添加</span>
                                         </div>
                                         <div className="flex items-center gap-2">
                       <span
                           className="inline-flex items-center justify-center w-5 h-5 bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300 rounded border border-red-200 dark:border-red-800 font-bold text-xs">
                         D
                       </span>
-                                            <span className="text-gray-600 dark:text-gray-400 italic">Deleted</span>
+                                            <span className="text-gray-600 dark:text-gray-400 italic">已删除</span>
                                         </div>
                                         <div className="flex items-center gap-2">
                       <span
                           className="inline-flex items-center justify-center w-5 h-5 bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 rounded border border-gray-300 dark:border-gray-600 font-bold text-xs">
                         U
                       </span>
-                                            <span className="text-gray-600 dark:text-gray-400 italic">Untracked</span>
+                                            <span className="text-gray-600 dark:text-gray-400 italic">未跟踪</span>
                                         </div>
                                     </div>
                                 </div>
@@ -1192,7 +1192,7 @@ function GitPanel({ selectedProject, isMobile }) {
                         <div
                             className="flex flex-col items-center justify-center h-32 text-gray-500 dark:text-gray-400">
                             <History className="w-12 h-12 mb-2 opacity-50"/>
-                            <p className="text-sm">No commits found</p>
+                            <p className="text-sm">未找到提交</p>
                         </div>
                     ) : (
                         <div className={ isMobile ? 'pb-4' : '' }>
@@ -1209,10 +1209,10 @@ function GitPanel({ selectedProject, isMobile }) {
                          onClick={ () => setShowNewBranchModal(false) }/>
                     <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full">
                         <div className="p-6">
-                            <h3 className="text-lg font-semibold mb-4">Create New Branch</h3>
+                            <h3 className="text-lg font-semibold mb-4">创建新分支</h3>
                             <div className="mb-4">
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    Branch Name
+                                    分支名称
                                 </label>
                                 <input
                                     type="text"
@@ -1229,7 +1229,7 @@ function GitPanel({ selectedProject, isMobile }) {
                                 />
                             </div>
                             <div className="text-xs text-gray-500 dark:text-gray-400 mb-4">
-                                This will create a new branch from the current branch ({ currentBranch })
+                                将从当前分支（{ currentBranch }）创建新分支
                             </div>
                             <div className="flex justify-end space-x-3">
                                 <button
@@ -1239,7 +1239,7 @@ function GitPanel({ selectedProject, isMobile }) {
                                     } }
                                     className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
                                 >
-                                    Cancel
+                                    取消
                                 </button>
                                 <button
                                     onClick={ createBranch }
@@ -1249,12 +1249,12 @@ function GitPanel({ selectedProject, isMobile }) {
                                     { isCreatingBranch ? (
                                         <>
                                             <RefreshCw className="w-3 h-3 animate-spin"/>
-                                            <span>Creating...</span>
+                                            <span>正在创建...</span>
                                         </>
                                     ) : (
                                         <>
                                             <Plus className="w-3 h-3"/>
-                                            <span>Create Branch</span>
+                                            <span>创建分支</span>
                                         </>
                                     ) }
                                 </button>
@@ -1279,11 +1279,11 @@ function GitPanel({ selectedProject, isMobile }) {
                                     }` }/>
                                 </div>
                                 <h3 className="text-lg font-semibold">
-                                    { confirmAction.type === 'discard' ? 'Discard Changes' :
-                                        confirmAction.type === 'delete' ? 'Delete File' :
-                                            confirmAction.type === 'commit' ? 'Confirm Commit' :
-                                                confirmAction.type === 'pull' ? 'Confirm Pull' :
-                                                    confirmAction.type === 'publish' ? 'Publish Branch' : 'Confirm Push' }
+                                    { confirmAction.type === 'discard' ? '放弃更改' :
+                                        confirmAction.type === 'delete' ? '删除文件' :
+                                            confirmAction.type === 'commit' ? '确认提交' :
+                                                confirmAction.type === 'pull' ? '确认拉取' :
+                                                    confirmAction.type === 'publish' ? '发布分支' : '确认推送' }
                                 </h3>
                             </div>
 
@@ -1296,7 +1296,7 @@ function GitPanel({ selectedProject, isMobile }) {
                                     onClick={ () => setConfirmAction(null) }
                                     className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
                                 >
-                                    Cancel
+                                    取消
                                 </button>
                                 <button
                                     onClick={ confirmAndExecute }
@@ -1315,32 +1315,32 @@ function GitPanel({ selectedProject, isMobile }) {
                                     { confirmAction.type === 'discard' ? (
                                         <>
                                             <Trash2 className="w-4 h-4"/>
-                                            <span>Discard</span>
+                                            <span>放弃</span>
                                         </>
                                     ) : confirmAction.type === 'delete' ? (
                                         <>
                                             <Trash2 className="w-4 h-4"/>
-                                            <span>Delete</span>
+                                            <span>删除</span>
                                         </>
                                     ) : confirmAction.type === 'commit' ? (
                                         <>
                                             <Check className="w-4 h-4"/>
-                                            <span>Commit</span>
+                                            <span>提交</span>
                                         </>
                                     ) : confirmAction.type === 'pull' ? (
                                         <>
                                             <Download className="w-4 h-4"/>
-                                            <span>Pull</span>
+                                            <span>拉取</span>
                                         </>
                                     ) : confirmAction.type === 'publish' ? (
                                         <>
                                             <Upload className="w-4 h-4"/>
-                                            <span>Publish</span>
+                                            <span>发布</span>
                                         </>
                                     ) : (
                                         <>
                                             <Upload className="w-4 h-4"/>
-                                            <span>Push</span>
+                                            <span>推送</span>
                                         </>
                                     ) }
                                 </button>

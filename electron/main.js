@@ -113,6 +113,26 @@ async function startServer() {
         process.env.ELECTRON_APP = 'true';
         process.env.ELECTRON_USER_DATA = app.getPath('userData');
 
+        // Fix PATH to include common binary locations for Claude CLI
+        const currentPath = process.env.PATH || '';
+        const os = await import('os');
+        const homeDir = os.homedir();
+        const additionalPaths = [
+            `${homeDir}/.bun/bin`,
+            `${homeDir}/.local/bin`, 
+            '/usr/local/bin',
+            '/opt/homebrew/bin'
+        ];
+        
+        // Add paths that aren't already included
+        const pathElements = currentPath.split(':');
+        const missingPaths = additionalPaths.filter(path => !pathElements.includes(path));
+        
+        if (missingPaths.length > 0) {
+            process.env.PATH = `${missingPaths.join(':')}:${currentPath}`;
+            console.log('Enhanced PATH for Claude CLI access:', process.env.PATH);
+        }
+
         console.log('User data path:', app.getPath('userData'));
 
         // Import and start the server directly in this process
