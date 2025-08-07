@@ -13,7 +13,7 @@
 <br />
 
 <p align="center">
-  <a href="https://github.com/felixliu/claude-code-ui-desktop">
+  <a href="https://github.com/felix-liuyj/claude-code-ui-desktop">
     <img src="public/logo.svg" alt="Claude Code UI" width="64" height="64">
   </a>
 
@@ -26,9 +26,9 @@
     <br />
     <a href="https://github.com/siteboon/claudecodeui">原版演示</a>
     ·
-    <a href="https://github.com/felixliu/claude-code-ui-desktop/issues">报告Bug</a>
+    <a href="https://github.com/felix-liuyj/claude-code-ui-desktop/issues">报告Bug</a>
     ·
-    <a href="https://github.com/felixliu/claude-code-ui-desktop/issues">功能请求</a>
+    <a href="https://github.com/felix-liuyj/claude-code-ui-desktop/issues">功能请求</a>
 </p>
 
 ## 目录
@@ -109,7 +109,7 @@ WebSocket 通信提供更加流畅的用户体验。
 1. **克隆仓库**
 
     ```bash
-    git clone https://github.com/felixliu/claude-code-ui-desktop.git
+    git clone https://github.com/felix-liuyj/claude-code-ui-desktop.git
     cd claude-code-ui-desktop
     ```
 
@@ -426,22 +426,22 @@ GNU General Public License v3.0 - 查看 [LICENSE](LICENSE) 文件了解详情�
 
 <!-- links -->
 
-[contributors-shield]: https://img.shields.io/github/contributors/felixliu/claude-code-ui-desktop.svg?style=flat-square
+[contributors-shield]: https://img.shields.io/github/contributors/felix-liuyj/claude-code-ui-desktop.svg?style=flat-square
 
-[contributors-url]: https://github.com/felixliu/claude-code-ui-desktop/graphs/contributors
+[contributors-url]: https://github.com/felix-liuyj/claude-code-ui-desktop/graphs/contributors
 
-[forks-shield]: https://img.shields.io/github/forks/felixliu/claude-code-ui-desktop.svg?style=flat-square
+[forks-shield]: https://img.shields.io/github/forks/felix-liuyj/claude-code-ui-desktop.svg?style=flat-square
 
-[forks-url]: https://github.com/felixliu/claude-code-ui-desktop/network/members
+[forks-url]: https://github.com/felix-liuyj/claude-code-ui-desktop/network/members
 
-[stars-shield]: https://img.shields.io/github/stars/felixliu/claude-code-ui-desktop.svg?style=flat-square
+[stars-shield]: https://img.shields.io/github/stars/felix-liuyj/claude-code-ui-desktop.svg?style=flat-square
 
-[stars-url]: https://github.com/felixliu/claude-code-ui-desktop/stargazers
+[stars-url]: https://github.com/felix-liuyj/claude-code-ui-desktop/stargazers
 
-[issues-shield]: https://img.shields.io/github/issues/felixliu/claude-code-ui-desktop.svg?style=flat-square
+[issues-shield]: https://img.shields.io/github/issues/felix-liuyj/claude-code-ui-desktop.svg?style=flat-square
 
-[issues-url]: https://github.com/felixliu/claude-code-ui-desktop/issues
+[issues-url]: https://github.com/felix-liuyj/claude-code-ui-desktop/issues
 
-[license-shield]: https://img.shields.io/github/license/felixliu/claude-code-ui-desktop.svg?style=flat-square
+[license-shield]: https://img.shields.io/github/license/felix-liuyj/claude-code-ui-desktop.svg?style=flat-square
 
-[license-url]: https://github.com/felixliu/claude-code-ui-desktop/blob/master/LICENSE
+[license-url]: https://github.com/felix-liuyj/claude-code-ui-desktop/blob/master/LICENSE
