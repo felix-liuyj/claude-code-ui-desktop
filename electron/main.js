@@ -113,16 +113,54 @@ async function startServer() {
         process.env.ELECTRON_APP = 'true';
         process.env.ELECTRON_USER_DATA = app.getPath('userData');
 
-        // Fix PATH to include common binary locations for Claude CLI
+        // Fix PATH to include common binary locations for Claude CLI and Node.js
         const currentPath = process.env.PATH || '';
         const os = await import('os');
         const homeDir = os.homedir();
+        
+        // Try to detect Node.js paths from common locations
+        const nodeSearchPaths = [];
+        
+        // Check current process node path
+        const currentNodePath = process.execPath;
+        if (currentNodePath) {
+            const currentNodeDir = dirname(currentNodePath);
+            nodeSearchPaths.push(currentNodeDir);
+        }
+        
+        // Check common NVM locations
+        const nvmBaseDir = `${homeDir}/.nvm/versions/node`;
+        try {
+            const fsSync = await import('fs');
+            if (fsSync.existsSync(nvmBaseDir)) {
+                const versions = fsSync.readdirSync(nvmBaseDir);
+                // Use the latest version if multiple exist
+                if (versions.length > 0) {
+                    versions.sort().reverse(); // Sort descending to get latest first
+                    const latestVersion = versions[0];
+                    const nvmNodePath = `${nvmBaseDir}/${latestVersion}/bin`;
+                    if (fsSync.existsSync(nvmNodePath)) {
+                        nodeSearchPaths.push(nvmNodePath);
+                    }
+                }
+            }
+        } catch (error) {
+            console.log('Could not check NVM directories:', error.message);
+        }
+        
         const additionalPaths = [
+            ...nodeSearchPaths, // Add detected Node.js paths first for priority
             `${homeDir}/.bun/bin`,
-            `${homeDir}/.local/bin`, 
+            `${homeDir}/.local/bin`,
             '/usr/local/bin',
-            '/opt/homebrew/bin'
+            '/opt/homebrew/bin',
+            '/usr/bin',
+            '/bin'
         ];
+        
+        if (nodeSearchPaths.length > 0) {
+            console.log('Detected Node.js paths:', nodeSearchPaths);
+        }
         
         // Add paths that aren't already included
         const pathElements = currentPath.split(':');

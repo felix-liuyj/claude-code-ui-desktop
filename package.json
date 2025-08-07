@@ -1,5 +1,5 @@
 {
-  "name": "claude-code-ui",
+  "name": "claude-code-ui-desktop",
   "version": "1.5.0",
   "description": "A desktop UI for Claude Code CLI",
   "type": "module",
@@ -22,9 +22,10 @@
     "ai",
     "code",
     "ui",
-    "assistant"
+    "assistant",
+    "desktop"
   ],
-  "author": "Claude Code UI Contributors",
+  "author": "felixliuyj@gmail.com",
   "license": "MIT",
   "dependencies": {
     "@codemirror/lang-css": "^6.3.1",
@@ -78,9 +79,8 @@
     "wait-on": "^8.0.0"
   },
   "build": {
-    "appId": "com.claudecodeui.app",
-    "productName": "Claude Code UI",
-    "asar": true,
+    "appId": "com.claude-code-ui-desktop.app",
+    "productName": "Claude Code UI Desktop",
     "directories": {
       "output": "dist-electron"
     },
@@ -95,9 +95,6 @@
         "from": "server",
         "to": "server"
       }
-    ],
-    "asarUnpack": [
-      "server/**/*"
     ],
     "mac": {
       "icon": "build/icon.icns",
