@@ -1,10 +1,10 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    
+<head>
+    <meta charset="UTF-8"/>
+
     <!-- Content Security Policy for Electron -->
-    <meta http-equiv="Content-Security-Policy" content="
+    <meta content="
       default-src 'self';
       script-src 'self' 'unsafe-inline';
       style-src 'self' 'unsafe-inline';
@@ -15,50 +15,51 @@
       object-src 'none';
       base-uri 'self';
       form-action 'self';
-    ">
-    
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="icon" type="image/png" href="/favicon.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    " http-equiv="Content-Security-Policy">
+
+    <link href="/favicon.svg" rel="icon" type="image/svg+xml"/>
+    <link href="/favicon.png" rel="icon" type="image/png"/>
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+          name="viewport"/>
     <title>Claude Code UI</title>
-    
+
     <!-- PWA Manifest -->
-    <link rel="manifest" href="/manifest.json" />
-    
+    <link href="/manifest.json" rel="manifest"/>
+
     <!-- iOS Safari PWA Meta Tags -->
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <meta name="apple-mobile-web-app-title" content="Claude UI" />
-    
+    <meta content="yes" name="apple-mobile-web-app-capable"/>
+    <meta content="default" name="apple-mobile-web-app-status-bar-style"/>
+    <meta content="Claude UI" name="apple-mobile-web-app-title"/>
+
     <!-- iOS Safari Icons -->
-    <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152x152.png" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-192x192.png" />
-    
+    <link href="/icons/icon-152x152.png" rel="apple-touch-icon" sizes="152x152"/>
+    <link href="/icons/icon-192x192.png" rel="apple-touch-icon" sizes="180x180"/>
+
     <!-- Theme Color -->
-    <meta name="theme-color" content="#ffffff" />
-    <meta name="msapplication-TileColor" content="#ffffff" />
-    
+    <meta content="#ffffff" name="theme-color"/>
+    <meta content="#ffffff" name="msapplication-TileColor"/>
+
     <!-- Prevent zoom on iOS -->
-    <meta name="format-detection" content="telephone=no" />
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-    
-    <!-- Service Worker Registration (disabled in Electron) -->
-    <script>
-      // Only register service worker in web environment, not in Electron
-      if ('serviceWorker' in navigator && !window.electronAPI) {
+    <meta content="telephone=no" name="format-detection"/>
+</head>
+<body>
+<div id="root"></div>
+<script src="/src/main.jsx" type="module"></script>
+
+<!-- Service Worker Registration (disabled in Electron) -->
+<script>
+    // Only register service worker in web environment, not in Electron
+    if ('serviceWorker' in navigator && !window.electronAPI) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
-            .then(registration => {
-              console.log('SW registered: ', registration);
-            })
-            .catch(registrationError => {
-              console.log('SW registration failed: ', registrationError);
-            });
+            navigator.serviceWorker.register('/sw.js')
+                .then(registration => {
+                    console.log('SW registered: ', registration);
+                })
+                .catch(registrationError => {
+                    console.log('SW registration failed: ', registrationError);
+                });
         });
-      }
-    </script>
-  </body>
+    }
+</script>
+</body>
 </html>

@@ -1,8 +1,33 @@
 // Load environment variables from .env file
-import fs from 'fs';
-import path from 'path';
+import fs, { promises as fsPromises } from 'fs';
+import path, { dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { dirname } from 'path';
+import express from 'express';
+import { WebSocketServer } from 'ws';
+import http from 'http';
+import cors from 'cors';
+import os from 'os';
+import pty from 'node-pty';
+import fetch from 'node-fetch';
+import mime from 'mime-types';
+
+import {
+    addProjectManually,
+    clearProjectDirectoryCache,
+    deleteProject,
+    deleteSession,
+    extractProjectDirectory,
+    getProjects,
+    getSessionMessages,
+    getSessions,
+    renameProject
+} from './projects.js';
+import { abortClaudeSession, spawnClaude } from './claude-cli.js';
+import gitRoutes from './routes/git.js';
+import authRoutes from './routes/auth.js';
+import mcpRoutes from './routes/mcp.js';
+import { initializeDatabase } from './database/db.js';
+import { authenticateToken, authenticateWebSocket, validateApiKey } from './middleware/auth.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -29,25 +54,6 @@ if (!isElectron) {
 }
 
 console.log('PORT from env:', process.env.PORT);
-
-import express from 'express';
-import { WebSocketServer } from 'ws';
-import http from 'http';
-import cors from 'cors';
-import { promises as fsPromises } from 'fs';
-import { spawn } from 'child_process';
-import os from 'os';
-import pty from 'node-pty';
-import fetch from 'node-fetch';
-import mime from 'mime-types';
-
-import { getProjects, getSessions, getSessionMessages, renameProject, deleteSession, deleteProject, addProjectManually, extractProjectDirectory, clearProjectDirectoryCache } from './projects.js';
-import { spawnClaude, abortClaudeSession } from './claude-cli.js';
-import gitRoutes from './routes/git.js';
-import authRoutes from './routes/auth.js';
-import mcpRoutes from './routes/mcp.js';
-import { initializeDatabase } from './database/db.js';
-import { validateApiKey, authenticateToken, authenticateWebSocket } from './middleware/auth.js';
 
 // File system watcher for projects folder
 let projectsWatcher = null;
@@ -182,19 +188,19 @@ app.use('/api/mcp', authenticateToken, mcpRoutes);
 
 // Static files served after API routes
 if (isElectron || process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../dist')));
+    app.use(express.static(path.join(__dirname, '../dist')));
 }
 
 // API Routes (protected)
 app.get('/api/config', authenticateToken, (req, res) => {
-    const host = req.headers.host || `${req.hostname}:${PORT}`;
+    const host = req.headers.host || `${ req.hostname }:${ PORT }`;
     const protocol = req.protocol === 'https' || req.get('x-forwarded-proto') === 'https' ? 'wss' : 'ws';
 
     console.log('Config API called - Returning host:', host, 'Protocol:', protocol);
 
     res.json({
         serverPort: PORT,
-        wsUrl: `${protocol}://${host}`
+        wsUrl: `${ protocol }://${ host }`
     });
 });
 
@@ -420,7 +426,7 @@ app.get('/api/projects/:projectName/files', authenticateToken, async (req, res) 
         try {
             await fsPromises.access(actualPath);
         } catch (e) {
-            return res.status(404).json({ error: `Project path not found: ${actualPath}` });
+            return res.status(404).json({ error: `Project path not found: ${ actualPath }` });
         }
 
         const files = await getFileTree(actualPath, 3, 0, true);
@@ -509,12 +515,12 @@ function handleShellConnection(ws) {
                 const hasSession = data.hasSession;
 
                 console.log('🚀 Starting shell in:', projectPath);
-                console.log('📋 Session info:', hasSession ? `Resume session ${sessionId}` : 'New session');
+                console.log('📋 Session info:', hasSession ? `Resume session ${ sessionId }` : 'New session');
 
                 // First send a welcome message
                 const welcomeMsg = hasSession ?
-                    `\x1b[36mResuming Claude session ${sessionId} in: ${projectPath}\x1b[0m\r\n` :
-                    `\x1b[36mStarting new Claude session in: ${projectPath}\x1b[0m\r\n`;
+                    `\x1b[36mResuming Claude session ${ sessionId } in: ${ projectPath }\x1b[0m\r\n` :
+                    `\x1b[36mStarting new Claude session in: ${ projectPath }\x1b[0m\r\n`;
 
                 ws.send(JSON.stringify({
                     type: 'output',
@@ -527,15 +533,15 @@ function handleShellConnection(ws) {
                     if (os.platform() === 'win32') {
                         if (hasSession && sessionId) {
                             // Try to resume session, but with fallback to new session if it fails
-                            shellCommand = `Set-Location -Path "${projectPath}"; claude --resume ${sessionId}; if ($LASTEXITCODE -ne 0) { claude }`;
+                            shellCommand = `Set-Location -Path "${ projectPath }"; claude --resume ${ sessionId }; if ($LASTEXITCODE -ne 0) { claude }`;
                         } else {
-                shellCommand = `Set-Location -Path "${projectPath}"; claude`;
+                            shellCommand = `Set-Location -Path "${ projectPath }"; claude`;
                         }
                     } else {
                         if (hasSession && sessionId) {
-                            shellCommand = `cd "${projectPath}" && claude --resume ${sessionId} || claude`;
+                            shellCommand = `cd "${ projectPath }" && claude --resume ${ sessionId } || claude`;
                         } else {
-                shellCommand = `cd "${projectPath}" && claude`;
+                            shellCommand = `cd "${ projectPath }" && claude`;
                         }
                     }
 
@@ -595,7 +601,7 @@ function handleShellConnection(ws) {
 
                                     // Replace the OPEN_URL pattern with a user-friendly message
                                     if (pattern.source.includes('OPEN_URL')) {
-                                        outputData = outputData.replace(match[0], `🌐 Opening in browser: ${url}`);
+                                        outputData = outputData.replace(match[0], `🌐 Opening in browser: ${ url }`);
                                     }
                                 }
                             });
@@ -614,7 +620,7 @@ function handleShellConnection(ws) {
                         if (ws.readyState === ws.OPEN) {
                             ws.send(JSON.stringify({
                                 type: 'output',
-                                data: `\r\n\x1b[33mProcess exited with code ${exitCode.exitCode}${exitCode.signal ? ` (${exitCode.signal})` : ''}\x1b[0m\r\n`
+                                data: `\r\n\x1b[33mProcess exited with code ${ exitCode.exitCode }${ exitCode.signal ? ` (${ exitCode.signal })` : '' }\x1b[0m\r\n`
                             }));
                         }
                         shellProcess = null;
@@ -624,7 +630,7 @@ function handleShellConnection(ws) {
                     console.error('❌ Error spawning process:', spawnError);
                     ws.send(JSON.stringify({
                         type: 'output',
-                        data: `\r\n\x1b[31mError: ${spawnError.message}\x1b[0m\r\n`
+                        data: `\r\n\x1b[31mError: ${ spawnError.message }\x1b[0m\r\n`
                     }));
                 }
 
@@ -651,7 +657,7 @@ function handleShellConnection(ws) {
             if (ws.readyState === ws.OPEN) {
                 ws.send(JSON.stringify({
                     type: 'output',
-                    data: `\r\n\x1b[31mError: ${error.message}\x1b[0m\r\n`
+                    data: `\r\n\x1b[31mError: ${ error.message }\x1b[0m\r\n`
                 }));
             }
         }
@@ -669,6 +675,7 @@ function handleShellConnection(ws) {
         console.error('❌ Shell WebSocket error:', error);
     });
 }
+
 // Audio transcription endpoint
 app.post('/api/transcribe', authenticateToken, async (req, res) => {
     try {
@@ -706,7 +713,7 @@ app.post('/api/transcribe', authenticateToken, async (req, res) => {
                 const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
                     method: 'POST',
                     headers: {
-                        'Authorization': `Bearer ${apiKey}`,
+                        'Authorization': `Bearer ${ apiKey }`,
                         ...formData.getHeaders()
                     },
                     body: formData
@@ -714,7 +721,7 @@ app.post('/api/transcribe', authenticateToken, async (req, res) => {
 
                 if (!response.ok) {
                     const errorData = await response.json().catch(() => ({}));
-                    throw new Error(errorData.error?.message || `Whisper API error: ${response.status}`);
+                    throw new Error(errorData.error?.message || `Whisper API error: ${ response.status }`);
                 }
 
                 const data = await response.json();
@@ -754,7 +761,7 @@ Your enhanced prompt should:
 6. Consider edge cases and potential ambiguities
 
 Transform this rough instruction into a well-crafted prompt:
-"${transcribedText}"
+"${ transcribedText }"
 
 Enhanced prompt:`;
                             break;
@@ -775,7 +782,7 @@ IMPORTANT RULES:
 - Use clear, actionable language an agent can follow
 
 Transform this idea into agent-friendly instructions:
-"${transcribedText}"
+"${ transcribedText }"
 
 Agent instructions:`;
                             break;
@@ -882,7 +889,7 @@ app.post('/api/projects/:projectName/upload-images', authenticateToken, async (r
 
                         return {
                             name: file.originalname,
-                            data: `data:${mimeType};base64,${base64}`,
+                            data: `data:${ mimeType };base64,${ base64 }`,
                             size: file.size,
                             mimeType: mimeType
                         };
@@ -893,7 +900,8 @@ app.post('/api/projects/:projectName/upload-images', authenticateToken, async (r
             } catch (error) {
                 console.error('Error processing images:', error);
                 // Clean up any remaining files
-                await Promise.all(req.files.map(f => fs.unlink(f.path).catch(() => { })));
+                await Promise.all(req.files.map(f => fs.unlink(f.path).catch(() => {
+                })));
                 res.status(500).json({ error: 'Failed to process images' });
             }
         });
@@ -905,16 +913,16 @@ app.post('/api/projects/:projectName/upload-images', authenticateToken, async (r
 
 // Serve React app for all other routes
 app.get('*', (req, res) => {
-  if (isElectron || process.env.NODE_ENV === 'production') {
-    // In Electron or production, serve the built React app
-    const indexPath = isElectron ? 
-      path.join(__dirname, '../dist/index.html') : 
-      path.join(__dirname, '../dist/index.html');
-    res.sendFile(indexPath);
-  } else {
-    // In development, redirect to Vite dev server
-    res.redirect(`http://localhost:${process.env.VITE_PORT || 5173}`);
-  }
+    if (isElectron || process.env.NODE_ENV === 'production') {
+        // In Electron or production, serve the built React app
+        const indexPath = isElectron ?
+            path.join(__dirname, '../dist/index.html') :
+            path.join(__dirname, '../dist/index.html');
+        res.sendFile(indexPath);
+    } else {
+        // In development, redirect to Vite dev server
+        res.redirect(`http://localhost:${ process.env.VITE_PORT || 5173 }`);
+    }
 });
 
 // Helper function to convert permissions to rwx format
@@ -1010,9 +1018,9 @@ async function startServer() {
 
         // In Electron, bind to localhost for security and compatibility
         const host = isElectron ? '127.0.0.1' : '0.0.0.0';
-        
+
         server.listen(PORT, host, async () => {
-            console.log(`Claude Code UI server running on http://${host}:${PORT}`);
+            console.log(`Claude Code UI server running on http://${ host }:${ PORT }`);
 
             // Start watching the projects folder for changes
             await setupProjectsWatcher(); // Re-enabled with better-sqlite3

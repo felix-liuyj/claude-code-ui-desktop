@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { spawn, exec } from 'child_process';
+import { exec, spawn } from 'child_process';
 import { existsSync } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -30,11 +30,11 @@ async function checkPort() {
 
 async function main() {
     await checkPort();
-    
+
     // Check if dist folder exists
     if (!existsSync(path.join(projectRoot, 'dist'))) {
         console.log('📦 Building application...');
-        
+
         const buildProcess = spawn('npm', ['run', 'build'], {
             stdio: 'inherit',
             shell: true,
@@ -60,7 +60,7 @@ main();
 
 function startElectron() {
     console.log('🖥️  Starting Electron app...');
-    
+
     const electronProcess = spawn('electron', ['.'], {
         stdio: 'inherit',
         shell: true,
@@ -73,7 +73,7 @@ function startElectron() {
     });
 
     electronProcess.on('close', (code) => {
-        console.log(`👋 Electron app closed with code: ${code}`);
+        console.log(`👋 Electron app closed with code: ${ code }`);
         process.exit(code);
     });
 
