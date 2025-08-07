@@ -28,7 +28,7 @@ function createWindow() {
             allowRunningInsecureContent: false,
             experimentalFeatures: false
         },
-        icon: join(__dirname, '../public/logo.svg'),
+        icon: join(__dirname, '../build/icon.png'),
         titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
         show: false // Don't show until ready
     });

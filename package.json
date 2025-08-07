@@ -80,6 +80,7 @@
   "build": {
     "appId": "com.claudecodeui.app",
     "productName": "Claude Code UI",
+    "asar": true,
     "directories": {
       "output": "dist-electron"
     },
@@ -94,6 +95,9 @@
         "from": "server",
         "to": "server"
       }
+    ],
+    "asarUnpack": [
+      "server/**/*"
     ],
     "mac": {
       "icon": "build/icon.icns",
