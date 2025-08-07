@@ -30,7 +30,7 @@ function createWindow() {
       allowRunningInsecureContent: false,
       experimentalFeatures: false
     },
-    icon: process.platform === 'linux' ? join(__dirname, '../public/logo.svg') : undefined,
+    icon: join(__dirname, '../public/logo.svg'),
     titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
     show: false // Don't show until ready
   });

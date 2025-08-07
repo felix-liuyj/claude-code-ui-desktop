@@ -9,6 +9,7 @@ lerna-debug.log*
 # Build outputs
 dist/
 dist-ssr/
+dist-electron/
 build/
 out/
 
@@ -104,4 +105,4 @@ temp/
 # Database files
 *.db
 *.sqlite
-*.sqlite3 
+*.sqlite3
