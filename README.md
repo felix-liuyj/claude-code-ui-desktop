@@ -1,4 +1,4 @@
-# Claude Code UI
+# Claude Code UI Desktop
 
 <!-- PROJECT SHIELDS -->
 
@@ -14,7 +14,7 @@
 
 <p align="center">
   <a href="https://github.com/felix-liuyj/claude-code-ui-desktop">
-    <img src="public/logo.svg" alt="Claude Code UI" width="64" height="64">
+    <img src="public/logo.svg" alt="Claude Code UI Desktop" width="64" height="64">
   </a>
 
 <h3 align="center">Claude Code UI Desktop</h3>
@@ -33,50 +33,46 @@
 
 ## 目录
 
-- [Claude Code UI](#claude-code-ui)
-    - [目录](#目录)
-    - [关于项目](#关于项目)
-        - [主要功能](#主要功能)
-        - [技术特点](#技术特点)
-    - [快速开始](#快速开始)
-        - [环境要求](#环境要求)
-        - [安装步骤](#安装步骤)
-    - [项目结构](#项目结构)
-    - [核心功能](#核心功能)
-        - [桌面应用 (Electron)](#桌面应用-electron)
-        - [Web应用 (传统模式)](#web应用-传统模式)
-    - [开发指南](#开发指南)
-        - [开发命令](#开发命令)
-        - [环境配置](#环境配置)
-    - [架构设计](#架构设计)
-        - [系统概览](#系统概览)
-        - [核心架构模式](#核心架构模式)
-    - [部署选项](#部署选项)
-        - [桌面应用打包](#桌面应用打包)
-        - [Docker部署](#docker部署)
-    - [技术栈](#技术栈)
-    - [安全配置](#安全配置)
-    - [故障排除](#故障排除)
-    - [贡献指南](#贡献指南)
-    - [许可证](#许可证)
-    - [致谢](#致谢)
+- [Claude Code UI Desktop](#claude-code-ui-desktop)
+  - [目录](#目录)
+  - [关于项目](#关于项目)
+    - [继承的核心功能](#继承的核心功能)
+    - [技术特点](#技术特点)
+  - [快速开始](#快速开始)
+    - [环境要求](#环境要求)
+    - [安装步骤](#安装步骤)
+  - [项目结构](#项目结构)
+  - [核心功能](#核心功能)
+  - [开发指南](#开发指南)
+    - [开发命令](#开发命令)
+  - [架构设计](#架构设计)
+    - [系统概览](#系统概览)
+    - [核心架构模式](#核心架构模式)
+  - [部署选项](#部署选项)
+  - [技术栈](#技术栈)
+  - [安全配置](#安全配置)
+  - [故障排除](#故障排除)
+  - [贡献指南](#贡献指南)
+  - [许可证](#许可证)
+  - [致谢](#致谢)
 
 ## 关于项目
+
+**注意：这是一个纯Electron桌面版本，已移除所有Web相关功能，仅保留桌面端支持。**
 
 Claude Code UI Desktop 是基于 [siteboon/claudecodeui](https://github.com/siteboon/claudecodeui)
 开发的桌面版本，为 [Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code) 提供原生的 Electron 桌面应用体验。
 
-本项目在原有的 Web 版本基础上，增加了完整的 Electron 桌面应用支持，将 React 前端和 Node.js 后端整合在一个统一的桌面应用中，通过嵌入式服务器架构和集成的
-WebSocket 通信提供更加流畅的用户体验。
+本项目为纯桌面版本，已完全移除Web认证系统和在线部署功能，专注于提供最佳的桌面端体验。通过嵌入式服务器架构和直接的本地通信，提供更加安全、快速、稳定的使用体验。
 
-### 相比 Web 版本的新增功能
+### 相比 Web 版本的改进
 
-- **🖥️ 原生桌面体验** - 基于 Electron 的真正桌面应用，支持系统级集成
-- **⚡ 嵌入式服务器** - 服务器直接运行在主进程中，启动更快，更稳定
-- **🔒 增强安全性** - 本地运行，无需担心网络安全问题
+- **🖥️ 纯桌面体验** - 移除所有Web组件，专为桌面优化
+- **⚡ 简化架构** - 无需认证系统，直接本地通信
+- **🔒 更强安全性** - 纯本地运行，无网络安全风险
 - **📋 系统集成** - 支持系统托盘、菜单栏、文件关联等原生功能
-- **💾 离线可用** - 无需互联网连接即可使用基本功能
-- **🚀 性能优化** - 针对桌面环境优化，响应更快
+- **💾 完全离线** - 无需互联网连接即可使用所有功能
+- **🚀 性能卓越** - 移除Web开销，响应更快更稳定
 
 ### 继承的核心功能
 
@@ -90,10 +86,10 @@ WebSocket 通信提供更加流畅的用户体验。
 ### 技术特点
 
 - **嵌入式服务器架构** - Express 服务器直接运行在 Electron 主进程中
-- **双环境支持** - 同一代码库支持桌面应用和 Web 部署
-- **会话保护系统** - 防止 WebSocket 更新中断活动对话
+- **简化的本地通信** - 所有 API 调用都通过本地端口，无需网络认证
 - **实时项目同步** - 基于 chokidar 的文件系统监视
-- **JWT 身份验证** - 安全的用户认证和会话管理
+- **会话保护系统** - 防止 WebSocket 更新中断活动对话
+- **跨平台支持** - 支持 Windows、macOS 和 Linux
 
 ## 快速开始
 
@@ -119,7 +115,7 @@ WebSocket 通信提供更加流畅的用户体验。
     npm install
     ```
 
-3. **运行桌面应用 (推荐)**
+3. **运行桌面应用**
 
     ```bash
     # 开发模式
@@ -130,38 +126,26 @@ WebSocket 通信提供更加流畅的用户体验。
     npm run electron
     ```
 
-4. **或运行 Web 模式 (传统)**
-
-    ```bash
-    # 配置环境变量
-    cp .env.example .env
-    
-    # 开发模式
-    npm run dev
-    ```
-
-5. **首次使用设置**
+4. **首次使用设置**
     - 桌面应用会自动启动并连接到端口 3001
-    - 按照界面提示完成初始配置
-    - 确保 Claude Code CLI 已正确安装
+    - 应用会自动检测并使用已安装的 Claude Code CLI
+    - 无需认证配置，直接开始使用
 
 ## 项目结构
 
-```
+```text
 claude-code-ui-desktop/
 ├── /electron/                # Electron 主进程
 │  ├── main.js                # 主进程入口，窗口管理
 │  └── preload.js             # 预加载脚本，IPC 桥接
 ├── /src/                     # React 前端应用
 │  ├── /components/           # 可复用组件
-│  ├── /contexts/             # React 上下文
+│  ├── /contexts/             # React 上下文 (仅主题)
 │  ├── /hooks/                # 自定义 Hooks
 │  ├── /utils/                # 工具函数
 │  └── App.jsx                # 主应用组件
-├── /server/                  # Node.js 后端服务
-│  ├── /database/             # SQLite 数据库
-│  ├── /middleware/           # 中间件
-│  ├── /routes/               # API 路由
+├── /server/                  # Node.js 后端服务 (嵌入式)
+│  ├── /routes/               # API 路由 (Git, MCP)
 │  ├── claude-cli.js          # Claude CLI 集成
 │  ├── projects.js            # 项目管理
 │  └── index.js               # 服务器入口
@@ -180,20 +164,15 @@ claude-code-ui-desktop/
 
 ## 核心功能
 
-### 桌面应用 (Electron)
-
-- **原生体验**: 真正的桌面应用，支持系统托盘、菜单栏等原生功能
-- **离线可用**: 无需互联网连接即可使用基本功能
-- **文件系统集成**: 直接访问本地文件系统，支持拖拽操作
-- **自动更新**: 支持应用程序自动更新机制
-- **跨平台**: 支持 Windows、macOS 和 Linux
-
-### Web应用 (传统模式)
-
-- **浏览器访问**: 通过浏览器访问，无需安装
-- **远程访问**: 可以从任何设备访问
-- **轻量级**: 不占用本地存储空间
-- **易于部署**: 支持 Docker 容器化部署
+- **💬 交互式聊天界面** - 与 Claude Code 的无缝通信
+- **🖱️ 集成终端** - 内置 shell 功能，直接访问 Claude Code CLI
+- **📁 文件浏览器** - 交互式文件树，支持语法高亮和实时编辑
+- **🌲 Git 集成** - 查看、暂存和提交更改，支持分支切换
+- **📱 响应式设计** - 适配桌面环境的用户界面
+- **🔄 会话管理** - 恢复对话，管理多个会话，跟踪历史
+- **🖥️ 原生体验** - 真正的桌面应用，支持系统集成
+- **💾 完全离线** - 无需互联网连接即可使用所有功能
+- **🔒 本地安全** - 纯本地运行，无网络安全风险
 
 ## 开发指南
 
@@ -206,43 +185,21 @@ npm run electron             # 运行 Electron (需要先构建)
 npm run electron-pack        # 构建并打包 Electron 应用
 npm run dist                 # 创建可分发的安装包
 
-# Web 应用开发 (传统模式)
-npm run dev                  # 同时启动前后端开发服务器
-npm run server               # 仅启动后端服务器
-npm run client               # 仅启动前端开发服务器
-
 # 构建命令
 npm run build                # 构建 React 前端
-npm run preview              # 预览生产构建
-npm start                    # 启动生产服务器
+npm start                    # 启动生产服务器 (等同于 electron)
 
 # 依赖管理
 npm install                  # 安装所有依赖
 ```
 
-### 环境配置
-
-#### 桌面应用 (Electron)
-
-无需环境配置 - 所有设置均为自动：
-
-- 服务器端口：固定为 3001
-- 认证：SQLite 数据库存储在 Electron userData 目录
-- 构建输出：前端构建到 `dist/`，打包输出到 `dist-electron/`
-
-#### Web 模式 (传统)
-
-复制 `.env.example` 到 `.env` 并配置：
-
-- `PORT=3001` - 后端服务器端口
-- `VITE_PORT=5173` - 前端开发端口
-- 认证数据库：`server/database/auth.db`
+**注意**: 本桌面版本已移除 Web 开发模式相关命令，专注于 Electron 桌面应用开发。
 
 ## 架构设计
 
 ### 系统概览
 
-```
+```text
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │   Frontend      │    │   Backend       │    │  Claude CLI     │
 │   (React/Vite)  │◄──►│ (Express/WS)    │◄──►│  Integration    │
@@ -253,22 +210,23 @@ npm install                  # 安装所有依赖
 ### 核心架构模式
 
 1. **嵌入式服务器架构**
-    - Express 服务器直接运行在 Electron 主进程中
-    - 运行时动态导入：`await import(serverPath)`
-    - 桌面应用固定端口 3001，Web 模式动态端口
-    - 与 Electron 应用生命周期自动管理
+   - Express 服务器直接运行在 Electron 主进程中
+   - 运行时动态导入：`await import(serverPath)`
+   - 固定端口 3001，无需动态端口分配
+   - 与 Electron 应用生命周期自动管理
 
-2. **会话保护系统** (`src/App.jsx:75-456`)
-    - 防止 WebSocket 项目更新清除活动聊天消息
-    - 使用 `activeSessions` Set 跟踪进行中的对话
-    - 支持真实会话 ID 和临时 "new-session-*" 标识符
-    - `isUpdateAdditive()` 函数允许侧边栏更新同时保护活动聊天
+2. **会话保护系统** (`src/App.jsx`)
+   - 防止 WebSocket 项目更新清除活动聊天消息
+   - 使用 `activeSessions` Set 跟踪进行中的对话
+   - 支持真实会话 ID 和临时 "new-session-*" 标识符
+   - `isUpdateAdditive()` 函数允许侧边栏更新同时保护活动聊天
 
-3. **WebSocket 通信架构**
-    - 单一 WebSocket 服务器，基于 URL 的路由 (`/ws` vs `/shell`)
-    - `/ws` 端点：聊天消息、项目更新、会话管理
-    - `/shell` 端点：直接 Claude CLI 终端访问，使用 PTY
-    - 通过 chokidar 文件系统监视器实现实时项目同步
+3. **简化的本地通信架构**
+   - 单一 WebSocket 服务器，基于 URL 的路由 (`/ws` vs `/shell`)
+   - `/ws` 端点：聊天消息、项目更新、会话管理
+   - `/shell` 端点：直接 Claude CLI 终端访问，使用 PTY
+   - 通过 chokidar 文件系统监视器实现实时项目同步
+   - 移除所有认证层，直接本地通信
 
 ## 部署选项
 
@@ -286,15 +244,7 @@ npm run dist
 └── ClaudeCodeUI.AppImage  # Linux AppImage
 ```
 
-### Docker部署
-
-```bash
-# 构建 Docker 镜像
-docker build -t claude-code-ui .
-
-# 运行容器 (Web 模式)
-docker run -d -p 3001:3001 --name claude-ui claude-code-ui
-```
+**注意**: 本桌面版本专注于本地应用体验，已移除 Docker 部署和 Web 服务器部署选项。
 
 ## 技术栈
 
@@ -315,9 +265,7 @@ docker run -d -p 3001:3001 --name claude-ui claude-code-ui
 
 ### 数据和通信
 
-- **[SQLite](https://www.sqlite.org/)** - 轻量级数据库
 - **[WebSocket (ws)](https://github.com/websockets/ws)** - 实时通信
-- **[JWT](https://jwt.io/)** - 身份验证令牌
 - **[Chokidar](https://github.com/paulmillr/chokidar)** - 文件系统监视
 
 ### 开发工具
@@ -328,7 +276,7 @@ docker run -d -p 3001:3001 --name claude-ui claude-code-ui
 
 ## 安全配置
 
-**🔒 重要提醒**: 所有 Claude Code 工具默认处于 **禁用状态**，防止潜在有害操作自动运行。
+**重要提醒**: 所有 Claude Code 工具默认处于 **禁用状态**，防止潜在有害操作自动运行。
 
 ### 启用工具
 
@@ -339,6 +287,12 @@ docker run -d -p 3001:3001 --name claude-ui claude-code-ui
 3. **应用设置** - 偏好设置会本地保存
 
 **推荐方法**: 从基本工具开始，根据需要逐步添加更多工具。
+
+### 桌面版本安全优势
+
+- **无网络风险** - 纯本地运行，无需担心网络安全问题
+- **无认证泄露** - 移除了所有认证系统，避免凭据泄露风险
+- **本地数据** - 所有数据存储在本地，完全可控
 
 ## 故障排除
 
@@ -420,9 +374,7 @@ GNU General Public License v3.0 - 查看 [LICENSE](LICENSE) 文件了解详情�
 
 ---
 
-<div align="center">
-  <strong>为 Claude Code 社区精心制作</strong>
-</div>
+为 Claude Code 社区精心制作
 
 <!-- links -->
 

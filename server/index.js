@@ -1,11 +1,10 @@
-// Load environment variables from .env file
+// Electron desktop application server
 import fs, { promises as fsPromises } from 'fs';
 import path, { dirname } from 'path';
 import { fileURLToPath } from 'url';
 import express from 'express';
 import { WebSocketServer } from 'ws';
 import http from 'http';
-import cors from 'cors';
 import os from 'os';
 import pty from 'node-pty';
 import fetch from 'node-fetch';
@@ -24,34 +23,13 @@ import {
 } from './projects.js';
 import { abortClaudeSession, spawnClaude } from './claude-cli.js';
 import gitRoutes from './routes/git.js';
-import authRoutes from './routes/auth.js';
 import mcpRoutes from './routes/mcp.js';
-import { initializeDatabase } from './database/db.js';
-import { authenticateToken, authenticateWebSocket, validateApiKey } from './middleware/auth.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Load environment variables from .env file (if not in Electron)
-const isElectron = process.env.ELECTRON_APP === 'true';
-
-if (!isElectron) {
-    try {
-        const envPath = path.join(__dirname, '../.env');
-        const envFile = fs.readFileSync(envPath, 'utf8');
-        envFile.split('\n').forEach(line => {
-            const trimmedLine = line.trim();
-            if (trimmedLine && !trimmedLine.startsWith('#')) {
-                const [key, ...valueParts] = trimmedLine.split('=');
-                if (key && valueParts.length > 0 && !process.env[key]) {
-                    process.env[key] = valueParts.join('=').trim();
-                }
-            }
-        });
-    } catch (e) {
-        console.log('No .env file found or error reading it:', e.message);
-    }
-}
+// Electron desktop application - always true for this desktop-only version
+const isElectron = true;
 
 console.log('PORT from env:', process.env.PORT);
 
@@ -146,53 +124,24 @@ async function setupProjectsWatcher() {
 const app = express();
 const server = http.createServer(app);
 
-// Single WebSocket server that handles both paths
+// Single WebSocket server that handles both paths  
 const wss = new WebSocketServer({
-    server,
-    verifyClient: (info) => {
-        console.log('WebSocket connection attempt to:', info.req.url);
-
-        // Extract token from query parameters or headers
-        const url = new URL(info.req.url, 'http://localhost');
-        const token = url.searchParams.get('token') ||
-            info.req.headers.authorization?.split(' ')[1];
-
-        // Verify token
-        const user = authenticateWebSocket(token);
-        if (!user) {
-            console.log('❌ WebSocket authentication failed');
-            return false;
-        }
-
-        // Store user info in the request for later use
-        info.req.user = user;
-        console.log('✅ WebSocket authenticated for user:', user.username);
-        return true;
-    }
+    server
 });
 
-app.use(cors());
 app.use(express.json());
 
-// Optional API key validation (if configured)
-app.use('/api', validateApiKey);
+// Git API Routes
+app.use('/api/git', gitRoutes);
 
-// Authentication routes (public)
-app.use('/api/auth', authRoutes);
-
-// Git API Routes (protected)
-app.use('/api/git', authenticateToken, gitRoutes);
-
-// MCP API Routes (protected)
-app.use('/api/mcp', authenticateToken, mcpRoutes);
+// MCP API Routes  
+app.use('/api/mcp', mcpRoutes);
 
 // Static files served after API routes
-if (isElectron || process.env.NODE_ENV === 'production') {
-    app.use(express.static(path.join(__dirname, '../dist')));
-}
+app.use(express.static(path.join(__dirname, '../dist')));
 
-// API Routes (protected)
-app.get('/api/config', authenticateToken, (req, res) => {
+// API Routes
+app.get('/api/config', (req, res) => {
     const host = req.headers.host || `${ req.hostname }:${ PORT }`;
     const protocol = req.protocol === 'https' || req.get('x-forwarded-proto') === 'https' ? 'wss' : 'ws';
 
@@ -204,7 +153,7 @@ app.get('/api/config', authenticateToken, (req, res) => {
     });
 });
 
-app.get('/api/projects', authenticateToken, async (req, res) => {
+app.get('/api/projects', async (req, res) => {
     try {
         const projects = await getProjects();
         res.json(projects);
@@ -213,7 +162,7 @@ app.get('/api/projects', authenticateToken, async (req, res) => {
     }
 });
 
-app.get('/api/projects/:projectName/sessions', authenticateToken, async (req, res) => {
+app.get('/api/projects/:projectName/sessions', async (req, res) => {
     try {
         const { limit = 5, offset = 0 } = req.query;
         const result = await getSessions(req.params.projectName, parseInt(limit), parseInt(offset));
@@ -224,7 +173,7 @@ app.get('/api/projects/:projectName/sessions', authenticateToken, async (req, re
 });
 
 // Get messages for a specific session
-app.get('/api/projects/:projectName/sessions/:sessionId/messages', authenticateToken, async (req, res) => {
+app.get('/api/projects/:projectName/sessions/:sessionId/messages', async (req, res) => {
     try {
         const { projectName, sessionId } = req.params;
         const messages = await getSessionMessages(projectName, sessionId);
@@ -235,7 +184,7 @@ app.get('/api/projects/:projectName/sessions/:sessionId/messages', authenticateT
 });
 
 // Rename project endpoint
-app.put('/api/projects/:projectName/rename', authenticateToken, async (req, res) => {
+app.put('/api/projects/:projectName/rename', async (req, res) => {
     try {
         const { displayName } = req.body;
         await renameProject(req.params.projectName, displayName);
@@ -246,7 +195,7 @@ app.put('/api/projects/:projectName/rename', authenticateToken, async (req, res)
 });
 
 // Delete session endpoint
-app.delete('/api/projects/:projectName/sessions/:sessionId', authenticateToken, async (req, res) => {
+app.delete('/api/projects/:projectName/sessions/:sessionId', async (req, res) => {
     try {
         const { projectName, sessionId } = req.params;
         await deleteSession(projectName, sessionId);
@@ -257,7 +206,7 @@ app.delete('/api/projects/:projectName/sessions/:sessionId', authenticateToken, 
 });
 
 // Delete project endpoint (only if empty)
-app.delete('/api/projects/:projectName', authenticateToken, async (req, res) => {
+app.delete('/api/projects/:projectName', async (req, res) => {
     try {
         const { projectName } = req.params;
         await deleteProject(projectName);
@@ -268,7 +217,7 @@ app.delete('/api/projects/:projectName', authenticateToken, async (req, res) => 
 });
 
 // Create project endpoint
-app.post('/api/projects/create', authenticateToken, async (req, res) => {
+app.post('/api/projects/create', async (req, res) => {
     try {
         const { path: projectPath } = req.body;
 
@@ -285,7 +234,7 @@ app.post('/api/projects/create', authenticateToken, async (req, res) => {
 });
 
 // Read file content endpoint
-app.get('/api/projects/:projectName/file', authenticateToken, async (req, res) => {
+app.get('/api/projects/:projectName/file', async (req, res) => {
     try {
         const { projectName } = req.params;
         const { filePath } = req.query;
@@ -314,7 +263,7 @@ app.get('/api/projects/:projectName/file', authenticateToken, async (req, res) =
 });
 
 // Serve binary file content endpoint (for images, etc.)
-app.get('/api/projects/:projectName/files/content', authenticateToken, async (req, res) => {
+app.get('/api/projects/:projectName/files/content', async (req, res) => {
     try {
         const { projectName } = req.params;
         const { path: filePath } = req.query;
@@ -360,7 +309,7 @@ app.get('/api/projects/:projectName/files/content', authenticateToken, async (re
 });
 
 // Save file content endpoint
-app.put('/api/projects/:projectName/file', authenticateToken, async (req, res) => {
+app.put('/api/projects/:projectName/file', async (req, res) => {
     try {
         const { projectName } = req.params;
         const { filePath, content } = req.body;
@@ -407,7 +356,7 @@ app.put('/api/projects/:projectName/file', authenticateToken, async (req, res) =
     }
 });
 
-app.get('/api/projects/:projectName/files', authenticateToken, async (req, res) => {
+app.get('/api/projects/:projectName/files', async (req, res) => {
     try {
 
         // Using fsPromises from import
@@ -677,7 +626,7 @@ function handleShellConnection(ws) {
 }
 
 // Audio transcription endpoint
-app.post('/api/transcribe', authenticateToken, async (req, res) => {
+app.post('/api/transcribe', async (req, res) => {
     try {
         const multer = (await import('multer')).default;
         const upload = multer({ storage: multer.memoryStorage() });
@@ -826,7 +775,7 @@ Agent instructions:`;
 });
 
 // Image upload endpoint
-app.post('/api/projects/:projectName/upload-images', authenticateToken, async (req, res) => {
+app.post('/api/projects/:projectName/upload-images', async (req, res) => {
     try {
         const multer = (await import('multer')).default;
         const path = (await import('path')).default;
@@ -913,16 +862,9 @@ app.post('/api/projects/:projectName/upload-images', authenticateToken, async (r
 
 // Serve React app for all other routes
 app.get('*', (req, res) => {
-    if (isElectron || process.env.NODE_ENV === 'production') {
-        // In Electron or production, serve the built React app
-        const indexPath = isElectron ?
-            path.join(__dirname, '../dist/index.html') :
-            path.join(__dirname, '../dist/index.html');
-        res.sendFile(indexPath);
-    } else {
-        // In development, redirect to Vite dev server
-        res.redirect(`http://localhost:${ process.env.VITE_PORT || 5173 }`);
-    }
+    // Electron desktop app - always serve the built React app
+    const indexPath = path.join(__dirname, '../dist/index.html');
+    res.sendFile(indexPath);
 });
 
 // Helper function to convert permissions to rwx format
@@ -1011,13 +953,8 @@ const PORT = process.env.PORT || 3001;
 // Initialize database and start server
 async function startServer() {
     try {
-        // Initialize authentication database
-        console.log('🔧 Initializing database...');
-        await initializeDatabase();
-        console.log('✅ Database initialized successfully');
-
-        // In Electron, bind to localhost for security and compatibility
-        const host = isElectron ? '127.0.0.1' : '0.0.0.0';
+        // In Electron desktop app, bind to localhost for security
+        const host = '127.0.0.1';
 
         server.listen(PORT, host, async () => {
             console.log(`Claude Code UI server running on http://${ host }:${ PORT }`);
