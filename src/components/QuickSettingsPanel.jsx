@@ -4,13 +4,13 @@ import {
     ArrowDown,
     ChevronLeft,
     ChevronRight,
+    Edit3,
     Eye,
     FileText,
     Languages,
     Maximize2,
     Mic,
     Moon,
-    Play,
     Settings2,
     Shield,
     Sparkles,
@@ -43,9 +43,20 @@ const QuickSettingsPanel = ({
         const savedSettings = localStorage.getItem('claude-tools-settings');
         if (savedSettings) {
             const settings = JSON.parse(savedSettings);
-            return settings.permissionMode || 'default';
+            let mode = settings.permissionMode || 'default';
+            if (mode === 'auto-allow') mode = 'acceptEdits';
+            if (mode === 'skip-all') mode = 'bypassPermissions';
+            return mode;
         }
         return 'default';
+    });
+    const [skipPermissions, setSkipPermissions] = useState(() => {
+        const savedSettings = localStorage.getItem('claude-tools-settings');
+        if (savedSettings) {
+            const settings = JSON.parse(savedSettings);
+            return !!settings.skipPermissions;
+        }
+        return false;
     });
     const [isDevelopmentMode, setIsDevelopmentMode] = useState(false);
     const { isDarkMode } = useTheme();
@@ -87,7 +98,7 @@ const QuickSettingsPanel = ({
 
     const handlePermissionModeChange = (newMode) => {
         setPermissionMode(newMode);
-        
+
         // Save to localStorage
         const savedSettings = localStorage.getItem('claude-tools-settings');
         let settings = {};
@@ -97,10 +108,27 @@ const QuickSettingsPanel = ({
         settings.permissionMode = newMode;
         settings.lastUpdated = new Date().toISOString();
         localStorage.setItem('claude-tools-settings', JSON.stringify(settings));
-        
+
         // Dispatch event to notify other components
         window.dispatchEvent(new CustomEvent('permissionModeChanged', { detail: { mode: newMode } }));
     };
+
+    // Listen to global settings changes to keep in sync
+    useEffect(() => {
+        const onToolsSettingsChanged = () => {
+            const savedSettings = localStorage.getItem('claude-tools-settings');
+            if (savedSettings) {
+                const settings = JSON.parse(savedSettings);
+                let mode = settings.permissionMode || 'default';
+                if (mode === 'auto-allow') mode = 'acceptEdits';
+                if (mode === 'skip-all') mode = 'bypassPermissions';
+                setPermissionMode(mode);
+                setSkipPermissions(!!settings.skipPermissions);
+            }
+        };
+        window.addEventListener('toolsSettingsChanged', onToolsSettingsChanged);
+        return () => window.removeEventListener('toolsSettingsChanged', onToolsSettingsChanged);
+    }, []);
 
     return (
         <>
@@ -161,6 +189,13 @@ const QuickSettingsPanel = ({
                             <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">权限模式</h4>
 
                             <div className="space-y-2">
+                                { skipPermissions && (
+                                    <div
+                                        className="p-2 rounded bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-200 border border-red-200 dark:border-red-700">
+                                        已启用 <code
+                                        className="px-1 bg-red-100/70 dark:bg-red-800/40 rounded">--dangerously-skip-permissions</code>，此处的权限模式已被忽略。
+                                    </div>
+                                ) }
                                 <label
                                     className="flex items-start p-3 rounded-lg bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors border border-transparent hover:border-gray-300 dark:hover:border-gray-600">
                                     <input
@@ -169,10 +204,12 @@ const QuickSettingsPanel = ({
                                         value="default"
                                         checked={ permissionMode === 'default' }
                                         onChange={ () => handlePermissionModeChange('default') }
+                                        disabled={ skipPermissions }
                                         className="mt-0.5 h-4 w-4 border-gray-300 dark:border-gray-600 text-blue-600 dark:text-blue-500 focus:ring-blue-500 dark:focus:ring-blue-400 dark:bg-gray-800 dark:checked:bg-blue-600"
                                     />
                                     <div className="ml-3 flex-1">
-                                        <span className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-white">
+                                        <span
+                                            className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-white">
                                             <Shield className="h-4 w-4 text-blue-600 dark:text-blue-400"/>
                                             默认模式
                                         </span>
@@ -187,18 +224,20 @@ const QuickSettingsPanel = ({
                                     <input
                                         type="radio"
                                         name="permissionMode"
-                                        value="auto-allow"
-                                        checked={ permissionMode === 'auto-allow' }
-                                        onChange={ () => handlePermissionModeChange('auto-allow') }
+                                        value="acceptEdits"
+                                        checked={ permissionMode === 'acceptEdits' }
+                                        onChange={ () => handlePermissionModeChange('acceptEdits') }
+                                        disabled={ skipPermissions }
                                         className="mt-0.5 h-4 w-4 border-gray-300 dark:border-gray-600 text-blue-600 dark:text-blue-500 focus:ring-blue-500 dark:focus:ring-blue-400 dark:bg-gray-800 dark:checked:bg-blue-600"
                                     />
                                     <div className="ml-3 flex-1">
-                                        <span className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-white">
-                                            <Play className="h-4 w-4 text-green-500"/>
-                                            自动允许模式
+                                        <span
+                                            className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-white">
+                                            <Edit3 className="h-4 w-4 text-green-500"/>
+                                            接受编辑
                                         </span>
                                         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                            自动允许安全的工具，仅对危险操作提示
+                                            自动允许安全的编辑与读取类操作，对潜在危险操作仍会提示
                                         </p>
                                     </div>
                                 </label>
@@ -208,18 +247,43 @@ const QuickSettingsPanel = ({
                                     <input
                                         type="radio"
                                         name="permissionMode"
-                                        value="skip-all"
-                                        checked={ permissionMode === 'skip-all' }
-                                        onChange={ () => handlePermissionModeChange('skip-all') }
+                                        value="plan"
+                                        checked={ permissionMode === 'plan' }
+                                        onChange={ () => handlePermissionModeChange('plan') }
+                                        disabled={ skipPermissions }
                                         className="mt-0.5 h-4 w-4 border-gray-300 dark:border-gray-600 text-blue-600 dark:text-blue-500 focus:ring-blue-500 dark:focus:ring-blue-400 dark:bg-gray-800 dark:checked:bg-blue-600"
                                     />
                                     <div className="ml-3 flex-1">
-                                        <span className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-white">
-                                            <AlertTriangle className="h-4 w-4 text-orange-500"/>
-                                            跳过所有权限
+                                        <span
+                                            className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-white">
+                                            <FileText className="h-4 w-4 text-blue-500"/>
+                                            计划模式
                                         </span>
                                         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                            跳过所有权限提示（谨慎使用）
+                                            仅生成计划，不直接执行潜在有副作用的操作
+                                        </p>
+                                    </div>
+                                </label>
+
+                                <label
+                                    className="flex items-start p-3 rounded-lg bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors border border-transparent hover:border-gray-300 dark:hover:border-gray-600">
+                                    <input
+                                        type="radio"
+                                        name="permissionMode"
+                                        value="bypassPermissions"
+                                        checked={ permissionMode === 'bypassPermissions' }
+                                        onChange={ () => handlePermissionModeChange('bypassPermissions') }
+                                        disabled={ skipPermissions }
+                                        className="mt-0.5 h-4 w-4 border-gray-300 dark:border-gray-600 text-blue-600 dark:text-blue-500 focus:ring-blue-500 dark:focus:ring-blue-400 dark:bg-gray-800 dark:checked:bg-blue-600"
+                                    />
+                                    <div className="ml-3 flex-1">
+                                        <span
+                                            className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-white">
+                                            <AlertTriangle className="h-4 w-4 text-orange-500"/>
+                                            绕过权限
+                                        </span>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                            尽量减少权限提示，但与 --dangerously-skip-permissions 不同，仍会对高风险操作进行保护
                                         </p>
                                     </div>
                                 </label>

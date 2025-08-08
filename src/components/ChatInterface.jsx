@@ -1269,6 +1269,7 @@ function ChatInterface({
     const [isLoadingSessionMessages, setIsLoadingSessionMessages] = useState(false);
     const [isSystemSessionChange, setIsSystemSessionChange] = useState(false);
     const [permissionMode, setPermissionMode] = useState('default');
+    const [skipPermissions, setSkipPermissions] = useState(false);
     const [attachedImages, setAttachedImages] = useState([]);
     const [uploadingImages, setUploadingImages] = useState(new Map());
     const [imageErrors, setImageErrors] = useState(new Map());
@@ -1288,6 +1289,38 @@ function ChatInterface({
     const [isTextareaExpanded, setIsTextareaExpanded] = useState(false);
     const [visibleMessageCount, setVisibleMessageCount] = useState(100);
     const [claudeStatus, setClaudeStatus] = useState(null);
+    // Sync permissionMode and skipPermissions from saved settings and global events
+    useEffect(() => {
+        const load = () => {
+            try {
+                const saved = safeLocalStorage.getItem('claude-tools-settings');
+                if (saved) {
+                    const settings = JSON.parse(saved);
+                    let mode = settings.permissionMode || 'default';
+                    if (mode === 'auto-allow') mode = 'acceptEdits';
+                    if (mode === 'skip-all') mode = 'bypassPermissions';
+                    setPermissionMode(mode);
+                    setSkipPermissions(!!settings.skipPermissions);
+                }
+            } catch (e) {
+                // ignore
+            }
+        };
+        load();
+        const onPerm = (e) => {
+            let mode = e?.detail?.mode || 'default';
+            if (mode === 'auto-allow') mode = 'acceptEdits';
+            if (mode === 'skip-all') mode = 'bypassPermissions';
+            setPermissionMode(mode);
+        };
+        const onTools = () => load();
+        window.addEventListener('permissionModeChanged', onPerm);
+        window.addEventListener('toolsSettingsChanged', onTools);
+        return () => {
+            window.removeEventListener('permissionModeChanged', onPerm);
+            window.removeEventListener('toolsSettingsChanged', onTools);
+        };
+    }, []);
 
 
     // Memoized diff calculation to prevent recalculating on every render
@@ -2163,11 +2196,11 @@ function ChatInterface({
         }
 
         // Get tools settings from localStorage
-        const getToolsSettings = () => {
+    const getToolsSettings = () => {
             try {
                 const savedSettings = safeLocalStorage.getItem('claude-tools-settings');
                 if (savedSettings) {
-                    return JSON.parse(savedSettings);
+            return JSON.parse(savedSettings);
                 }
             } catch (error) {
                 console.error('Error loading tools settings:', error);
@@ -2179,10 +2212,12 @@ function ChatInterface({
             };
         };
 
-        const toolsSettings = getToolsSettings();
+    const toolsSettings = getToolsSettings();
+    // Keep local skipPermissions state in sync
+    setSkipPermissions(!!toolsSettings.skipPermissions);
 
         // Send command to Claude CLI via WebSocket with images
-        sendMessage({
+    sendMessage({
             type: 'claude-command',
             command: input,
             options: {
@@ -2191,7 +2226,8 @@ function ChatInterface({
                 sessionId: currentSessionId,
                 resume: !!currentSessionId,
                 toolsSettings: toolsSettings,
-                permissionMode: permissionMode,
+        // When --dangerously-skip-permissions is enabled, backend should ignore permissionMode
+        permissionMode: permissionMode,
                 images: uploadedImages // Pass images to backend
             }
         });
@@ -2251,6 +2287,7 @@ function ChatInterface({
         // Handle Tab key for mode switching (only when file dropdown is not showing)
         if (e.key === 'Tab' && !showFileDropdown) {
             e.preventDefault();
+            if (skipPermissions) return; // Do not switch when dangerous skip is enabled
             const modes = ['default', 'acceptEdits', 'bypassPermissions', 'plan'];
             const currentIndex = modes.indexOf(permissionMode);
             const nextIndex = (currentIndex + 1) % modes.length;
@@ -2479,31 +2516,37 @@ function ChatInterface({
                                 type="button"
                                 onClick={ handleModeSwitch }
                                 className={ `px-3 py-1.5 rounded-lg text-sm font-medium border transition-all duration-200 ${
-                                    permissionMode === 'default'
-                                        ? 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600'
-                                        : permissionMode === 'acceptEdits'
-                                            ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 border-green-300 dark:border-green-600 hover:bg-green-100 dark:hover:bg-green-900/30'
-                                            : permissionMode === 'bypassPermissions'
-                                                ? 'bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300 border-orange-300 dark:border-orange-600 hover:bg-orange-100 dark:hover:bg-orange-900/30'
-                                                : 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900/30'
+                                    skipPermissions
+                                        ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-200 border-red-300 dark:border-red-700 cursor-not-allowed'
+                                        : permissionMode === 'default'
+                                            ? 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600'
+                                            : permissionMode === 'acceptEdits'
+                                                ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 border-green-300 dark:border-green-600 hover:bg-green-100 dark:hover:bg-green-900/30'
+                                                : permissionMode === 'bypassPermissions'
+                                                    ? 'bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300 border-orange-300 dark:border-orange-600 hover:bg-orange-100 dark:hover:bg-orange-900/30'
+                                                    : 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900/30'
                                 }` }
                                 title="点击更改权限模式（或在输入框中按 Tab）"
+                                disabled={ skipPermissions }
                             >
                                 <div className="flex items-center gap-2">
                                     <div className={ `w-2 h-2 rounded-full ${
-                                        permissionMode === 'default'
-                                            ? 'bg-gray-500'
-                                            : permissionMode === 'acceptEdits'
-                                                ? 'bg-green-500'
-                                                : permissionMode === 'bypassPermissions'
-                                                    ? 'bg-orange-500'
-                                                    : 'bg-blue-500'
+                                        skipPermissions
+                                            ? 'bg-red-600'
+                                            : permissionMode === 'default'
+                                                ? 'bg-gray-500'
+                                                : permissionMode === 'acceptEdits'
+                                                    ? 'bg-green-500'
+                                                    : permissionMode === 'bypassPermissions'
+                                                        ? 'bg-orange-500'
+                                                        : 'bg-blue-500'
                                     }` }/>
                                     <span>
-                  { permissionMode === 'default' && '默认模式' }
-                                        { permissionMode === 'acceptEdits' && '接受编辑' }
-                                        { permissionMode === 'bypassPermissions' && '绕过权限' }
-                                        { permissionMode === 'plan' && '计划模式' }
+                  { skipPermissions && '危险模式（跳过权限）' }
+                                        { !skipPermissions && permissionMode === 'default' && '默认模式' }
+                                        { !skipPermissions && permissionMode === 'acceptEdits' && '接受编辑' }
+                                        { !skipPermissions && permissionMode === 'bypassPermissions' && '绕过权限' }
+                                        { !skipPermissions && permissionMode === 'plan' && '计划模式' }
                 </span>
                                 </div>
                             </button>

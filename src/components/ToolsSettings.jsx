@@ -6,6 +6,7 @@ import {
     AlertTriangle,
     Bug,
     Edit3,
+    FileText,
     Globe,
     Monitor,
     Moon,
@@ -276,15 +277,8 @@ function ToolsSettings({ isOpen, onClose }) {
         }
     }, [isOpen]);
 
-    // Sync permissionMode with skipPermissions
-    useEffect(() => {
-        if (permissionMode === 'skip-all' && !skipPermissions) {
-            setSkipPermissions(true);
-        } else if (permissionMode !== 'skip-all' && skipPermissions) {
-            // Only auto-update if skipPermissions was set via permissionMode
-            setSkipPermissions(false);
-        }
-    }, [permissionMode]);
+    // Note: permissionMode and skipPermissions are independent. When skipPermissions is true,
+    // UI that selects permissionMode will be disabled and permissionMode is ignored by runtime.
 
     const loadSettings = async () => {
         try {
@@ -315,12 +309,11 @@ function ToolsSettings({ isOpen, onClose }) {
                 setAllowedTools(settings.allowedTools || []);
                 setDisallowedTools(settings.disallowedTools || []);
                 setSkipPermissions(settings.skipPermissions || false);
-                const mode = settings.permissionMode || 'default';
+                // Map legacy modes to new ones
+                let mode = settings.permissionMode || 'default';
+                if (mode === 'auto-allow') mode = 'acceptEdits';
+                if (mode === 'skip-all') mode = 'bypassPermissions';
                 setPermissionMode(mode);
-                // Sync skipPermissions with permissionMode
-                if (mode === 'skip-all') {
-                    setSkipPermissions(true);
-                }
                 setProjectSortOrder(settings.projectSortOrder || 'name');
             } else {
                 // Set defaults
@@ -361,6 +354,8 @@ function ToolsSettings({ isOpen, onClose }) {
 
             // Save to localStorage
             localStorage.setItem('claude-tools-settings', JSON.stringify(settings));
+            // Notify other components
+            window.dispatchEvent(new Event('toolsSettingsChanged'));
 
             setSaveStatus('success');
 
@@ -820,8 +815,13 @@ function ToolsSettings({ isOpen, onClose }) {
                                                     权限处理模式
                                                 </div>
                                                 <div className="text-sm text-muted-foreground mb-4">
-                                                    选择工具权限的处理方式
+                                                    选择工具权限的处理方式（当启用 --dangerously-skip-permissions 时，此设置将被忽略）
                                                 </div>
+                                                { skipPermissions && (
+                                                    <div className="mb-3 p-3 rounded-lg text-sm bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-200 border border-red-300 dark:border-red-700">
+                                                        已启用 <code className="px-1 bg-red-100/70 dark:bg-red-800/40 rounded">--dangerously-skip-permissions</code>，权限模式已被忽略。请在下方关闭以恢复。
+                                                    </div>
+                                                ) }
                                                 <div className="space-y-3">
                                                     {/* Default Mode */ }
                                                     <label className="flex items-center space-x-3 cursor-pointer">
@@ -831,6 +831,7 @@ function ToolsSettings({ isOpen, onClose }) {
                                                             value="default"
                                                             checked={ permissionMode === 'default' }
                                                             onChange={ (e) => e.target.checked && setPermissionMode('default') }
+                                                            disabled={ skipPermissions }
                                                             className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600"
                                                         />
                                                         <div className="flex items-center space-x-2">
@@ -845,46 +846,70 @@ function ToolsSettings({ isOpen, onClose }) {
                                                         每次使用工具时都会提示权限确认
                                                     </p>
 
-                                                    {/* Auto-Allow Mode */ }
+                                                    {/* Accept Edits Mode */ }
                                                     <label className="flex items-center space-x-3 cursor-pointer">
                                                         <input
                                                             type="radio"
                                                             name="permissionMode"
-                                                            value="auto-allow"
-                                                            checked={ permissionMode === 'auto-allow' }
-                                                            onChange={ (e) => e.target.checked && setPermissionMode('auto-allow') }
+                                                            value="acceptEdits"
+                                                            checked={ permissionMode === 'acceptEdits' }
+                                                            onChange={ (e) => e.target.checked && setPermissionMode('acceptEdits') }
+                                                            disabled={ skipPermissions }
                                                             className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600"
                                                         />
                                                         <div className="flex items-center space-x-2">
-                                                            <Play className="w-4 h-4 text-green-500"/>
+                                                            <Edit3 className="w-4 h-4 text-green-500"/>
                                                             <span className="text-sm text-gray-700 dark:text-gray-300">
-                                                            自动允许模式
+                                                            接受编辑
                                                         </span>
                                                         </div>
                                                     </label>
                                                     <p className="text-xs text-gray-500 dark:text-gray-400 ml-7">
-                                                        自动允许安全的工具，仅对危险操作提示
+                                                        自动允许安全的编辑与读取类操作，对潜在危险操作仍会提示
                                                     </p>
 
-                                                    {/* Skip All Mode */ }
+                                                    {/* Plan Mode */ }
                                                     <label className="flex items-center space-x-3 cursor-pointer">
                                                         <input
                                                             type="radio"
                                                             name="permissionMode"
-                                                            value="skip-all"
-                                                            checked={ permissionMode === 'skip-all' }
-                                                            onChange={ (e) => e.target.checked && setPermissionMode('skip-all') }
+                                                            value="plan"
+                                                            checked={ permissionMode === 'plan' }
+                                                            onChange={ (e) => e.target.checked && setPermissionMode('plan') }
+                                                            disabled={ skipPermissions }
+                                                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600"
+                                                        />
+                                                        <div className="flex items-center space-x-2">
+                                                            <FileText className="w-4 h-4 text-blue-500"/>
+                                                            <span className="text-sm text-gray-700 dark:text-gray-300">
+                                                            计划模式
+                                                        </span>
+                                                        </div>
+                                                    </label>
+                                                    <p className="text-xs text-gray-500 dark:text-gray-400 ml-7">
+                                                        仅生成计划，不直接执行潜在有副作用的操作
+                                                    </p>
+
+                                                    {/* Bypass Permissions Mode (not the same as dangerous skip) */ }
+                                                    <label className="flex items-center space-x-3 cursor-pointer">
+                                                        <input
+                                                            type="radio"
+                                                            name="permissionMode"
+                                                            value="bypassPermissions"
+                                                            checked={ permissionMode === 'bypassPermissions' }
+                                                            onChange={ (e) => e.target.checked && setPermissionMode('bypassPermissions') }
+                                                            disabled={ skipPermissions }
                                                             className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600"
                                                         />
                                                         <div className="flex items-center space-x-2">
                                                             <AlertTriangle className="w-4 h-4 text-orange-500"/>
                                                             <span className="text-sm text-gray-700 dark:text-gray-300">
-                                                            跳过所有权限
+                                                            绕过权限
                                                         </span>
                                                         </div>
                                                     </label>
                                                     <p className="text-xs text-gray-500 dark:text-gray-400 ml-7">
-                                                        跳过所有权限提示，等同于 --dangerously-skip-permissions（谨慎使用）
+                                                        尽量减少权限提示，但与 <code className="px-1 bg-gray-100 dark:bg-gray-800 rounded">--dangerously-skip-permissions</code> 不同，仍会对高风险操作进行保护
                                                     </p>
                                                 </div>
                                             </div>
@@ -892,13 +917,12 @@ function ToolsSettings({ isOpen, onClose }) {
                                     </div>
                                 </div>
 
-                                {/* Skip Permissions - Keep for backward compatibility */ }
-                                <div className="space-y-4"
-                                     style={ { display: permissionMode === 'skip-all' ? 'none' : 'block' } }>
+                                {/* Dangerous Skip Permissions */ }
+                                <div className="space-y-4">
                                     <div className="flex items-center gap-3">
                                         <AlertTriangle className="w-5 h-5 text-orange-500"/>
                                         <h3 className="text-lg font-medium text-foreground">
-                                            权限设置（传统）
+                                            危险选项
                                         </h3>
                                     </div>
                                     <div
@@ -908,22 +932,32 @@ function ToolsSettings({ isOpen, onClose }) {
                                                 type="checkbox"
                                                 checked={ skipPermissions }
                                                 onChange={ (e) => {
-                                                    setSkipPermissions(e.target.checked);
-                                                    // Sync with permission mode
-                                                    if (e.target.checked && permissionMode !== 'skip-all') {
-                                                        setPermissionMode('skip-all');
-                                                    } else if (!e.target.checked && permissionMode === 'skip-all') {
-                                                        setPermissionMode('default');
+                                                    const checked = e.target.checked;
+                                                    if (checked) {
+                                                        // Double confirmation with strong warnings
+                                                        const first = confirm('危险操作：即将启用 --dangerously-skip-permissions。启用后将跳过所有权限确认，工具可能在无提示的情况下修改/删除文件、执行命令。确定继续？');
+                                                        if (!first) {
+                                                            e.preventDefault();
+                                                            return;
+                                                        }
+                                                        const second = confirm('再次确认：您确实要启用完全跳过权限提示吗？此选项极其危险，仅在完全信任的项目与环境中使用。');
+                                                        if (!second) {
+                                                            e.preventDefault();
+                                                            return;
+                                                        }
+                                                        setSkipPermissions(true);
+                                                    } else {
+                                                        setSkipPermissions(false);
                                                     }
                                                 } }
                                                 className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
                                             />
                                             <div>
                                                 <div className="font-medium text-orange-900 dark:text-orange-100">
-                                                    跳过权限提示（谨慎使用）
+                                                    跳过所有权限提示（极度危险）
                                                 </div>
                                                 <div className="text-sm text-orange-700 dark:text-orange-300">
-                                                    等同于 --dangerously-skip-permissions 标志（建议使用上方权限模式设置）
+                                                    等同于 <code className="px-1 bg-orange-100 dark:bg-orange-800/40 rounded">--dangerously-skip-permissions</code> 标志。启用后，权限模式将被忽略。
                                                 </div>
                                             </div>
                                         </label>

@@ -175,19 +175,20 @@ async function spawnClaude(command, options = {}, ws) {
             args.push('--model', 'sonnet');
         }
 
-        // Add permission mode if specified (works for both new and resumed sessions)
-        if (permissionMode && permissionMode !== 'default') {
-            args.push('--permission-mode', permissionMode);
-            console.log('🔒 Using permission mode:', permissionMode);
-        }
+    // We'll append --permission-mode later only if not using dangerous skip
 
-        // Add tools settings flags
-        // Don't use --dangerously-skip-permissions when in plan mode
-        if (settings.skipPermissions && permissionMode !== 'plan') {
+    // Add tools settings flags
+    // When dangerous skip is enabled, always use it and ignore permission mode
+    if (settings.skipPermissions) {
             args.push('--dangerously-skip-permissions');
-            console.log('⚠️  Using --dangerously-skip-permissions (skipping other tool settings)');
+            console.log('⚠️  Using --dangerously-skip-permissions (skipping other tool settings and effectively ignoring permission mode)');
         } else {
             // Only add allowed/disallowed tools if not skipping permissions
+            // And also add permission mode here when not skipping
+            if (permissionMode && permissionMode !== 'default') {
+                args.push('--permission-mode', permissionMode);
+                console.log('🔒 Using permission mode:', permissionMode);
+            }
 
             // Collect all allowed tools, including plan mode defaults
             let allowedTools = [...(settings.allowedTools || [])];
@@ -220,10 +221,7 @@ async function spawnClaude(command, options = {}, ws) {
                 }
             }
 
-            // Log when skip permissions is disabled due to plan mode
-            if (settings.skipPermissions && permissionMode === 'plan') {
-                console.log('📝 Skip permissions disabled due to plan mode');
-            }
+            // No-op
         }
 
         console.log('Spawning Claude CLI:', 'claude', args.map(arg => {
