@@ -4,6 +4,11 @@ import react from '@vitejs/plugin-react'
 export default defineConfig(({ command }) => {
     return {
         plugins: [react()],
+        // Enable JSON imports
+        json: {
+            namedExports: true,
+            stringify: false
+        },
         build: {
             outDir: 'dist',
             // Ensure assets are loaded with relative paths in Electron
