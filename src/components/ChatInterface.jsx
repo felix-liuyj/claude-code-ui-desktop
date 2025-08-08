@@ -1311,6 +1311,7 @@ function ChatInterface({
     const [visibleMessageCount, setVisibleMessageCount] = useState(100);
     const [claudeStatus, setClaudeStatus] = useState(null);
     const [chatBgImageUrl, setChatBgImageUrl] = useState(null);
+    const [userAvatarUrl, setUserAvatarUrl] = useState(null);
     // chatBgEnabled is passed from parent; fallback to localStorage for safety
     const chatBgEnabledResolved = typeof chatBgEnabled === 'boolean'
         ? chatBgEnabled
@@ -1337,6 +1338,10 @@ function ChatInterface({
                     // Update chat background image URL from settings for reactive rendering
                     if (typeof settings.chatBgImage === 'string') {
                         setChatBgImageUrl(settings.chatBgImage || null);
+                    }
+                    // Update user avatar URL from settings
+                    if (typeof settings.userAvatar === 'string') {
+                        setUserAvatarUrl(settings.userAvatar || null);
                     }
                 }
             } catch (e) {
@@ -2575,10 +2580,10 @@ function ChatInterface({
                 >
                     { chatBgEnabledResolved && (
                         <div
-                            className="pointer-events-none absolute inset-0"
+                            className="pointer-events-none absolute inset-0 z-0"
                             aria-hidden="true"
                             style={ {
-                                backgroundImage: `url('${ chatBgImageUrl || 'bg-repeat.svg' }')`,
+                                backgroundImage: `url('${ chatBgImageUrl || './bg-repeat.svg' }')`,
                                 backgroundRepeat: 'repeat',
                                 backgroundSize: '72px 72px',
                                 backgroundPosition: 'center top',
@@ -2587,14 +2592,14 @@ function ChatInterface({
                         />
                     ) }
                     { isLoadingSessionMessages && chatMessages.length === 0 ? (
-                        <div className="text-center text-gray-500 dark:text-gray-400 mt-8">
+                        <div className="relative z-10 text-center text-gray-500 dark:text-gray-400 mt-8">
                             <div className="flex items-center justify-center space-x-2">
                                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-400"></div>
                                 <p>正在加载会话消息...</p>
                             </div>
                         </div>
                     ) : chatMessages.length === 0 ? (
-                        <div className="flex items-center justify-center h-full">
+                        <div className="relative z-10 flex items-center justify-center h-full">
                             <div className="text-center text-gray-500 dark:text-gray-400 px-6 sm:px-4">
                                 <p className="font-bold text-lg sm:text-xl mb-3">与 Claude 开始对话</p>
                                 <p className="text-sm sm:text-base leading-relaxed">
@@ -2603,7 +2608,7 @@ function ChatInterface({
                             </div>
                         </div>
                     ) : (
-                        <>
+                        <div className="relative z-10">
                             { chatMessages.length > visibleMessageCount && (
                                 <div
                                     className="text-center text-gray-500 dark:text-gray-400 text-sm py-2 border-b border-gray-200 dark:border-gray-700">
@@ -2634,11 +2639,11 @@ function ChatInterface({
                                     />
                                 );
                             }) }
-                        </>
+                        </div>
                     ) }
 
                     { isLoading && (
-                        <div className="chat-message assistant">
+                        <div className="chat-message assistant relative z-10">
                             <div className="w-full">
                                 <div className="flex items-center space-x-3 mb-2">
                                     <div
@@ -2736,13 +2741,10 @@ function ChatInterface({
                     <form onSubmit={ handleSubmit } className="relative max-w-4xl mx-auto">
                         {/* Drag overlay */ }
                         { isDragActive && (
-                            <div
-                                className="absolute inset-0 bg-blue-500/20 border-2 border-dashed border-blue-500 rounded-lg flex items-center justify-center z-50">
-                                <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-lg">
-                                    <svg className="w-8 h-8 text-blue-500 mx-auto mb-2" fill="none"
-                                         stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={ 2 }
-                                              d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                            <div className="absolute inset-0 z-10 rounded-2xl bg-black/40 flex items-center justify-center pointer-events-none">
+                                <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-lg flex items-center gap-2">
+                                    <svg className="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                                     </svg>
                                     <p className="text-sm font-medium">在此放置图像</p>
                                 </div>
@@ -2757,7 +2759,9 @@ function ChatInterface({
                                         <ImageAttachment
                                             key={ index }
                                             file={ file }
-                                            onRemove={ () => {
+                                            onRemove={ (e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
                                                 setAttachedImages(prev => prev.filter((_, i) => i !== index));
                                             } }
                                             uploadProgress={ uploadingImages.get(file.name) }

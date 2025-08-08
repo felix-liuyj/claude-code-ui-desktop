@@ -64,6 +64,8 @@ function ToolsSettings({ isOpen, onClose }) {
     const [activeTab, setActiveTab] = useState('tools');
     // Appearance: custom chat background image (data URL or relative path)
     const [chatBgImage, setChatBgImage] = useState('');
+    // New: user avatar (data URL)
+    const [userAvatar, setUserAvatar] = useState('');
 
     // Persist permission mode immediately and notify listeners
     const persistPermissionMode = (newMode) => {
@@ -339,6 +341,7 @@ function ToolsSettings({ isOpen, onClose }) {
                 setPermissionMode(mode);
                 setProjectSortOrder(settings.projectSortOrder || 'name');
                 setChatBgImage(settings.chatBgImage || '');
+                setUserAvatar(settings.userAvatar || '');
             } else {
                 // Set defaults
                 setAllowedTools([]);
@@ -347,6 +350,7 @@ function ToolsSettings({ isOpen, onClose }) {
                 setPermissionMode('default');
                 setProjectSortOrder('name');
                 setChatBgImage('');
+                setUserAvatar('');
             }
 
             // Load MCP servers from API
@@ -360,6 +364,7 @@ function ToolsSettings({ isOpen, onClose }) {
             setPermissionMode('default');
             setProjectSortOrder('name');
             setChatBgImage('');
+            setUserAvatar('');
         }
     };
 
@@ -375,6 +380,7 @@ function ToolsSettings({ isOpen, onClose }) {
                 permissionMode,
                 projectSortOrder,
                 chatBgImage,
+                userAvatar,
                 lastUpdated: new Date().toISOString()
             };
 
@@ -429,6 +435,28 @@ function ToolsSettings({ isOpen, onClose }) {
     const handleClearChatBg = () => {
         setChatBgImage('');
         persistPartialSettings({ chatBgImage: '' });
+    };
+
+    // New: user avatar handlers
+    const handleUserAvatarFileChange = (file) => {
+        if (!file) return;
+        const allowed = ['image/png', 'image/jpeg', 'image/svg+xml'];
+        if (!allowed.includes(file.type)) {
+            alert('仅支持 PNG、SVG 或 JPG 头像');
+            return;
+        }
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const dataUrl = e.target?.result || '';
+            setUserAvatar(dataUrl);
+            persistPartialSettings({ userAvatar: dataUrl });
+        };
+        reader.readAsDataURL(file);
+    };
+
+    const handleClearUserAvatar = () => {
+        setUserAvatar('');
+        persistPartialSettings({ userAvatar: '' });
     };
 
     const addAllowedTool = (tool) => {
@@ -943,7 +971,9 @@ function ToolsSettings({ isOpen, onClose }) {
                                     <div className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
                                         <div className="mb-3">
                                             <div className="font-medium text-foreground">聊天背景</div>
-                                            <div className="text-sm text-muted-foreground">可选：上传自定义 PNG/SVG/JPG 作为聊天背景装饰（以 10% 透明度覆盖）</div>
+                                            <div className="text-sm text-muted-foreground mb-4">
+                                                可选：上传自定义 PNG/SVG/JPG 作为聊天背景装饰（以 10% 透明度覆盖）
+                                            </div>
                                         </div>
                                         <div className="flex items-center gap-4">
                                             <div className="w-32 h-20 rounded border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex items-center justify-center overflow-hidden">
@@ -962,6 +992,33 @@ function ToolsSettings({ isOpen, onClose }) {
                                             </div>
                                         </div>
                                         <div className="text-[11px] text-gray-500 dark:text-gray-400 mt-2">未设置时使用内置背景图 bg-repeat.svg</div>
+                                    </div>
+                                </div>
+
+                                {/* User Avatar */}
+                                <div className="space-y-4">
+                                    <div className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                                        <div className="mb-3">
+                                            <div className="font-medium text-foreground">用户头像</div>
+                                            <div className="text-sm text-muted-foreground">上传自定义头像（PNG/SVG/JPG），将在聊天中用于用户消息气泡旁显示</div>
+                                        </div>
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-16 h-16 rounded-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden">
+                                                { userAvatar ? (
+                                                    <img src={ userAvatar } alt="头像预览" className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center text-xs text-gray-400">无</div>
+                                                ) }
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <label className="inline-flex items-center px-3 py-1.5 text-sm rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+                                                    选择头像
+                                                    <input type="file" accept="image/png,image/svg+xml,image/jpeg" className="hidden" onChange={(e)=> handleUserAvatarFileChange(e.target.files?.[0])} />
+                                                </label>
+                                                <button type="button" onClick={ handleClearUserAvatar } className="px-3 py-1.5 text-sm rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50" disabled={!userAvatar}>清除</button>
+                                            </div>
+                                        </div>
+                                        <div className="text-[11px] text-gray-500 dark:text-gray-400 mt-2">未设置时使用默认 asker.svg</div>
                                     </div>
                                 </div>
                             </div>
@@ -1617,7 +1674,7 @@ function ToolsSettings({ isOpen, onClose }) {
                                           d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
                                           clipRule="evenodd"/>
                                 </svg>
-                                设置保存成功！
+                                已保存
                             </div>
                         ) }
                         { saveStatus === 'error' && (
@@ -1627,7 +1684,7 @@ function ToolsSettings({ isOpen, onClose }) {
                                           d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
                                           clipRule="evenodd"/>
                                 </svg>
-                                保存设置失败
+                                保存失败
                             </div>
                         ) }
                     </div>

@@ -431,8 +431,8 @@ function Sidebar({
                 {/* Desktop Header */ }
                 <div className="hidden md:flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg overflow-hidden shadow-sm">
-                            <img src="logo.svg" alt="AI 编程助手" className="w-8 h-8 object-cover" />
+                        <div className="w-12 h-12 rounded-lg overflow-hidden shadow-sm">
+                            <img src="logo.svg" alt="AI 编程助手" className="w-full h-full object-cover" />
                         </div>
                         <div>
                             <h1 className="text-lg font-bold text-foreground">Claude Code UI</h1>
@@ -957,85 +957,97 @@ function Sidebar({
                                                                         onSessionSelect(session);
                                                                     }) }
                                                                 >
-                                                                    <div className="flex items-center gap-2">
+                                                                    {/* Active session green left indicator */}
+                                                                    {selectedSession?.id === session.id && (
+                                                                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-green-500 rounded-r-sm" />
+                                                                    )}
+                                                                    <div className="flex items-start gap-2">
                                                                         <div
-                                                                            className={ cn("w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0", selectedSession?.id === session.id ? "bg-primary/10" : "bg-muted/50") }>
+                                                                            className={ cn("w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 mt-0.5", selectedSession?.id === session.id ? "bg-primary/10" : "bg-muted/50") }>
                                                                             <MessageSquare
                                                                                 className={ cn("w-3 h-3", selectedSession?.id === session.id ? "text-primary" : "text-muted-foreground") }/>
                                                                         </div>
                                                                         <div className="min-w-0 flex-1">
                                                                             <div
-                                                                                className="text-xs font-medium truncate text-foreground">
+                                                                                className="text-xs font-medium truncate text-foreground mb-1">
                                                                                 { session.summary || '新会话' }
                                                                             </div>
-                                                                            <div
-                                                                                className="flex items-center gap-1 mt-0.5">
-                                                                                <Clock
-                                                                                    className="w-2.5 h-2.5 text-muted-foreground"/>
-                                                                                <span
-                                                                                    className="text-xs text-muted-foreground">
+                                                                            <div className="flex items-center justify-between">
+                                                                                <div className="flex items-center gap-1">
+                                                                                    <Clock
+                                                                                        className="w-2.5 h-2.5 text-muted-foreground"/>
+                                                                                    <span
+                                                                                        className="text-xs text-muted-foreground">
                                         { formatTimeAgo(session.lastActivity, currentTime) }
                                       </span>
+                                                                                </div>
                                                                                 { session.messageCount > 0 && (
                                                                                     <Badge variant="secondary"
-                                                                                           className="text-xs px-1 py-0 ml-auto">
+                                                                                           className="text-xs px-1 py-0">
                                                                                         { session.messageCount }
                                                                                     </Badge>) }
                                                                             </div>
                                                                         </div>
-                                                                        {/* Mobile delete button */ }
-                                                                        <button
-                                                                            className="w-5 h-5 rounded-md bg-red-50 dark:bg-red-900/20 flex items-center justify-center active:scale-95 transition-transform opacity-70 ml-1"
-                                                                            onClick={ (e) => {
-                                                                                e.stopPropagation();
-                                                                                deleteSession(project.name, session.id);
-                                                                            } }
-                                                                            onTouchEnd={ handleTouchClick(() => deleteSession(project.name, session.id)) }
-                                                                        >
-                                                                            <Trash2
-                                                                                className="w-2.5 h-2.5 text-red-600 dark:text-red-400"/>
-                                                                        </button>
+                                                                        {/* Mobile delete button - positioned in button area */ }
+                                                                        <div className="flex items-center">
+                                                                            <button
+                                                                                className="w-6 h-6 rounded-md bg-red-50 dark:bg-red-900/20 flex items-center justify-center active:scale-95 transition-transform opacity-70"
+                                                                                onClick={ (e) => {
+                                                                                    e.stopPropagation();
+                                                                                    deleteSession(project.name, session.id);
+                                                                                } }
+                                                                                onTouchEnd={ handleTouchClick(() => deleteSession(project.name, session.id)) }
+                                                                            >
+                                                                                <Trash2
+                                                                                    className="w-2.5 h-2.5 text-red-600 dark:text-red-400"/>
+                                                                            </button>
+                                                                        </div>
                                                                     </div>
                                                                 </div>
                                                             </div>
 
                                                             {/* Desktop Session Item */ }
                                                             <div className="hidden md:block">
-                                                                <Button
-                                                                    variant="ghost"
-                                                                    className={ cn("w-full justify-start p-2 h-auto font-normal text-left hover:bg-accent/50 transition-colors duration-200", selectedSession?.id === session.id && "bg-accent text-accent-foreground") }
-                                                                    onClick={ () => onSessionSelect(session) }
-                                                                    onTouchEnd={ handleTouchClick(() => onSessionSelect(session)) }
-                                                                >
-                                                                    <div
-                                                                        className="flex items-start gap-2 min-w-0 w-full">
-                                                                        <MessageSquare
-                                                                            className="w-3 h-3 text-muted-foreground mt-0.5 flex-shrink-0"/>
-                                                                        <div className="min-w-0 flex-1">
-                                                                            <div
-                                                                                className="text-xs font-medium truncate text-foreground">
-                                                                                { session.summary || '新会话' }
-                                                                            </div>
-                                                                            <div
-                                                                                className="flex items-center gap-1 mt-0.5">
-                                                                                <Clock
-                                                                                    className="w-2.5 h-2.5 text-muted-foreground"/>
-                                                                                <span
-                                                                                    className="text-xs text-muted-foreground">
+                                                                <div className="group/session relative">
+                                                                    <Button
+                                                                        variant="ghost"
+                                                                        className={ cn("w-full justify-start p-2 h-auto font-normal text-left hover:bg-accent/50 transition-colors duration-200 pr-20 relative", selectedSession?.id === session.id && "bg-accent text-accent-foreground") }
+                                                                        onClick={ () => onSessionSelect(session) }
+                                                                        onTouchEnd={ handleTouchClick(() => onSessionSelect(session)) }
+                                                                    >
+                                                                        {/* Active session green left indicator */}
+                                                                        {selectedSession?.id === session.id && (
+                                                                            <div className="absolute left-0 top-0 bottom-0 w-1 bg-green-500 rounded-r-sm" />
+                                                                        )}
+                                                                        <div className="flex items-start gap-2 min-w-0 w-full">
+                                                                            <MessageSquare
+                                                                                className="w-3 h-3 text-muted-foreground mt-0.5 flex-shrink-0"/>
+                                                                            <div className="min-w-0 flex-1">
+                                                                                <div
+                                                                                    className="text-xs font-medium truncate text-foreground mb-1">
+                                                                                    { session.summary || '新会话' }
+                                                                                </div>
+                                                                                <div className="flex items-center justify-between">
+                                                                                    <div className="flex items-center gap-1">
+                                                                                        <Clock
+                                                                                            className="w-2.5 h-2.5 text-muted-foreground"/>
+                                                                                        <span
+                                                                                            className="text-xs text-muted-foreground">
                                         { formatTimeAgo(session.lastActivity, currentTime) }
                                       </span>
-                                                                                { session.messageCount > 0 && (
-                                                                                    <Badge variant="secondary"
-                                                                                           className="text-xs px-1 py-0 ml-auto">
-                                                                                        { session.messageCount }
-                                                                                    </Badge>) }
+                                                                                    </div>
+                                                                                    { session.messageCount > 0 && (
+                                                                                        <Badge variant="secondary"
+                                                                                               className="text-xs px-1 py-0">
+                                                                                            { session.messageCount }
+                                                                                        </Badge>) }
+                                                                                </div>
                                                                             </div>
                                                                         </div>
-                                                                    </div>
-                                                                </Button>
-                                                                {/* Desktop hover buttons */ }
-                                                                <div
-                                                                    className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200">
+                                                                    </Button>
+                                                                    {/* Desktop hover buttons */ }
+                                                                    <div
+                                                                        className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-1 opacity-0 group-hover/session:opacity-100 transition-all duration-200">
                                                                     { editingSession === session.id ? (<>
                                                                             <input
                                                                                 type="text"
@@ -1119,6 +1131,7 @@ function Sidebar({
                                                                                     className="w-3 h-3 text-red-600 dark:text-red-400"/>
                                                                             </button>
                                                                         </>) }
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         </div>);
