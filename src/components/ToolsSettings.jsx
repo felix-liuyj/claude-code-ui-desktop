@@ -683,20 +683,6 @@ function ToolsSettings({ isOpen, onClose }) {
                                                         </div>
                                                     </label>
                                                     <p className="text-xs text-gray-500 dark:text-gray-400 ml-7">自动允许安全的编辑与读取类操作，对潜在危险操作仍会提示</p>
-                                                    {/* Plan Mode */ }
-                                                    <label className="flex items-center space-x-3 cursor-pointer">
-                                                        <input type="radio" name="permissionMode" value="plan"
-                                                               checked={ permissionMode === 'plan' }
-                                                               onChange={ (e) => e.target.checked && setPermissionMode('plan') }
-                                                               disabled={ skipPermissions }
-                                                               className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600"/>
-                                                        <div className="flex items-center space-x-2">
-                                                            <FileText className="w-4 h-4 text-blue-500"/>
-                                                            <span
-                                                                className="text-sm text-gray-700 dark:text-gray-300">计划模式</span>
-                                                        </div>
-                                                    </label>
-                                                    <p className="text-xs text-gray-500 dark:text-gray-400 ml-7">仅生成计划，不直接执行潜在有副作用的操作</p>
                                                     {/* Bypass Permissions Mode */ }
                                                     <label className="flex items-center space-x-3 cursor-pointer">
                                                         <input type="radio" name="permissionMode"
@@ -714,6 +700,20 @@ function ToolsSettings({ isOpen, onClose }) {
                                                     <p className="text-xs text-gray-500 dark:text-gray-400 ml-7">尽量减少权限提示，但与 <code
                                                         className="px-1 bg-gray-100 dark:bg-gray-800 rounded">--dangerously-skip-permissions</code> 不同，仍会对高风险操作进行保护
                                                     </p>
+                                                    {/* Plan Mode */ }
+                                                    <label className="flex items-center space-x-3 cursor-pointer">
+                                                        <input type="radio" name="permissionMode" value="plan"
+                                                               checked={ permissionMode === 'plan' }
+                                                               onChange={ (e) => e.target.checked && setPermissionMode('plan') }
+                                                               disabled={ skipPermissions }
+                                                               className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600"/>
+                                                        <div className="flex items-center space-x-2">
+                                                            <FileText className="w-4 h-4 text-blue-500"/>
+                                                            <span
+                                                                className="text-sm text-gray-700 dark:text-gray-300">计划模式</span>
+                                                        </div>
+                                                    </label>
+                                                    <p className="text-xs text-gray-500 dark:text-gray-400 ml-7">仅生成计划，不直接执行潜在有副作用的操作</p>{/* Plan Mode */ }
                                                 </div>
                                             </div>
                                         </div>

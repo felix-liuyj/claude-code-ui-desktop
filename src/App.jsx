@@ -70,6 +70,10 @@ function AppContent() {
         const saved = localStorage.getItem('sendByCtrlEnter');
         return saved !== null ? JSON.parse(saved) : false;
     });
+    const [chatBgEnabled, setChatBgEnabled] = useState(() => {
+        const saved = localStorage.getItem('chatBgEnabled');
+        return saved !== null ? JSON.parse(saved) : false;
+    });
     // Session Protection System: Track sessions with active conversations to prevent
     // automatic project updates from interrupting ongoing chats. When a user sends
     // a message, the session is marked as "active" and project updates are paused
@@ -727,6 +731,7 @@ function AppContent() {
                     showRawParameters={ showRawParameters }
                     autoScrollToBottom={ autoScrollToBottom }
                     sendByCtrlEnter={ sendByCtrlEnter }
+                    chatBgEnabled={ chatBgEnabled }
                 />
             </div>
 
@@ -762,6 +767,11 @@ function AppContent() {
                     onSendByCtrlEnterChange={ (value) => {
                         setSendByCtrlEnter(value);
                         localStorage.setItem('sendByCtrlEnter', JSON.stringify(value));
+                    } }
+                    chatBgEnabled={ chatBgEnabled }
+                    onChatBgEnabledChange={ (value) => {
+                        setChatBgEnabled(value);
+                        localStorage.setItem('chatBgEnabled', JSON.stringify(value));
                     } }
                     isMobile={ isMobile }
                 />

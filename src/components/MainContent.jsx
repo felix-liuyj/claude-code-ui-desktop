@@ -41,7 +41,8 @@ function MainContent({
                          autoExpandTools,        // Auto-expand tool accordions
                          showRawParameters,      // Show raw parameters in tool accordions
                          autoScrollToBottom,     // Auto-scroll to bottom when new messages arrive
-                         sendByCtrlEnter         // Send by Ctrl+Enter mode for East Asian language input
+                         sendByCtrlEnter,        // Send by Ctrl+Enter mode for East Asian language input
+                         chatBgEnabled           // WhatsApp-like tiled background toggle
                      }) {
     const [editingFile, setEditingFile] = useState(null);
 
@@ -376,6 +377,7 @@ function MainContent({
                             showRawParameters={ showRawParameters }
                             autoScrollToBottom={ autoScrollToBottom }
                             sendByCtrlEnter={ sendByCtrlEnter }
+                            chatBgEnabled={ chatBgEnabled }
                         />
                     </ErrorBoundary>
                 </div>

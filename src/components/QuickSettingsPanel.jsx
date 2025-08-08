@@ -32,6 +32,8 @@ const QuickSettingsPanel = ({
                                 onAutoScrollChange,
                                 sendByCtrlEnter,
                                 onSendByCtrlEnterChange,
+                                chatBgEnabled,
+                                onChatBgEnabledChange,
                                 isMobile
                             }) => {
     const electron = useElectron();
@@ -127,7 +129,17 @@ const QuickSettingsPanel = ({
             }
         };
         window.addEventListener('toolsSettingsChanged', onToolsSettingsChanged);
-        return () => window.removeEventListener('toolsSettingsChanged', onToolsSettingsChanged);
+        const onPermissionModeChanged = (e) => {
+            let mode = e?.detail?.mode || 'default';
+            if (mode === 'auto-allow') mode = 'acceptEdits';
+            if (mode === 'skip-all') mode = 'bypassPermissions';
+            setPermissionMode(mode);
+        };
+        window.addEventListener('permissionModeChanged', onPermissionModeChanged);
+        return () => {
+            window.removeEventListener('toolsSettingsChanged', onToolsSettingsChanged);
+            window.removeEventListener('permissionModeChanged', onPermissionModeChanged);
+        };
     }, []);
 
     return (
@@ -247,29 +259,6 @@ const QuickSettingsPanel = ({
                                     <input
                                         type="radio"
                                         name="permissionMode"
-                                        value="plan"
-                                        checked={ permissionMode === 'plan' }
-                                        onChange={ () => handlePermissionModeChange('plan') }
-                                        disabled={ skipPermissions }
-                                        className="mt-0.5 h-4 w-4 border-gray-300 dark:border-gray-600 text-blue-600 dark:text-blue-500 focus:ring-blue-500 dark:focus:ring-blue-400 dark:bg-gray-800 dark:checked:bg-blue-600"
-                                    />
-                                    <div className="ml-3 flex-1">
-                                        <span
-                                            className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-white">
-                                            <FileText className="h-4 w-4 text-blue-500"/>
-                                            计划模式
-                                        </span>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                            仅生成计划，不直接执行潜在有副作用的操作
-                                        </p>
-                                    </div>
-                                </label>
-
-                                <label
-                                    className="flex items-start p-3 rounded-lg bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors border border-transparent hover:border-gray-300 dark:hover:border-gray-600">
-                                    <input
-                                        type="radio"
-                                        name="permissionMode"
                                         value="bypassPermissions"
                                         checked={ permissionMode === 'bypassPermissions' }
                                         onChange={ () => handlePermissionModeChange('bypassPermissions') }
@@ -284,6 +273,29 @@ const QuickSettingsPanel = ({
                                         </span>
                                         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                                             尽量减少权限提示，但与 --dangerously-skip-permissions 不同，仍会对高风险操作进行保护
+                                        </p>
+                                    </div>
+                                </label>
+
+                                <label
+                                    className="flex items-start p-3 rounded-lg bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors border border-transparent hover:border-gray-300 dark:hover:border-gray-600">
+                                    <input
+                                        type="radio"
+                                        name="permissionMode"
+                                        value="plan"
+                                        checked={ permissionMode === 'plan' }
+                                        onChange={ () => handlePermissionModeChange('plan') }
+                                        disabled={ skipPermissions }
+                                        className="mt-0.5 h-4 w-4 border-gray-300 dark:border-gray-600 text-blue-600 dark:text-blue-500 focus:ring-blue-500 dark:focus:ring-blue-400 dark:bg-gray-800 dark:checked:bg-blue-600"
+                                    />
+                                    <div className="ml-3 flex-1">
+                                        <span
+                                            className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-white">
+                                            <FileText className="h-4 w-4 text-blue-500"/>
+                                            计划模式
+                                        </span>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                            仅生成计划，不直接执行潜在有副作用的操作
                                         </p>
                                     </div>
                                 </label>
@@ -336,6 +348,23 @@ const QuickSettingsPanel = ({
                                     type="checkbox"
                                     checked={ autoScrollToBottom }
                                     onChange={ (e) => onAutoScrollChange(e.target.checked) }
+                                    className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 dark:text-blue-500 focus:ring-blue-500 dark:focus:ring-blue-400 dark:bg-gray-800 dark:checked:bg-blue-600"
+                                />
+                            </label>
+                            <label
+                                className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors border border-transparent hover:border-gray-300 dark:hover:border-gray-600">
+                                <span className="flex items-center gap-2 text-sm text-gray-900 dark:text-white">
+                                    <svg className="h-4 w-4 text-gray-600 dark:text-gray-400" viewBox="0 0 24 24"
+                                         fill="none" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                                              d="M4 6h16M4 12h16M4 18h7"/>
+                                    </svg>
+                                    聊天背景装饰
+                                </span>
+                                <input
+                                    type="checkbox"
+                                    checked={ !!chatBgEnabled }
+                                    onChange={ (e) => onChatBgEnabledChange?.(e.target.checked) }
                                     className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 dark:text-blue-500 focus:ring-blue-500 dark:focus:ring-blue-400 dark:bg-gray-800 dark:checked:bg-blue-600"
                                 />
                             </label>

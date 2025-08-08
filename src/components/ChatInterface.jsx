@@ -1123,6 +1123,18 @@ const MessageComponent = memo(({
                             </div>
                         ) : (
                             <div className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                                {/* Usage limit alert */}
+                                { message.isUsageLimit && (
+                                    <div className="mb-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-200 rounded-lg p-3 flex items-start gap-2">
+                                        <svg className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                            <path fillRule="evenodd" d="M8.257 3.099a1.5 1.5 0 012.486 0l6.518 11.59A1.5 1.5 0 0115.94 17H4.06a1.5 1.5 0 01-1.322-2.311l6.518-11.59zM11 14a1 1 0 10-2 0 1 1 0 002 0zm-1-2a1 1 0 01-1-1V7a1 1 0 112 0v4a1 1 0 01-1 1z" clipRule="evenodd" />
+                                        </svg>
+                                        <div className="text-sm leading-snug">
+                                            <div className="font-medium">已达到 Claude 使用限额</div>
+                                            <div className="mt-0.5">将于 { new Date(message.usageLimitReset).toLocaleString() } 重置。</div>
+                                        </div>
+                                    </div>
+                                ) }
                                 { message.type === 'assistant' ? (
                                     <div
                                         className="prose prose-sm max-w-none dark:prose-invert prose-gray [&_code]:!bg-transparent [&_code]:!p-0 [&_p]:mb-4 [&_p:last-child]:mb-0 [&_h1]:text-lg [&_h1]:font-semibold [&_h1]:mb-3 [&_h1]:mt-4 [&_h2]:text-base [&_h2]:font-semibold [&_h2]:mb-2 [&_h2]:mt-3 [&_h3]:text-sm [&_h3]:font-semibold [&_h3]:mb-2 [&_h3]:mt-2 [&_ul]:mb-4 [&_ol]:mb-4 [&_li]:mb-1">
@@ -1246,7 +1258,8 @@ function ChatInterface({
                            autoExpandTools,
                            showRawParameters,
                            autoScrollToBottom,
-                           sendByCtrlEnter
+                           sendByCtrlEnter,
+                           chatBgEnabled
                        }) {
     const electron = useElectron();
     const [input, setInput] = useState(() => {
@@ -1289,6 +1302,17 @@ function ChatInterface({
     const [isTextareaExpanded, setIsTextareaExpanded] = useState(false);
     const [visibleMessageCount, setVisibleMessageCount] = useState(100);
     const [claudeStatus, setClaudeStatus] = useState(null);
+    // chatBgEnabled is passed from parent; fallback to localStorage for safety
+    const chatBgEnabledResolved = typeof chatBgEnabled === 'boolean'
+        ? chatBgEnabled
+        : (() => {
+            try {
+                const saved = localStorage.getItem('chatBgEnabled');
+                return saved ? JSON.parse(saved) : false;
+            } catch {
+                return false;
+            }
+        })();
     // Sync permissionMode and skipPermissions from saved settings and global events
     useEffect(() => {
         const load = () => {
@@ -1404,6 +1428,22 @@ function ChatInterface({
         const converted = [];
         const toolResults = new Map(); // Map tool_use_id to tool result
 
+        // Helper to detect usage limit message and extract reset time
+        const detectUsageLimit = (text) => {
+            if (!text || typeof text !== 'string') return null;
+            const marker = 'Claude AI usage limit reached|';
+            if (text.includes(marker)) {
+                const parts = text.split('|');
+                if (parts.length >= 2) {
+                    const ts = parseInt(parts[1], 10);
+                    if (!Number.isNaN(ts)) {
+                        return new Date(ts * 1000);
+                    }
+                }
+            }
+            return null;
+        };
+
         // First pass: collect all tool results
         for (const msg of rawMessages) {
             if (msg.message?.role === 'user' && Array.isArray(msg.message?.content)) {
@@ -1459,11 +1499,22 @@ function ChatInterface({
                 if (Array.isArray(msg.message.content)) {
                     for (const part of msg.message.content) {
                         if (part.type === 'text') {
-                            converted.push({
-                                type: 'assistant',
-                                content: part.text,
-                                timestamp: msg.timestamp || new Date().toISOString()
-                            });
+                            const resetAt = detectUsageLimit(part.text);
+                            if (resetAt) {
+                                converted.push({
+                                    type: 'assistant',
+                                    content: '',
+                                    timestamp: msg.timestamp || new Date().toISOString(),
+                                    isUsageLimit: true,
+                                    usageLimitReset: resetAt
+                                });
+                            } else {
+                                converted.push({
+                                    type: 'assistant',
+                                    content: part.text,
+                                    timestamp: msg.timestamp || new Date().toISOString()
+                                });
+                            }
                         } else if (part.type === 'tool_use') {
                             // Get the corresponding tool result
                             const toolResult = toolResults.get(part.id);
@@ -1482,11 +1533,22 @@ function ChatInterface({
                         }
                     }
                 } else if (typeof msg.message.content === 'string') {
-                    converted.push({
-                        type: 'assistant',
-                        content: msg.message.content,
-                        timestamp: msg.timestamp || new Date().toISOString()
-                    });
+                    const resetAt = detectUsageLimit(msg.message.content);
+                    if (resetAt) {
+                        converted.push({
+                            type: 'assistant',
+                            content: '',
+                            timestamp: msg.timestamp || new Date().toISOString(),
+                            isUsageLimit: true,
+                            usageLimitReset: resetAt
+                        });
+                    } else {
+                        converted.push({
+                            type: 'assistant',
+                            content: msg.message.content,
+                            timestamp: msg.timestamp || new Date().toISOString()
+                        });
+                    }
                 }
             }
         }
@@ -1544,7 +1606,11 @@ function ChatInterface({
                     setIsSystemSessionChange(false);
                 }
             } else {
-                setChatMessages([]);
+                // Don't clear user-typed messages if a new session is being created or we're in-flight
+                const hasPending = !!sessionStorage.getItem('pendingSessionId');
+                if (!isLoading && !hasPending) {
+                    setChatMessages([]);
+                }
                 setSessionMessages([]);
                 setCurrentSessionId(null);
             }
@@ -1553,11 +1619,34 @@ function ChatInterface({
         loadMessages();
     }, [selectedSession, selectedProject, loadSessionMessages, scrollToBottom, isSystemSessionChange]);
 
-    // Update chatMessages when convertedMessages changes
+    // Update chatMessages when convertedMessages changes, but don't swallow locally added user messages.
+    // Strategy: merge by timestamp/id; keep any local messages not present in converted list.
     useEffect(() => {
-        if (sessionMessages.length > 0) {
-            setChatMessages(convertedMessages);
-        }
+        if (sessionMessages.length === 0) return;
+
+        setChatMessages(prev => {
+            // If prev is empty, just take converted
+            if (!prev || prev.length === 0) return convertedMessages;
+
+            // Build a simple hash of converted messages by a stable key
+            const keyFor = (m, idx) => {
+                // Prefer explicit id if present (we'll add for local user msgs)
+                if (m._localId) return `local:${m._localId}`;
+                // Use combo of type+content+approx timestamp bucket to reduce duplicates
+                const bucket = m.timestamp ? new Date(m.timestamp).getTime() : idx;
+                return `${m.type}|${m.isToolUse?'tool':''}|${(m.content||'').slice(0,50)}|${bucket}`;
+            };
+
+            const convertedMap = new Map();
+            convertedMessages.forEach((m, i) => convertedMap.set(keyFor(m, i), true));
+
+            // Keep local messages that aren't in converted (e.g., optimistic user message just sent)
+            const extras = prev.filter((m, i) => !convertedMap.has(keyFor(m, i)));
+
+            // Merge while preserving order: put converted first (server truth), then extras sorted by timestamp
+            const merged = [...convertedMessages, ...extras].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+            return merged;
+        });
     }, [convertedMessages, sessionMessages]);
 
     // Notify parent when input focus changes
@@ -1692,45 +1781,59 @@ function ChatInterface({
                                     toolResult: null // Will be updated when result comes in
                                 }]);
                             } else if (part.type === 'text' && part.text?.trim()) {
-                                // Check for usage limit message and format it user-friendly
-                                let content = part.text;
-                                if (content.includes('Claude AI usage limit reached|')) {
-                                    const parts = content.split('|');
-                                    if (parts.length === 2) {
-                                        const timestamp = parseInt(parts[1]);
-                                        if (!isNaN(timestamp)) {
-                                            const resetTime = new Date(timestamp * 1000);
-                                            content = `Claude AI usage limit reached. The limit will reset on ${ resetTime.toLocaleDateString() } at ${ resetTime.toLocaleTimeString() }.`;
+                                // Detect usage limit and show red triangle alert with parsed time
+                                const marker = 'Claude AI usage limit reached|';
+                                if (part.text.includes(marker)) {
+                                    const pieces = part.text.split('|');
+                                    if (pieces.length >= 2) {
+                                        const ts = parseInt(pieces[1], 10);
+                                        if (!Number.isNaN(ts)) {
+                                            const resetAt = new Date(ts * 1000);
+                                            setChatMessages(prev => [...prev, {
+                                                type: 'assistant',
+                                                content: '',
+                                                timestamp: new Date(),
+                                                isUsageLimit: true,
+                                                usageLimitReset: resetAt
+                                            }]);
+                                            continue;
                                         }
                                     }
                                 }
 
-                                // Add regular text message
+                                // Fallback to regular text message
                                 setChatMessages(prev => [...prev, {
                                     type: 'assistant',
-                                    content: content,
+                                    content: part.text,
                                     timestamp: new Date()
                                 }]);
                             }
                         }
                     } else if (typeof messageData.content === 'string' && messageData.content.trim()) {
-                        // Check for usage limit message and format it user-friendly
-                        let content = messageData.content;
-                        if (content.includes('Claude AI usage limit reached|')) {
-                            const parts = content.split('|');
-                            if (parts.length === 2) {
-                                const timestamp = parseInt(parts[1]);
-                                if (!isNaN(timestamp)) {
-                                    const resetTime = new Date(timestamp * 1000);
-                                    content = `Claude AI usage limit reached. The limit will reset on ${ resetTime.toLocaleDateString() } at ${ resetTime.toLocaleTimeString() }.`;
+                        // Detect usage limit and show red triangle alert with parsed time
+                        const marker = 'Claude AI usage limit reached|';
+                        if (messageData.content.includes(marker)) {
+                            const pieces = messageData.content.split('|');
+                            if (pieces.length >= 2) {
+                                const ts = parseInt(pieces[1], 10);
+                                if (!Number.isNaN(ts)) {
+                                    const resetAt = new Date(ts * 1000);
+                                    setChatMessages(prev => [...prev, {
+                                        type: 'assistant',
+                                        content: '',
+                                        timestamp: new Date(),
+                                        isUsageLimit: true,
+                                        usageLimitReset: resetAt
+                                    }]);
+                                    break;
                                 }
                             }
                         }
 
-                        // Add regular text message
+                        // Fallback to regular text message
                         setChatMessages(prev => [...prev, {
                             type: 'assistant',
-                            content: content,
+                            content: messageData.content,
                             timestamp: new Date()
                         }]);
                     }
@@ -2168,7 +2271,8 @@ function ChatInterface({
             type: 'user',
             content: input,
             images: uploadedImages,
-            timestamp: new Date()
+            timestamp: new Date(),
+            _localId: `u-${Date.now()}-${Math.random().toString(36).slice(2,8)}`
         };
 
         setChatMessages(prev => [...prev, userMessage]);
@@ -2391,7 +2495,20 @@ function ChatInterface({
         const modes = ['default', 'acceptEdits', 'bypassPermissions', 'plan'];
         const currentIndex = modes.indexOf(permissionMode);
         const nextIndex = (currentIndex + 1) % modes.length;
-        setPermissionMode(modes[nextIndex]);
+        const nextMode = modes[nextIndex];
+        setPermissionMode(nextMode);
+
+        // Persist to localStorage and broadcast so settings panels stay in sync
+        try {
+            const savedSettings = safeLocalStorage.getItem('claude-tools-settings');
+            let settings = savedSettings ? JSON.parse(savedSettings) : {};
+            settings.permissionMode = nextMode;
+            settings.lastUpdated = new Date().toISOString();
+            safeLocalStorage.setItem('claude-tools-settings', JSON.stringify(settings));
+        } catch (_) {
+            // ignore
+        }
+        window.dispatchEvent(new CustomEvent('permissionModeChanged', { detail: { mode: nextMode } }));
     };
 
     // Don't render if no project is selected
@@ -2419,6 +2536,13 @@ function ChatInterface({
                 <div
                     ref={ scrollContainerRef }
                     className="flex-1 overflow-y-auto overflow-x-hidden px-0 py-3 sm:p-4 space-y-3 sm:space-y-4 relative"
+                    style={ chatBgEnabledResolved ? {
+                        backgroundImage: "url('/logo.svg')",
+                        backgroundRepeat: 'repeat',
+                        backgroundSize: '72px 72px',
+                        backgroundPosition: 'center top',
+                        opacity: 1
+                    } : undefined }
                 >
                     { isLoadingSessionMessages && chatMessages.length === 0 ? (
                         <div className="text-center text-gray-500 dark:text-gray-400 mt-8">
