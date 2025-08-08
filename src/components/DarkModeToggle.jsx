@@ -2,11 +2,17 @@ import React from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 
 function DarkModeToggle() {
-    const { isDarkMode, toggleDarkMode } = useTheme();
+    const { isDarkMode, themeMode, setTheme } = useTheme();
+
+    const handleClick = () => {
+        // Binary toggle: light <-> dark
+        setTheme(isDarkMode ? 'light' : 'dark');
+    };
 
     return (
+        <>
         <button
-            onClick={ toggleDarkMode }
+            onClick={ handleClick }
             className="relative inline-flex h-8 w-14 items-center rounded-full bg-gray-200 dark:bg-gray-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
             role="switch"
             aria-checked={ isDarkMode }
@@ -31,6 +37,10 @@ function DarkModeToggle() {
         ) }
       </span>
         </button>
+        { themeMode === 'auto' && (
+            <div className="mt-1 text-[10px] text-gray-500 dark:text-gray-400 text-center">跟随系统已启用</div>
+        ) }
+        </>
     );
 }
 

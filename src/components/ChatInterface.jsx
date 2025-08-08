@@ -2537,7 +2537,7 @@ function ChatInterface({
                     ref={ scrollContainerRef }
                     className="flex-1 overflow-y-auto overflow-x-hidden px-0 py-3 sm:p-4 space-y-3 sm:space-y-4 relative"
                     style={ chatBgEnabledResolved ? {
-                        backgroundImage: "url('/logo.svg')",
+                        backgroundImage: "url('bg-repeat.svg')",
                         backgroundRepeat: 'repeat',
                         backgroundSize: '72px 72px',
                         backgroundPosition: 'center top',

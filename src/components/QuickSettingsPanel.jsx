@@ -61,7 +61,7 @@ const QuickSettingsPanel = ({
         return false;
     });
     const [isDevelopmentMode, setIsDevelopmentMode] = useState(false);
-    const { isDarkMode } = useTheme();
+    const { isDarkMode, themeMode, setTheme } = useTheme();
 
     useEffect(() => {
         setLocalIsOpen(isOpen);
@@ -193,6 +193,33 @@ const QuickSettingsPanel = ({
                     深色模式
                 </span>
                                 <DarkModeToggle/>
+                            </div>
+
+                            {/* Theme tri-state selector to keep follow-system option */}
+                            <div className="p-2 pt-0">
+                                <div className="inline-flex rounded-md shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden" role="group" aria-label="Theme selector">
+                                    <button
+                                        type="button"
+                                        onClick={() => setTheme('auto')}
+                                        className={`px-3 py-1.5 text-xs font-medium ${themeMode==='auto' ? 'bg-blue-600 text-white' : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300'} border-r border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none`}
+                                        aria-pressed={themeMode==='auto'}
+                                    >自动</button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setTheme('light')}
+                                        className={`px-3 py-1.5 text-xs font-medium ${themeMode==='light' ? 'bg-blue-600 text-white' : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300'} border-r border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none`}
+                                        aria-pressed={themeMode==='light'}
+                                    >浅色</button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setTheme('dark')}
+                                        className={`px-3 py-1.5 text-xs font-medium ${themeMode==='dark' ? 'bg-blue-600 text-white' : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300'} hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none`}
+                                        aria-pressed={themeMode==='dark'}
+                                    >深色</button>
+                                </div>
+                                { themeMode === 'auto' && (
+                                    <div className="mt-1 text-[10px] text-gray-500 dark:text-gray-400">当前跟随系统</div>
+                                ) }
                             </div>
                         </div>
 

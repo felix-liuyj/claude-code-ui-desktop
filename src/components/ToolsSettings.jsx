@@ -63,6 +63,27 @@ function ToolsSettings({ isOpen, onClose }) {
     const [mcpToolsLoading, setMcpToolsLoading] = useState({});
     const [activeTab, setActiveTab] = useState('tools');
 
+    // Persist permission mode immediately and notify listeners
+    const persistPermissionMode = (newMode) => {
+        try {
+            setPermissionMode(newMode);
+            const saved = localStorage.getItem('claude-tools-settings');
+            let settings = saved ? JSON.parse(saved) : {};
+            settings.permissionMode = newMode;
+            settings.allowedTools = settings.allowedTools || allowedTools;
+            settings.disallowedTools = settings.disallowedTools || disallowedTools;
+            settings.skipPermissions = typeof settings.skipPermissions === 'boolean' ? settings.skipPermissions : skipPermissions;
+            settings.projectSortOrder = settings.projectSortOrder || projectSortOrder;
+            settings.lastUpdated = new Date().toISOString();
+            localStorage.setItem('claude-tools-settings', JSON.stringify(settings));
+            // Broadcast both granular and generic events
+            window.dispatchEvent(new CustomEvent('permissionModeChanged', { detail: { mode: newMode } }));
+            window.dispatchEvent(new Event('toolsSettingsChanged'));
+        } catch (e) {
+            console.error('Failed to persist permission mode:', e);
+        }
+    };
+
     // Common tool patterns
     const commonTools = [
         'Bash(git log:*)',
@@ -658,7 +679,7 @@ function ToolsSettings({ isOpen, onClose }) {
                                                     <label className="flex items-center space-x-3 cursor-pointer">
                                                         <input type="radio" name="permissionMode" value="default"
                                                                checked={ permissionMode === 'default' }
-                                                               onChange={ (e) => e.target.checked && setPermissionMode('default') }
+                                                               onChange={ (e) => e.target.checked && persistPermissionMode('default') }
                                                                disabled={ skipPermissions }
                                                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600"/>
                                                         <div className="flex items-center space-x-2">
@@ -673,7 +694,7 @@ function ToolsSettings({ isOpen, onClose }) {
                                                     <label className="flex items-center space-x-3 cursor-pointer">
                                                         <input type="radio" name="permissionMode" value="acceptEdits"
                                                                checked={ permissionMode === 'acceptEdits' }
-                                                               onChange={ (e) => e.target.checked && setPermissionMode('acceptEdits') }
+                                                               onChange={ (e) => e.target.checked && persistPermissionMode('acceptEdits') }
                                                                disabled={ skipPermissions }
                                                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600"/>
                                                         <div className="flex items-center space-x-2">
@@ -688,7 +709,7 @@ function ToolsSettings({ isOpen, onClose }) {
                                                         <input type="radio" name="permissionMode"
                                                                value="bypassPermissions"
                                                                checked={ permissionMode === 'bypassPermissions' }
-                                                               onChange={ (e) => e.target.checked && setPermissionMode('bypassPermissions') }
+                                                               onChange={ (e) => e.target.checked && persistPermissionMode('bypassPermissions') }
                                                                disabled={ skipPermissions }
                                                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600"/>
                                                         <div className="flex items-center space-x-2">
@@ -704,7 +725,7 @@ function ToolsSettings({ isOpen, onClose }) {
                                                     <label className="flex items-center space-x-3 cursor-pointer">
                                                         <input type="radio" name="permissionMode" value="plan"
                                                                checked={ permissionMode === 'plan' }
-                                                               onChange={ (e) => e.target.checked && setPermissionMode('plan') }
+                                                               onChange={ (e) => e.target.checked && persistPermissionMode('plan') }
                                                                disabled={ skipPermissions }
                                                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600"/>
                                                         <div className="flex items-center space-x-2">
@@ -745,9 +766,22 @@ function ToolsSettings({ isOpen, onClose }) {
                                                             e.preventDefault();
                                                             return;
                                                         }
-                                                        setSkipPermissions(true);
-                                                    } else {
-                                                        setSkipPermissions(false);
+                                                    }
+                                                    const newValue = !!checked;
+                                                    setSkipPermissions(newValue);
+                                                    try {
+                                                        const saved = localStorage.getItem('claude-tools-settings');
+                                                        let settings = saved ? JSON.parse(saved) : {};
+                                                        settings.skipPermissions = newValue;
+                                                        settings.permissionMode = settings.permissionMode || permissionMode;
+                                                        settings.allowedTools = settings.allowedTools || allowedTools;
+                                                        settings.disallowedTools = settings.disallowedTools || disallowedTools;
+                                                        settings.projectSortOrder = settings.projectSortOrder || projectSortOrder;
+                                                        settings.lastUpdated = new Date().toISOString();
+                                                        localStorage.setItem('claude-tools-settings', JSON.stringify(settings));
+                                                        window.dispatchEvent(new Event('toolsSettingsChanged'));
+                                                    } catch (err) {
+                                                        console.error('Failed to persist skipPermissions:', err);
                                                     }
                                                 } }
                                                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"/>
