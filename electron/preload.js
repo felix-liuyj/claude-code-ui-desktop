@@ -34,6 +34,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
         };
     },
 
+    // Configuration access
+    getConfig: () => ({
+        PORT: process.env.PORT,
+        WS_RECONNECT_DELAY: parseInt(process.env.WS_RECONNECT_DELAY) || 3000,
+        WINDOW_WIDTH: parseInt(process.env.WINDOW_WIDTH) || 1400,
+        WINDOW_HEIGHT: parseInt(process.env.WINDOW_HEIGHT) || 900
+    }),
+
     // Utility
     isElectron: () => true,
     platform: process.platform

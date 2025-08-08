@@ -40,7 +40,8 @@ const connectedClients = new Set();
 // Setup file system watcher for Claude projects folder using chokidar
 async function setupProjectsWatcher() {
     const chokidar = (await import('chokidar')).default;
-    const claudeProjectsPath = path.join(process.env.HOME, '.claude', 'projects');
+    const claudeProjectsDir = process.env.CLAUDE_PROJECTS_DIR || '.claude/projects';
+    const claudeProjectsPath = path.join(process.env.HOME, claudeProjectsDir);
 
     if (projectsWatcher) {
         projectsWatcher.close();
@@ -99,7 +100,7 @@ async function setupProjectsWatcher() {
                 } catch (error) {
                     console.error('❌ Error handling project changes:', error);
                 }
-            }, 300); // 300ms debounce (slightly faster than before)
+            }, parseInt(process.env.WATCHER_DEBOUNCE_MS) || 300); // Configurable debounce delay
         };
 
         // Set up event listeners

@@ -21,8 +21,9 @@ export function useWebSocket() {
 
     const connect = async () => {
         try {
-            // Electron desktop app - always connect to localhost:3001
-            const wsUrl = 'ws://localhost:3001/ws';
+            // Electron desktop app - use configured port or default to 3001
+            const port = window.electronAPI?.getConfig?.()?.PORT || '3001';
+            const wsUrl = `ws://localhost:${port}/ws`;
             console.log('Connecting to WebSocket:', wsUrl);
             const websocket = new WebSocket(wsUrl);
 
@@ -44,10 +45,11 @@ export function useWebSocket() {
                 setIsConnected(false);
                 setWs(null);
 
-                // Attempt to reconnect after 3 seconds
+                // Attempt to reconnect after configured delay
+                const reconnectDelay = window.electronAPI?.getConfig?.()?.WS_RECONNECT_DELAY || 3000;
                 reconnectTimeoutRef.current = setTimeout(() => {
                     connect();
-                }, 3000);
+                }, reconnectDelay);
             };
 
             websocket.onerror = (error) => {

@@ -10,15 +10,15 @@ const __dirname = dirname(__filename);
 let mainWindow;
 let serverProcess;
 
-const isDevelopment = process.env.NODE_ENV === 'development' && !process.env.ELECTRON_APP;
+const isDevelopment = process.env.NODE_ENV === 'development';
 
 function createWindow() {
     // Create the browser window
     mainWindow = new BrowserWindow({
-        width: 1400,
-        height: 900,
-        minWidth: 800,
-        minHeight: 600,
+        width: parseInt(process.env.WINDOW_WIDTH) || 1400,
+        height: parseInt(process.env.WINDOW_HEIGHT) || 900,
+        minWidth: parseInt(process.env.WINDOW_MIN_WIDTH) || 800,
+        minHeight: parseInt(process.env.WINDOW_MIN_HEIGHT) || 600,
         webPreferences: {
             nodeIntegration: false,
             contextIsolation: true,
@@ -28,7 +28,7 @@ function createWindow() {
             allowRunningInsecureContent: false,
             experimentalFeatures: false
         },
-        icon: join(__dirname, '../build/icon.png'),
+        icon: join(__dirname, process.env.DESKTOP_ICON_PATH || '../build/icon.png'),
         titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
         show: false // Don't show until ready
     });
@@ -37,8 +37,10 @@ function createWindow() {
     const indexPath = join(__dirname, '../dist/index.html');
     mainWindow.loadFile(indexPath);
 
-    // Always open DevTools for debugging
-    mainWindow.webContents.openDevTools();
+    // Open DevTools if enabled in configuration
+    if (process.env.ENABLE_DEV_TOOLS === 'true') {
+        mainWindow.webContents.openDevTools();
+    }
 
     // Add detailed logging for debugging
     mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
@@ -86,7 +88,8 @@ async function waitForServer() {
 
     for (let i = 0; i < maxRetries; i++) {
         try {
-            const response = await fetch('http://127.0.0.1:3001/api/auth/status');
+            const port = process.env.PORT || '3001';
+            const response = await fetch(`http://127.0.0.1:${port}/api/auth/status`);
             if (response.ok) {
                 console.log('✅ Server is responding to requests');
                 return true;
@@ -108,9 +111,8 @@ async function startServer() {
         console.log('🚀 Starting embedded server in main process...');
 
         // Set environment variables
-        process.env.PORT = '3001';
+        process.env.PORT = process.env.PORT || '3001';
         process.env.NODE_ENV = isDevelopment ? 'development' : 'production';
-        process.env.ELECTRON_APP = 'true';
         process.env.ELECTRON_USER_DATA = app.getPath('userData');
 
         // Fix PATH to include common binary locations for Claude CLI and Node.js
