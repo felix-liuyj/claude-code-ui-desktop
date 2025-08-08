@@ -28,7 +28,7 @@ function createWindow() {
             allowRunningInsecureContent: false,
             experimentalFeatures: false
         },
-        icon: join(__dirname, process.env.DESKTOP_ICON_PATH || '../build/icon.png'),
+        icon: join(__dirname, process.env.DESKTOP_ICON_PATH || '../public/icon.png'),
         titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
         show: false // Don't show until ready
     });
@@ -89,7 +89,7 @@ async function waitForServer() {
     for (let i = 0; i < maxRetries; i++) {
         try {
             const port = process.env.PORT || '3001';
-            const response = await fetch(`http://127.0.0.1:${port}/api/auth/status`);
+            const response = await fetch(`http://127.0.0.1:${ port }/api/auth/status`);
             if (response.ok) {
                 console.log('✅ Server is responding to requests');
                 return true;
@@ -119,19 +119,19 @@ async function startServer() {
         const currentPath = process.env.PATH || '';
         const os = await import('os');
         const homeDir = os.homedir();
-        
+
         // Try to detect Node.js paths from common locations
         const nodeSearchPaths = [];
-        
+
         // Check current process node path
         const currentNodePath = process.execPath;
         if (currentNodePath) {
             const currentNodeDir = dirname(currentNodePath);
             nodeSearchPaths.push(currentNodeDir);
         }
-        
+
         // Check common NVM locations
-        const nvmBaseDir = `${homeDir}/.nvm/versions/node`;
+        const nvmBaseDir = `${ homeDir }/.nvm/versions/node`;
         try {
             const fsSync = await import('fs');
             if (fsSync.existsSync(nvmBaseDir)) {
@@ -140,7 +140,7 @@ async function startServer() {
                 if (versions.length > 0) {
                     versions.sort().reverse(); // Sort descending to get latest first
                     const latestVersion = versions[0];
-                    const nvmNodePath = `${nvmBaseDir}/${latestVersion}/bin`;
+                    const nvmNodePath = `${ nvmBaseDir }/${ latestVersion }/bin`;
                     if (fsSync.existsSync(nvmNodePath)) {
                         nodeSearchPaths.push(nvmNodePath);
                     }
@@ -149,27 +149,27 @@ async function startServer() {
         } catch (error) {
             console.log('Could not check NVM directories:', error.message);
         }
-        
+
         const additionalPaths = [
             ...nodeSearchPaths, // Add detected Node.js paths first for priority
-            `${homeDir}/.bun/bin`,
-            `${homeDir}/.local/bin`,
+            `${ homeDir }/.bun/bin`,
+            `${ homeDir }/.local/bin`,
             '/usr/local/bin',
             '/opt/homebrew/bin',
             '/usr/bin',
             '/bin'
         ];
-        
+
         if (nodeSearchPaths.length > 0) {
             console.log('Detected Node.js paths:', nodeSearchPaths);
         }
-        
+
         // Add paths that aren't already included
         const pathElements = currentPath.split(':');
         const missingPaths = additionalPaths.filter(path => !pathElements.includes(path));
-        
+
         if (missingPaths.length > 0) {
-            process.env.PATH = `${missingPaths.join(':')}:${currentPath}`;
+            process.env.PATH = `${ missingPaths.join(':') }:${ currentPath }`;
             console.log('Enhanced PATH for Claude CLI access:', process.env.PATH);
         }
 

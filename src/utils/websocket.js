@@ -23,7 +23,7 @@ export function useWebSocket() {
         try {
             // Electron desktop app - use configured port or default to 3001
             const port = window.electronAPI?.getConfig?.()?.PORT || '3001';
-            const wsUrl = `ws://localhost:${port}/ws`;
+            const wsUrl = `ws://localhost:${ port }/ws`;
             console.log('Connecting to WebSocket:', wsUrl);
             const websocket = new WebSocket(wsUrl);
 

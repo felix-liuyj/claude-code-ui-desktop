@@ -8,17 +8,17 @@
 [![Issues][issues-shield]][issues-url]
 [![GPL License][license-shield]][license-url]
 
-<p align="center">
+<p style="text-align: center">
 <!-- PROJECT LOGO -->
 <br />
 
-<p align="center">
+<p style="text-align: center">
   <a href="https://github.com/felix-liuyj/claude-code-ui-desktop">
     <img src="public/logo.svg" alt="Claude Code UI Desktop" width="64" height="64">
   </a>
 
-<h3 align="center">Claude Code UI Desktop</h3>
-<p align="center">
+<h3 style="text-align: center">Claude Code UI Desktop</h3>
+<p style="text-align: center">
     基于 siteboon/claudecodeui 的桌面版本，为 Claude Code CLI 提供原生 Electron 应用体验
     <br />
     <a href="https://github.com/siteboon/claudecodeui"><strong>查看原项目 »</strong></a>
@@ -34,27 +34,27 @@
 ## 目录
 
 - [Claude Code UI Desktop](#claude-code-ui-desktop)
-  - [目录](#目录)
-  - [关于项目](#关于项目)
-    - [继承的核心功能](#继承的核心功能)
-    - [技术特点](#技术特点)
-  - [快速开始](#快速开始)
-    - [环境要求](#环境要求)
-    - [安装步骤](#安装步骤)
-  - [项目结构](#项目结构)
-  - [核心功能](#核心功能)
-  - [开发指南](#开发指南)
-    - [开发命令](#开发命令)
-  - [架构设计](#架构设计)
-    - [系统概览](#系统概览)
-    - [核心架构模式](#核心架构模式)
-  - [部署选项](#部署选项)
-  - [技术栈](#技术栈)
-  - [安全配置](#安全配置)
-  - [故障排除](#故障排除)
-  - [贡献指南](#贡献指南)
-  - [许可证](#许可证)
-  - [致谢](#致谢)
+    - [目录](#目录)
+    - [关于项目](#关于项目)
+        - [继承的核心功能](#继承的核心功能)
+        - [技术特点](#技术特点)
+    - [快速开始](#快速开始)
+        - [环境要求](#环境要求)
+        - [安装步骤](#安装步骤)
+    - [项目结构](#项目结构)
+    - [核心功能](#核心功能)
+    - [开发指南](#开发指南)
+        - [开发命令](#开发命令)
+    - [架构设计](#架构设计)
+        - [系统概览](#系统概览)
+        - [核心架构模式](#核心架构模式)
+    - [部署选项](#部署选项)
+    - [技术栈](#技术栈)
+    - [安全配置](#安全配置)
+    - [故障排除](#故障排除)
+    - [贡献指南](#贡献指南)
+    - [许可证](#许可证)
+    - [致谢](#致谢)
 
 ## 关于项目
 
@@ -210,23 +210,23 @@ npm install                  # 安装所有依赖
 ### 核心架构模式
 
 1. **嵌入式服务器架构**
-   - Express 服务器直接运行在 Electron 主进程中
-   - 运行时动态导入：`await import(serverPath)`
-   - 固定端口 3001，无需动态端口分配
-   - 与 Electron 应用生命周期自动管理
+    - Express 服务器直接运行在 Electron 主进程中
+    - 运行时动态导入：`await import(serverPath)`
+    - 固定端口 3001，无需动态端口分配
+    - 与 Electron 应用生命周期自动管理
 
 2. **会话保护系统** (`src/App.jsx`)
-   - 防止 WebSocket 项目更新清除活动聊天消息
-   - 使用 `activeSessions` Set 跟踪进行中的对话
-   - 支持真实会话 ID 和临时 "new-session-*" 标识符
-   - `isUpdateAdditive()` 函数允许侧边栏更新同时保护活动聊天
+    - 防止 WebSocket 项目更新清除活动聊天消息
+    - 使用 `activeSessions` Set 跟踪进行中的对话
+    - 支持真实会话 ID 和临时 "new-session-*" 标识符
+    - `isUpdateAdditive()` 函数允许侧边栏更新同时保护活动聊天
 
 3. **简化的本地通信架构**
-   - 单一 WebSocket 服务器，基于 URL 的路由 (`/ws` vs `/shell`)
-   - `/ws` 端点：聊天消息、项目更新、会话管理
-   - `/shell` 端点：直接 Claude CLI 终端访问，使用 PTY
-   - 通过 chokidar 文件系统监视器实现实时项目同步
-   - 移除所有认证层，直接本地通信
+    - 单一 WebSocket 服务器，基于 URL 的路由 (`/ws` vs `/shell`)
+    - `/ws` 端点：聊天消息、项目更新、会话管理
+    - `/shell` 端点：直接 Claude CLI 终端访问，使用 PTY
+    - 通过 chokidar 文件系统监视器实现实时项目同步
+    - 移除所有认证层，直接本地通信
 
 ## 部署选项
 

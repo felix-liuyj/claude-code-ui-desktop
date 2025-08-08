@@ -89,15 +89,15 @@
       }
     ],
     "mac": {
-      "icon": "build/icon.icns",
+      "icon": "public/icon.icns",
       "category": "public.app-category.developer-tools"
     },
     "win": {
-      "icon": "build/icon.ico",
+      "icon": "public/icon.ico",
       "target": "nsis"
     },
     "linux": {
-      "icon": "build/icon.png",
+      "icon": "public/icon.png",
       "target": "AppImage"
     },
     "nsis": {

@@ -2,7 +2,7 @@
 const getBaseUrl = () => {
     // Use configured port or default to 3001 for Electron desktop app
     const port = window.electronAPI?.getConfig?.()?.PORT || '3001';
-    return `http://localhost:${port}`;
+    return `http://localhost:${ port }`;
 };
 
 // Utility function for API calls
