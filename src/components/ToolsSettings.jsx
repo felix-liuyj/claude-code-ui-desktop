@@ -62,6 +62,8 @@ function ToolsSettings({ isOpen, onClose }) {
     const [mcpServerTools, setMcpServerTools] = useState({});
     const [mcpToolsLoading, setMcpToolsLoading] = useState({});
     const [activeTab, setActiveTab] = useState('tools');
+    // Appearance: custom chat background image (data URL or relative path)
+    const [chatBgImage, setChatBgImage] = useState('');
 
     // Persist permission mode immediately and notify listeners
     const persistPermissionMode = (newMode) => {
@@ -336,6 +338,7 @@ function ToolsSettings({ isOpen, onClose }) {
                 if (mode === 'skip-all') mode = 'bypassPermissions';
                 setPermissionMode(mode);
                 setProjectSortOrder(settings.projectSortOrder || 'name');
+                setChatBgImage(settings.chatBgImage || '');
             } else {
                 // Set defaults
                 setAllowedTools([]);
@@ -343,6 +346,7 @@ function ToolsSettings({ isOpen, onClose }) {
                 setSkipPermissions(false);
                 setPermissionMode('default');
                 setProjectSortOrder('name');
+                setChatBgImage('');
             }
 
             // Load MCP servers from API
@@ -355,6 +359,7 @@ function ToolsSettings({ isOpen, onClose }) {
             setSkipPermissions(false);
             setPermissionMode('default');
             setProjectSortOrder('name');
+            setChatBgImage('');
         }
     };
 
@@ -369,6 +374,7 @@ function ToolsSettings({ isOpen, onClose }) {
                 skipPermissions,
                 permissionMode,
                 projectSortOrder,
+                chatBgImage,
                 lastUpdated: new Date().toISOString()
             };
 
@@ -389,6 +395,40 @@ function ToolsSettings({ isOpen, onClose }) {
         } finally {
             setIsSaving(false);
         }
+    };
+
+    // Persist partial settings update (helper)
+    const persistPartialSettings = (patch) => {
+        try {
+            const saved = localStorage.getItem('claude-tools-settings');
+            const current = saved ? JSON.parse(saved) : {};
+            const next = { ...current, ...patch, lastUpdated: new Date().toISOString() };
+            localStorage.setItem('claude-tools-settings', JSON.stringify(next));
+            window.dispatchEvent(new Event('toolsSettingsChanged'));
+        } catch (e) {
+            console.error('Failed to persist settings patch:', e);
+        }
+    };
+
+    const handleChatBgFileChange = (file) => {
+        if (!file) return;
+        const allowed = ['image/png', 'image/svg+xml', 'image/jpeg'];
+        if (!allowed.includes(file.type)) {
+            alert('仅支持 PNG、SVG 或 JPG 图片');
+            return;
+        }
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const dataUrl = e.target?.result || '';
+            setChatBgImage(dataUrl);
+            persistPartialSettings({ chatBgImage: dataUrl });
+        };
+        reader.readAsDataURL(file);
+    };
+
+    const handleClearChatBg = () => {
+        setChatBgImage('');
+        persistPartialSettings({ chatBgImage: '' });
     };
 
     const addAllowedTool = (tool) => {
@@ -895,6 +935,33 @@ function ToolsSettings({ isOpen, onClose }) {
                                                 <option value="date">按最近活动</option>
                                             </select>
                                         </div>
+                                    </div>
+                                </div>
+
+                                {/* Chat Background */}
+                                <div className="space-y-4">
+                                    <div className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                                        <div className="mb-3">
+                                            <div className="font-medium text-foreground">聊天背景</div>
+                                            <div className="text-sm text-muted-foreground">可选：上传自定义 PNG/SVG/JPG 作为聊天背景装饰（以 10% 透明度覆盖）</div>
+                                        </div>
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-32 h-20 rounded border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex items-center justify-center overflow-hidden">
+                                                { chatBgImage ? (
+                                                    <img src={ chatBgImage } alt="背景预览" className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <div className="text-xs text-gray-400">无自定义背景</div>
+                                                ) }
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <label className="inline-flex items-center px-3 py-1.5 text-sm rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+                                                    选择图片
+                                                    <input type="file" accept="image/png,image/svg+xml,image/jpeg" className="hidden" onChange={(e)=> handleChatBgFileChange(e.target.files?.[0])} />
+                                                </label>
+                                                <button type="button" onClick={ handleClearChatBg } className="px-3 py-1.5 text-sm rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50" disabled={!chatBgImage}>清除</button>
+                                            </div>
+                                        </div>
+                                        <div className="text-[11px] text-gray-500 dark:text-gray-400 mt-2">未设置时使用内置背景图 bg-repeat.svg</div>
                                     </div>
                                 </div>
                             </div>

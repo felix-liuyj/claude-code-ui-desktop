@@ -184,10 +184,11 @@ const MessageComponent = memo(({
                         </div>
                     </div>
                     { !isGrouped && (
-                        <div
-                            className="hidden sm:flex w-8 h-8 bg-blue-600 rounded-full items-center justify-center text-white text-sm flex-shrink-0">
-                            U
-                        </div>
+                        <img
+                            src="asker.svg"
+                            alt="User"
+                            className="hidden sm:flex w-8 h-8 rounded-full object-cover flex-shrink-0"
+                        />
                     ) }
                 </div>
             ) : (
@@ -201,10 +202,11 @@ const MessageComponent = memo(({
                                     !
                                 </div>
                             ) : (
-                                <div
-                                    className="w-8 h-8 rounded-full bg-orange-100 dark:bg-orange-900 flex items-center justify-center flex-shrink-0 p-1">
-                                    <ClaudeLogo className="w-5 h-5"/>
-                                </div>
+                                <img
+                                    src="claude.svg"
+                                    alt="Claude"
+                                    className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                                />
                             ) }
                             <div className="text-sm font-semibold text-gray-900 dark:text-white">
                                 { message.type === 'error' ? '错误' : 'Claude' }
@@ -327,12 +329,12 @@ const MessageComponent = memo(({
                                                             <details className="mt-2" open={ autoExpandTools }>
                                                                 <summary
                                                                     className="text-xs text-blue-600 dark:text-blue-400 cursor-pointer hover:text-blue-700 dark:hover:text-blue-300">
-                                                                    View raw parameters
+                                                                    查看输入参数 (原始)
                                                                 </summary>
                                                                 <pre
                                                                     className="mt-2 text-xs bg-blue-100 dark:bg-blue-800/30 p-2 rounded whitespace-pre-wrap break-words overflow-hidden text-blue-900 dark:text-blue-100">
-                                  { message.toolInput }
-                                </pre>
+                                                                    { typeof message.toolInput === 'string' ? message.toolInput : JSON.stringify(message.toolInput, null, 2) }
+                                                                </pre>
                                                             </details>
                                                         ) }
                                                     </div>
@@ -340,20 +342,8 @@ const MessageComponent = memo(({
                                             );
                                         }
                                     } catch (e) {
-                                        // Fall back to raw display if parsing fails
+                                        return null;
                                     }
-                                    return (
-                                        <details className="mt-2" open={ autoExpandTools }>
-                                            <summary
-                                                className="text-sm text-blue-700 dark:text-blue-300 cursor-pointer hover:text-blue-800 dark:hover:text-blue-200">
-                                                查看输入参数
-                                            </summary>
-                                            <pre
-                                                className="mt-2 text-xs bg-blue-100 dark:bg-blue-800/30 p-2 rounded whitespace-pre-wrap break-words overflow-hidden text-blue-900 dark:text-blue-100">
-                        { message.toolInput }
-                      </pre>
-                                        </details>
-                                    );
                                 })() }
                                 { message.toolInput && message.toolName !== 'Edit' && (() => {
                                     // Debug log to see what we're dealing with
@@ -2536,14 +2526,33 @@ function ChatInterface({
                 <div
                     ref={ scrollContainerRef }
                     className="flex-1 overflow-y-auto overflow-x-hidden px-0 py-3 sm:p-4 space-y-3 sm:space-y-4 relative"
-                    style={ chatBgEnabledResolved ? {
-                        backgroundImage: "url('bg-repeat.svg')",
-                        backgroundRepeat: 'repeat',
-                        backgroundSize: '72px 72px',
-                        backgroundPosition: 'center top',
-                        opacity: 1
-                    } : undefined }
                 >
+                    { chatBgEnabledResolved && (
+                        (() => {
+                            let customUrl = null;
+                            try {
+                                const saved = safeLocalStorage.getItem('claude-tools-settings');
+                                if (saved) {
+                                    const settings = JSON.parse(saved);
+                                    if (settings.chatBgImage) customUrl = settings.chatBgImage;
+                                }
+                            } catch (e) { /* ignore */ }
+                            const bgUrl = customUrl || 'bg-repeat.svg';
+                            return (
+                                <div
+                                    className="pointer-events-none absolute inset-0"
+                                    aria-hidden="true"
+                                    style={{
+                                        backgroundImage: `url('${bgUrl}')`,
+                                        backgroundRepeat: 'repeat',
+                                        backgroundSize: '72px 72px',
+                                        backgroundPosition: 'center top',
+                                        opacity: 0.1,
+                                    }}
+                                />
+                            );
+                        })()
+                    ) }
                     { isLoadingSessionMessages && chatMessages.length === 0 ? (
                         <div className="text-center text-gray-500 dark:text-gray-400 mt-8">
                             <div className="flex items-center justify-center space-x-2">

@@ -431,8 +431,8 @@ function Sidebar({
                 {/* Desktop Header */ }
                 <div className="hidden md:flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shadow-sm">
-                            <ClaudeLogo className="w-4 h-4"/>
+                        <div className="w-8 h-8 rounded-lg overflow-hidden shadow-sm">
+                            <img src="logo.svg" alt="AI 编程助手" className="w-8 h-8 object-cover" />
                         </div>
                         <div>
                             <h1 className="text-lg font-bold text-foreground">Claude Code UI</h1>
