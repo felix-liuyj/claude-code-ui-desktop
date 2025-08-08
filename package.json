@@ -10,6 +10,7 @@
     "electron": "electron .",
     "electron-dev": "node scripts/start-electron.js",
     "electron-pack": "npm run build && electron-builder",
+    "dev": "npm run build && npm run electron-dev",
     "dist": "npm run build && electron-builder --publish=never",
     "start": "npm run electron-dev"
   },

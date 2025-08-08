@@ -527,13 +527,13 @@ function ToolsSettings({ isOpen, onClose }) {
     if (!isOpen) return null;
 
     return (
-        <div className="modal-backdrop fixed inset-0 flex items-center justify-center z-[100] md:p-4 bg-background/95">
+        <div className="modal-backdrop fixed inset-0 flex items-center justify-center z-[100] md:p-4 bg-black/50">
             <div
-                className="bg-background border border-border md:rounded-lg shadow-xl w-full md:max-w-4xl h-full md:h-[90vh] flex flex-col">
-                <div className="flex items-center justify-between p-4 md:p-6 border-b border-border flex-shrink-0">
+                className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 md:rounded-lg shadow-xl w-full md:max-w-4xl h-full md:h-[90vh] flex flex-col">
+                <div className="flex items-center justify-between p-4 md:p-6 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
                     <div className="flex items-center gap-3">
                         <Settings className="w-5 h-5 md:w-6 md:h-6 text-blue-600"/>
-                        <h2 className="text-lg md:text-xl font-semibold text-foreground">
+                        <h2 className="text-lg md:text-xl font-semibold text-gray-900 dark:text-white">
                             设置
                         </h2>
                     </div>
@@ -541,7 +541,7 @@ function ToolsSettings({ isOpen, onClose }) {
                         variant="ghost"
                         size="sm"
                         onClick={ onClose }
-                        className="text-muted-foreground hover:text-foreground touch-manipulation"
+                        className="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white touch-manipulation"
                     >
                         <X className="w-5 h-5"/>
                     </Button>
@@ -549,24 +549,24 @@ function ToolsSettings({ isOpen, onClose }) {
 
                 <div className="flex-1 overflow-y-auto">
                     {/* Tab Navigation */ }
-                    <div className="border-b border-border">
-                        <div className="flex px-4 md:px-6">
+                    <div className="border-b border-gray-200 dark:border-gray-700">
+                        <div className="flex px-4 md:px-6 overflow-x-auto">
                             <button
                                 onClick={ () => setActiveTab('tools') }
-                                className={ `px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+                                className={ `flex-shrink-0 px-4 py-3 text-sm font-medium border-b-2 transition-colors touch-manipulation ${
                                     activeTab === 'tools'
                                         ? 'border-blue-600 text-blue-600 dark:text-blue-400'
-                                        : 'border-transparent text-muted-foreground hover:text-foreground'
+                                        : 'border-transparent text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
                                 }` }
                             >
                                 工具
                             </button>
                             <button
                                 onClick={ () => setActiveTab('appearance') }
-                                className={ `px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+                                className={ `flex-shrink-0 px-4 py-3 text-sm font-medium border-b-2 transition-colors touch-manipulation ${
                                     activeTab === 'appearance'
                                         ? 'border-blue-600 text-blue-600 dark:text-blue-400'
-                                        : 'border-transparent text-muted-foreground hover:text-foreground'
+                                        : 'border-transparent text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
                                 }` }
                             >
                                 外观
@@ -575,10 +575,10 @@ function ToolsSettings({ isOpen, onClose }) {
                             { isDevelopmentMode && (
                                 <button
                                     onClick={ () => setActiveTab('developer') }
-                                    className={ `px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+                                    className={ `flex-shrink-0 px-4 py-3 text-sm font-medium border-b-2 transition-colors touch-manipulation ${
                                         activeTab === 'developer'
                                             ? 'border-blue-600 text-blue-600 dark:text-blue-400'
-                                            : 'border-transparent text-muted-foreground hover:text-foreground'
+                                            : 'border-transparent text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
                                     }` }
                                 >
                                     开发者
@@ -1470,7 +1470,7 @@ function ToolsSettings({ isOpen, onClose }) {
                 </div>
 
                 <div
-                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 md:p-6 border-t border-border flex-shrink-0 gap-3 pb-safe-area-inset-bottom">
+                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 md:p-6 border-t border-gray-200 dark:border-gray-700 flex-shrink-0 gap-3 pb-safe-area-inset-bottom">
                     <div className="flex items-center justify-center sm:justify-start gap-2 order-2 sm:order-1">
                         { saveStatus === 'success' && (
                             <div className="text-green-600 dark:text-green-400 text-sm flex items-center gap-1">

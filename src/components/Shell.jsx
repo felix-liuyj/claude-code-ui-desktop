@@ -382,29 +382,33 @@ function Shell({ selectedProject, selectedSession, isActive }) {
         if (isConnecting || isConnected) return;
 
         try {
-            // Fetch server configuration to get the correct WebSocket URL
+            // 确保使用正确的Electron桌面应用设置
             let wsBaseUrl;
+            
+            // 优先使用Electron配置
+            const port = window.electronAPI?.getConfig?.()?.PORT || '3001';
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            wsBaseUrl = `${protocol}//localhost:${port}`;
+            
+            // 可选：尝试从服务器获取配置作为验证
             try {
                 const configResponse = await fetch('/api/config');
                 const config = await configResponse.json();
-                wsBaseUrl = config.wsUrl;
-
-                // If the config returns localhost but we're not on localhost, use current host but with API server port
-                if (wsBaseUrl.includes('localhost') && !window.location.hostname.includes('localhost')) {
-                    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-                    // For development, API server is typically on port 3002 when Vite is on 3001
-                    const apiPort = window.location.port === '3001' ? '3002' : window.location.port;
-                    wsBaseUrl = `${ protocol }//${ window.location.hostname }:${ apiPort }`;
+                if (config.wsUrl && config.wsUrl.trim() !== '') {
+                    wsBaseUrl = config.wsUrl;
                 }
             } catch (error) {
-                const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-                // For development, API server is typically on port 3002 when Vite is on 3001
-                const apiPort = window.location.port === '3001' ? '3002' : window.location.port;
-                wsBaseUrl = `${ protocol }//${ window.location.hostname }:${ apiPort }`;
+                console.warn('Using default WebSocket URL:', wsBaseUrl);
             }
 
-            // Include token in WebSocket URL as query parameter
-            const wsUrl = `${ wsBaseUrl }/shell?token=${ encodeURIComponent(token) }`;
+            // WebSocket URL without authentication
+            const wsUrl = `${wsBaseUrl}/shell`;
+            console.log('Connecting to WebSocket:', wsUrl);
+            
+            // 验证URL格式
+            if (!wsUrl.startsWith('ws://') && !wsUrl.startsWith('wss://')) {
+                throw new Error('Invalid WebSocket URL format');
+            }
 
             ws.current = new WebSocket(wsUrl);
 
@@ -486,12 +490,27 @@ function Shell({ selectedProject, selectedSession, isActive }) {
             };
 
             ws.current.onerror = (error) => {
+                console.error('WebSocket error:', error);
                 setIsConnected(false);
                 setIsConnecting(false);
+                
+                // Display error in terminal
+                if (terminal.current) {
+                    terminal.current.writeln('\x1b[31m✗ 连接终端失败\x1b[0m');
+                    terminal.current.writeln('\x1b[33m请检查网络连接或稍后重试\x1b[0m');
+                }
             };
         } catch (error) {
+            console.error('Failed to connect to terminal:', error);
             setIsConnected(false);
             setIsConnecting(false);
+            
+            // Display connection error in terminal
+            if (terminal.current) {
+                terminal.current.writeln('\x1b[31m✗ 连接失败\x1b[0m');
+                terminal.current.writeln(`\x1b[33m错误：${error.message || '未知错误'}\x1b[0m`);
+                terminal.current.writeln('\x1b[90m请检查服务器状态或稍后重试\x1b[0m');
+            }
         }
     };
 
@@ -581,10 +600,10 @@ function Shell({ selectedProject, selectedSession, isActive }) {
                 {/* Connect button when not connected */ }
                 { isInitialized && !isConnected && !isConnecting && (
                     <div className="absolute inset-0 flex items-center justify-center bg-gray-900 bg-opacity-90 p-4">
-                        <div className="text-center max-w-sm w-full">
+                        <div className="text-center max-w-sm mx-auto">
                             <button
                                 onClick={ connectToShell }
-                                className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center space-x-2 text-base font-medium w-full sm:w-auto"
+                                className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors inline-flex items-center justify-center space-x-2 text-base font-medium"
                                 title="连接到终端"
                             >
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -606,7 +625,7 @@ function Shell({ selectedProject, selectedSession, isActive }) {
                 {/* Connecting state */ }
                 { isConnecting && (
                     <div className="absolute inset-0 flex items-center justify-center bg-gray-900 bg-opacity-90 p-4">
-                        <div className="text-center max-w-sm w-full">
+                        <div className="text-center max-w-sm mx-auto">
                             <div className="flex items-center justify-center space-x-3 text-yellow-400">
                                 <div
                                     className="w-6 h-6 animate-spin rounded-full border-2 border-yellow-400 border-t-transparent"></div>

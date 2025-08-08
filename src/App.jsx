@@ -629,14 +629,14 @@ function AppContent() {
     // Check if we're running on macOS in Electron and need top padding for menu bar
     const needsMacOSMenuBarOffset = electron?.isElectronApp() && electron?.isMac();
     const containerClasses = needsMacOSMenuBarOffset
-        ? 'fixed left-0 right-0 bottom-0 top-7 flex bg-background' // 28px offset for macOS menu bar
-        : 'fixed inset-0 flex bg-background';
+        ? 'fixed left-0 right-0 bottom-0 top-7 flex bg-gray-50 dark:bg-gray-900' // 28px offset for macOS menu bar
+        : 'fixed inset-0 flex bg-gray-50 dark:bg-gray-900';
 
     return (
         <div className={ containerClasses }>
             {/* Fixed Desktop Sidebar */ }
             { !isMobile && (
-                <div className="w-80 flex-shrink-0 border-r border-border bg-card">
+                <div className="w-80 flex-shrink-0 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
                     <div className="h-full overflow-hidden">
                         <Sidebar
                             projects={ projects }
@@ -665,7 +665,7 @@ function AppContent() {
                     sidebarOpen ? 'opacity-100 visible' : 'opacity-0 invisible'
                 }` }>
                     <div
-                        className="fixed inset-0 bg-background/80 backdrop-blur-sm transition-opacity duration-150 ease-out"
+                        className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity duration-150 ease-out"
                         onClick={ (e) => {
                             e.stopPropagation();
                             setSidebarOpen(false);
@@ -677,7 +677,7 @@ function AppContent() {
                         } }
                     />
                     <div
-                        className={ `relative w-[85vw] max-w-sm sm:w-80 bg-card border-r border-border h-full transform transition-transform duration-150 ease-out ${
+                        className={ `relative w-[85vw] max-w-sm sm:w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 h-full transform transition-transform duration-150 ease-out ${
                             sidebarOpen ? 'translate-x-0' : '-translate-x-full'
                         }` }
                         onClick={ (e) => e.stopPropagation() }

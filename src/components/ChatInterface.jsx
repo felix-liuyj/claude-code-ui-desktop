@@ -2112,10 +2112,7 @@ function ChatInterface({
             });
 
             try {
-                const response = await fetch(`/api/projects/${ selectedProject.name }/upload-images`, {
-                    method: 'POST',
-                    body: formData
-                });
+                const response = await api.uploadImages(selectedProject.name, formData);
 
                 if (!response.ok) {
                     throw new Error('Failed to upload images');

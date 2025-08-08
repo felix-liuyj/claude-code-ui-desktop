@@ -41,7 +41,7 @@ cp .env.example .env       # Configure environment (for web mode only)
 
 - **Main App**: `src/App.jsx` - Central router with session protection and Electron integration
 - **Components**: Modular React components in `src/components/`
-- **Context**: Theme, Auth, and Electron providers in `src/contexts/`
+- **Context**: Theme and Electron providers in `src/contexts/`
 - **Utils**: API client, WebSocket utilities, and Electron bridge in `src/utils/`
 - **Electron Integration**: `src/utils/electron.js` - Native desktop features
 
@@ -50,7 +50,7 @@ cp .env.example .env       # Configure environment (for web mode only)
 - **Main Server**: `server/index.js` - Express server with WebSocket support (runs in main process)
 - **Claude CLI Integration**: `server/claude-cli.js` - Spawns and manages Claude processes
 - **Project Management**: `server/projects.js` - Handles Claude project discovery
-- **Authentication**: JWT-based auth with SQLite database
+- **No Authentication**: Direct access for desktop application security
 - **Port**: 3001 (fixed for Electron), dynamic for web mode
 
 ### Key Architecture Patterns
@@ -91,7 +91,7 @@ cp .env.example .env       # Configure environment (for web mode only)
 No environment configuration required - all settings are automatic:
 
 - Server port: Fixed at 3001
-- Authentication: SQLite database in Electron userData directory
+- No authentication required for desktop security model
 - Build output: `dist/` directory for renderer, `dist-electron/` for packages
 
 ### Web Mode (Legacy)
@@ -100,7 +100,7 @@ Copy `.env.example` to `.env` and configure:
 
 - `PORT=3001` - Backend server port (can be changed)
 - `VITE_PORT=5173` - Frontend development port
-- Authentication database: `server/database/auth.db`
+- No authentication database required for desktop security model
 
 ## Development Workflow
 
@@ -131,7 +131,7 @@ Copy `.env.example` to `.env` and configure:
 - `src/App.jsx`: Main React component with routing, session management, and Electron integration
 - `server/projects.js`: Claude project discovery and management with caching
 - `server/claude-cli.js`: Claude CLI process spawning and communication
-- `server/routes/`: API route handlers for auth, git, and MCP integration
+- `server/routes/`: API route handlers for git and MCP integration
 - `server/database/`: SQLite database setup and management
 - `vite.config.js`: Frontend build configuration with Electron support
 
@@ -158,5 +158,5 @@ The app implements a sophisticated system to prevent WebSocket updates from inte
 
 - **Single Server, Dual Routing**: URL-based routing (`/ws` vs `/shell`) within one WebSocket server
 - **Terminal Integration**: PTY spawning for real Claude CLI access with proper environment setup
-- **Authentication**: Token-based auth for WebSocket connections with user context
+- **Direct Connection**: WebSocket connections without authentication for desktop security
 - **Real-time Updates**: Chokidar file watcher with optimized debouncing and filtering
