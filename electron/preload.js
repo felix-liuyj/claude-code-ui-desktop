@@ -12,6 +12,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
     writeFile: (filePath, content) => ipcRenderer.invoke('write-file', filePath, content),
     readFile: (filePath) => ipcRenderer.invoke('read-file', filePath),
 
+    // Developer Tools operations
+    toggleDevTools: () => ipcRenderer.invoke('toggle-dev-tools'),
+    openDevTools: (options) => ipcRenderer.invoke('open-dev-tools', options),
+    closeDevTools: () => ipcRenderer.invoke('close-dev-tools'),
+    isDevToolsOpened: () => ipcRenderer.invoke('is-dev-tools-opened'),
+    isDevelopmentMode: () => ipcRenderer.invoke('is-development-mode'),
+
     // Menu events
     onMenuAction: (callback) => {
         const events = [

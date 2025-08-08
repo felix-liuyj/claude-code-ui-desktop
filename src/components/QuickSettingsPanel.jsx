@@ -14,6 +14,7 @@ import {
     Sun
 } from 'lucide-react';
 import DarkModeToggle from './DarkModeToggle';
+import DevTools from './DevTools';
 import { useTheme } from '../contexts/ThemeContext';
 
 const QuickSettingsPanel = ({
@@ -33,11 +34,37 @@ const QuickSettingsPanel = ({
     const [whisperMode, setWhisperMode] = useState(() => {
         return localStorage.getItem('whisperMode') || 'default';
     });
+    const [isDevelopmentMode, setIsDevelopmentMode] = useState(false);
     const { isDarkMode } = useTheme();
 
     useEffect(() => {
         setLocalIsOpen(isOpen);
     }, [isOpen]);
+
+    useEffect(() => {
+        // Check development mode
+        const checkDevelopmentMode = async () => {
+            if (window.electronAPI) {
+                try {
+                    const result = await window.electronAPI.isDevelopmentMode();
+                    if (result.success) {
+                        setIsDevelopmentMode(result.isDevelopment);
+                    }
+                } catch (error) {
+                    console.error('Error checking development mode:', error);
+                }
+            } else {
+                // In browser, check for development mode via env or other indicators
+                setIsDevelopmentMode(
+                    process.env.NODE_ENV === 'development' ||
+                    window.location.hostname === 'localhost' ||
+                    window.location.hostname === '127.0.0.1'
+                );
+            }
+        };
+
+        checkDevelopmentMode();
+    }, []);
 
     const handleToggle = () => {
         const newState = !localIsOpen;
@@ -86,14 +113,14 @@ const QuickSettingsPanel = ({
                         className={ `flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-6 bg-white dark:bg-gray-900 ${ isMobile ? 'pb-20' : '' }` }>
                         {/* Appearance Settings */ }
                         <div className="space-y-2">
-                            <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">Appearance</h4>
+                            <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">外观设置</h4>
 
                             <div
                                 className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors border border-transparent hover:border-gray-300 dark:hover:border-gray-600">
                 <span className="flex items-center gap-2 text-sm text-gray-900 dark:text-white">
                   { isDarkMode ? <Moon className="h-4 w-4 text-gray-600 dark:text-gray-400"/> :
                       <Sun className="h-4 w-4 text-gray-600 dark:text-gray-400"/> }
-                    Dark Mode
+                    深色模式
                 </span>
                                 <DarkModeToggle/>
                             </div>
@@ -101,8 +128,7 @@ const QuickSettingsPanel = ({
 
                         {/* Tool Display Settings */ }
                         <div className="space-y-2">
-                            <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">Tool
-                                Display</h4>
+                            <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">工具显示</h4>
 
                             <label
                                 className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors border border-transparent hover:border-gray-300 dark:hover:border-gray-600">
@@ -122,7 +148,7 @@ const QuickSettingsPanel = ({
                                 className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors border border-transparent hover:border-gray-300 dark:hover:border-gray-600">
                 <span className="flex items-center gap-2 text-sm text-gray-900 dark:text-white">
                   <Eye className="h-4 w-4 text-gray-600 dark:text-gray-400"/>
-                  Show raw parameters
+                  显示原始参数
                 </span>
                                 <input
                                     type="checkbox"
@@ -134,14 +160,13 @@ const QuickSettingsPanel = ({
                         </div>
                         {/* View Options */ }
                         <div className="space-y-2">
-                            <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">View
-                                Options</h4>
+                            <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">显示选项</h4>
 
                             <label
                                 className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors border border-transparent hover:border-gray-300 dark:hover:border-gray-600">
                 <span className="flex items-center gap-2 text-sm text-gray-900 dark:text-white">
                   <ArrowDown className="h-4 w-4 text-gray-600 dark:text-gray-400"/>
-                  Auto-scroll to bottom
+                  自动滚动到底部
                 </span>
                                 <input
                                     type="checkbox"
@@ -154,14 +179,13 @@ const QuickSettingsPanel = ({
 
                         {/* Input Settings */ }
                         <div className="space-y-2">
-                            <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">Input
-                                Settings</h4>
+                            <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">输入设置</h4>
 
                             <label
                                 className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors border border-transparent hover:border-gray-300 dark:hover:border-gray-600">
                 <span className="flex items-center gap-2 text-sm text-gray-900 dark:text-white">
                   <Languages className="h-4 w-4 text-gray-600 dark:text-gray-400"/>
-                  Send by Ctrl+Enter
+                  Ctrl+Enter 发送
                 </span>
                                 <input
                                     type="checkbox"
@@ -171,8 +195,7 @@ const QuickSettingsPanel = ({
                                 />
                             </label>
                             <p className="text-xs text-gray-500 dark:text-gray-400 ml-3">
-                                When enabled, pressing Ctrl+Enter will send the message instead of just Enter. This is
-                                useful for IME users to avoid accidental sends.
+                                启用后，使用 Ctrl+Enter 发送消息而不是单独的 Enter 键。这对输入法用户有用，可避免意外发送。
                             </p>
                         </div>
 
@@ -258,6 +281,20 @@ const QuickSettingsPanel = ({
                                 </label>
                             </div>
                         </div>
+
+                        {/* Developer Tools - Only show in development mode */ }
+                        { isDevelopmentMode && (
+                            <div className="space-y-2">
+                                <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">
+                                    开发者工具
+                                </h4>
+
+                                <div
+                                    className="rounded-lg bg-gray-50 dark:bg-gray-800 border border-transparent hover:border-gray-300 dark:hover:border-gray-600">
+                                    <DevTools/>
+                                </div>
+                            </div>
+                        ) }
                     </div>
                 </div>
             </div>

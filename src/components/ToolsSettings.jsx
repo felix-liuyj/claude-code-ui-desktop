@@ -4,6 +4,7 @@ import { Input } from './ui/input';
 import { Badge } from './ui/badge';
 import {
     AlertTriangle,
+    Bug,
     Edit3,
     Globe,
     Monitor,
@@ -20,9 +21,10 @@ import {
     Zap
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
+import DevTools from './DevTools';
 
 function ToolsSettings({ isOpen, onClose }) {
-    const { isDarkMode, themeMode, setTheme } = useTheme();
+    const { themeMode, setTheme } = useTheme();
     const [allowedTools, setAllowedTools] = useState([]);
     const [disallowedTools, setDisallowedTools] = useState([]);
     const [newAllowedTool, setNewAllowedTool] = useState('');
@@ -31,6 +33,7 @@ function ToolsSettings({ isOpen, onClose }) {
     const [isSaving, setIsSaving] = useState(false);
     const [saveStatus, setSaveStatus] = useState(null);
     const [projectSortOrder, setProjectSortOrder] = useState('name');
+    const [isDevelopmentMode, setIsDevelopmentMode] = useState(false);
 
     // MCP server management state
     const [mcpServers, setMcpServers] = useState([]);
@@ -53,7 +56,7 @@ function ToolsSettings({ isOpen, onClose }) {
     const [mcpTestResults, setMcpTestResults] = useState({});
     const [mcpConfigTestResult, setMcpConfigTestResult] = useState(null);
     const [mcpConfigTesting, setMcpConfigTesting] = useState(false);
-    const [mcpConfigTested, setMcpConfigTested] = useState(false);
+    const [, setMcpConfigTested] = useState(false);
     const [mcpServerTools, setMcpServerTools] = useState({});
     const [mcpToolsLoading, setMcpToolsLoading] = useState({});
     const [activeTab, setActiveTab] = useState('tools');
@@ -274,6 +277,24 @@ function ToolsSettings({ isOpen, onClose }) {
 
     const loadSettings = async () => {
         try {
+            // Check development mode
+            if (window.electronAPI) {
+                try {
+                    const result = await window.electronAPI.isDevelopmentMode();
+                    if (result.success) {
+                        setIsDevelopmentMode(result.isDevelopment);
+                    }
+                } catch (error) {
+                    console.error('Error checking development mode:', error);
+                }
+            } else {
+                // In browser, check for development mode via env or other indicators
+                setIsDevelopmentMode(
+                    process.env.NODE_ENV === 'development' ||
+                    window.location.hostname === 'localhost' ||
+                    window.location.hostname === '127.0.0.1'
+                );
+            }
 
             // Load from localStorage
             const savedSettings = localStorage.getItem('claude-tools-settings');
@@ -550,6 +571,19 @@ function ToolsSettings({ isOpen, onClose }) {
                             >
                                 外观
                             </button>
+                            {/* Only show developer tab in development mode */ }
+                            { isDevelopmentMode && (
+                                <button
+                                    onClick={ () => setActiveTab('developer') }
+                                    className={ `px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+                                        activeTab === 'developer'
+                                            ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+                                            : 'border-transparent text-muted-foreground hover:text-foreground'
+                                    }` }
+                                >
+                                    开发者
+                                </button>
+                            ) }
                         </div>
                     </div>
 
@@ -655,7 +689,107 @@ function ToolsSettings({ isOpen, onClose }) {
                             </div>
                         ) }
 
-                    </div>
+                        {/* Developer Tab - Only visible in development mode */ }
+                        { activeTab === 'developer' && isDevelopmentMode && (
+                            <div className="space-y-6 md:space-y-8">
+                                {/* Developer Tools */ }
+                                <div className="space-y-4">
+                                    <div
+                                        className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                                        <div>
+                                            <div className="font-medium text-foreground mb-3 flex items-center gap-2">
+                                                <Bug className="w-4 h-4"/>
+                                                开发者工具
+                                            </div>
+                                            <div className="text-sm text-muted-foreground mb-4">
+                                                访问浏览器开发者控制台和调试工具
+                                            </div>
+
+                                            <DevTools className="mb-4"/>
+
+                                            <div
+                                                className="text-xs text-muted-foreground mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                                                <div className="font-medium mb-2">使用提示：</div>
+                                                <ul className="list-disc list-inside space-y-1">
+                                                    <li>在 Electron 应用中，您可以使用上方按钮控制开发者工具的显示</li>
+                                                    <li>在浏览器中，请使用 F12 键或右键菜单访问开发者工具</li>
+                                                    <li>Console 面板可以查看日志输出和执行 JavaScript 代码</li>
+                                                    <li>Network 面板可以监控网络请求</li>
+                                                    <li>Elements 面板可以检查和修改 DOM 结构</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Debug Information */ }
+                                <div className="space-y-4">
+                                    <div
+                                        className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                                        <div>
+                                            <div className="font-medium text-foreground mb-3 flex items-center gap-2">
+                                                <Terminal className="w-4 h-4"/>
+                                                环境信息
+                                            </div>
+                                            <div className="text-sm text-muted-foreground mb-4">
+                                                当前应用运行环境的详细信息
+                                            </div>
+
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                                <div className="space-y-2">
+                                                    <div className="flex justify-between">
+                                                        <span className="text-muted-foreground">运行环境:</span>
+                                                        <span className="font-mono">
+                                                            { window.electronAPI ? 'Electron Desktop' : 'Web Browser' }
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex justify-between">
+                                                        <span className="text-muted-foreground">开发模式:</span>
+                                                        <span className="font-mono text-green-600">
+                                                            { isDevelopmentMode ? '是' : '否' }
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex justify-between">
+                                                        <span className="text-muted-foreground">平台:</span>
+                                                        <span className="font-mono">
+                                                            { navigator.platform }
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex justify-between">
+                                                        <span className="text-muted-foreground">用户代理:</span>
+                                                        <span className="font-mono text-xs truncate max-w-32"
+                                                              title={ navigator.userAgent }>
+                                                            { navigator.userAgent.split(' ')[0] }
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <div className="flex justify-between">
+                                                        <span className="text-muted-foreground">当前地址:</span>
+                                                        <span className="font-mono text-xs truncate max-w-32"
+                                                              title={ window.location.href }>
+                                                            { window.location.protocol }//{ window.location.host }
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex justify-between">
+                                                        <span className="text-muted-foreground">窗口尺寸:</span>
+                                                        <span className="font-mono">
+                                                            { window.innerWidth } × { window.innerHeight }
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex justify-between">
+                                                        <span className="text-muted-foreground">语言:</span>
+                                                        <span className="font-mono">
+                                                            { navigator.language }
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        ) }                    </div>
 
                     {/* Tools Tab */ }
                     { activeTab === 'tools' && (

@@ -42,6 +42,39 @@ function createWindow() {
         mainWindow.webContents.openDevTools();
     }
 
+    // Disable all browser shortcuts for developer tools to prevent conflicts
+    mainWindow.webContents.on('before-input-event', (event, input) => {
+        // Disable F12 completely
+        if (input.key === 'F12') {
+            event.preventDefault();
+        }
+        
+        // Disable Ctrl+Shift+I / Cmd+Alt+I completely
+        if ((input.control && input.shift && input.key === 'I') || 
+            (input.meta && input.alt && input.key === 'I')) {
+            event.preventDefault();
+        }
+        
+        // Disable other common dev tools shortcuts completely
+        // Ctrl+Shift+C / Cmd+Alt+C (inspect element)
+        if ((input.control && input.shift && input.key === 'C') || 
+            (input.meta && input.alt && input.key === 'C')) {
+            event.preventDefault();
+        }
+        
+        // Ctrl+Shift+J / Cmd+Alt+J (console)
+        if ((input.control && input.shift && input.key === 'J') || 
+            (input.meta && input.alt && input.key === 'J')) {
+            event.preventDefault();
+        }
+        
+        // Ctrl+U / Cmd+Alt+U (view source)
+        if ((input.control && input.key === 'U') || 
+            (input.meta && input.alt && input.key === 'U')) {
+            event.preventDefault();
+        }
+    });
+
     // Add detailed logging for debugging
     mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
         console.error('❌ Page failed to load:', {
@@ -220,22 +253,22 @@ function stopServer() {
 function createMenu() {
     const template = [
         {
-            label: 'File',
+            label: '文件',
             submenu: [
                 {
-                    label: 'New Session',
-                    accelerator: 'CmdOrCtrl+N',
+                    label: '新建会话',
+                    accelerator: 'CmdOrCtrl+Shift+N',
                     click: () => {
                         mainWindow.webContents.send('menu-new-session');
                     }
                 },
                 {
-                    label: 'Open Project',
+                    label: '打开项目',
                     accelerator: 'CmdOrCtrl+O',
                     click: async () => {
                         const result = await dialog.showOpenDialog(mainWindow, {
                             properties: ['openDirectory'],
-                            title: 'Select Project Directory'
+                            title: '选择项目目录'
                         });
 
                         if (!result.canceled && result.filePaths.length > 0) {
@@ -245,7 +278,7 @@ function createMenu() {
                 },
                 { type: 'separator' },
                 {
-                    label: 'Settings',
+                    label: '设置',
                     accelerator: 'CmdOrCtrl+,',
                     click: () => {
                         mainWindow.webContents.send('menu-settings');
@@ -256,57 +289,16 @@ function createMenu() {
             ]
         },
         {
-            label: 'Edit',
-            submenu: [
-                { role: 'undo' },
-                { role: 'redo' },
-                { type: 'separator' },
-                { role: 'cut' },
-                { role: 'copy' },
-                { role: 'paste' },
-                { role: 'selectall' }
-            ]
-        },
-        {
-            label: 'View',
+            label: '帮助',
             submenu: [
                 {
-                    label: 'Toggle Sidebar',
-                    accelerator: 'CmdOrCtrl+B',
-                    click: () => {
-                        mainWindow.webContents.send('menu-toggle-sidebar');
-                    }
-                },
-                { type: 'separator' },
-                { role: 'reload' },
-                { role: 'forceReload' },
-                { role: 'toggleDevTools' },
-                { type: 'separator' },
-                { role: 'resetZoom' },
-                { role: 'zoomIn' },
-                { role: 'zoomOut' },
-                { type: 'separator' },
-                { role: 'togglefullscreen' }
-            ]
-        },
-        {
-            label: 'Window',
-            submenu: [
-                { role: 'minimize' },
-                { role: 'close' }
-            ]
-        },
-        {
-            label: 'Help',
-            submenu: [
-                {
-                    label: 'About Claude Code UI',
+                    label: '关于 Claude Code UI',
                     click: () => {
                         mainWindow.webContents.send('menu-about');
                     }
                 },
                 {
-                    label: 'Learn More',
+                    label: '了解更多',
                     click: () => {
                         shell.openExternal('https://docs.anthropic.com/en/docs/claude-code');
                     }
@@ -314,33 +306,6 @@ function createMenu() {
             ]
         }
     ];
-
-    // macOS specific menu adjustments
-    if (process.platform === 'darwin') {
-        template.unshift({
-            label: app.getName(),
-            submenu: [
-                { role: 'about' },
-                { type: 'separator' },
-                { role: 'services' },
-                { type: 'separator' },
-                { role: 'hide' },
-                { role: 'hideOthers' },
-                { role: 'unhide' },
-                { type: 'separator' },
-                { role: 'quit' }
-            ]
-        });
-
-        // Window menu
-        template[4].submenu = [
-            { role: 'close' },
-            { role: 'minimize' },
-            { role: 'zoom' },
-            { type: 'separator' },
-            { role: 'front' }
-        ];
-    }
 
     const menu = Menu.buildFromTemplate(template);
     Menu.setApplicationMenu(menu);
@@ -400,6 +365,56 @@ ipcMain.handle('read-file', async (event, filePath) => {
     } catch (error) {
         return { success: false, error: error.message };
     }
+});
+
+// Developer Tools handlers - only available in development
+ipcMain.handle('toggle-dev-tools', () => {
+    if (!isDevelopment) {
+        return { success: false, error: 'Developer tools are only available in development mode' };
+    }
+    if (mainWindow) {
+        mainWindow.webContents.toggleDevTools();
+        return { success: true, isOpen: mainWindow.webContents.isDevToolsOpened() };
+    }
+    return { success: false, error: 'No main window available' };
+});
+
+ipcMain.handle('open-dev-tools', (event, options = {}) => {
+    if (!isDevelopment) {
+        return { success: false, error: 'Developer tools are only available in development mode' };
+    }
+    if (mainWindow) {
+        const defaultOptions = { mode: 'bottom' };
+        const mergedOptions = { ...defaultOptions, ...options };
+        mainWindow.webContents.openDevTools(mergedOptions);
+        return { success: true };
+    }
+    return { success: false, error: 'No main window available' };
+});
+
+ipcMain.handle('close-dev-tools', () => {
+    if (!isDevelopment) {
+        return { success: false, error: 'Developer tools are only available in development mode' };
+    }
+    if (mainWindow) {
+        mainWindow.webContents.closeDevTools();
+        return { success: true };
+    }
+    return { success: false, error: 'No main window available' };
+});
+
+ipcMain.handle('is-dev-tools-opened', () => {
+    if (!isDevelopment) {
+        return { success: false, error: 'Developer tools are only available in development mode' };
+    }
+    if (mainWindow) {
+        return { success: true, isOpen: mainWindow.webContents.isDevToolsOpened() };
+    }
+    return { success: false, error: 'No main window available' };
+});
+
+ipcMain.handle('is-development-mode', () => {
+    return { success: true, isDevelopment };
 });
 
 // Handle protocol for deep linking (optional)

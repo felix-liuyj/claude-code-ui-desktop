@@ -233,12 +233,10 @@ function Sidebar({
         }
 
         // Find the most recent session activity
-        const mostRecentDate = allSessions.reduce((latest, session) => {
+        return allSessions.reduce((latest, session) => {
             const sessionDate = new Date(session.lastActivity);
             return sessionDate > latest ? sessionDate : latest;
         }, new Date(0));
-
-        return mostRecentDate;
     };
 
     // Combined sorting: starred projects first, then by selected order
@@ -353,7 +351,7 @@ function Sidebar({
             const response = await api.createProject(newProjectPath.trim());
 
             if (response.ok) {
-                const result = await response.json();
+                await response.json();
                 setShowNewProject(false);
                 setNewProjectPath('');
 
@@ -443,7 +441,7 @@ function Sidebar({
                         </div>
                         <div>
                             <h1 className="text-lg font-bold text-foreground">Claude Code UI</h1>
-                            <p className="text-sm text-muted-foreground">AI编程助手界面</p>
+                            <p className="text-sm text-muted-foreground">AI编程助手</p>
                         </div>
                     </div>
                     <div className="flex gap-2">

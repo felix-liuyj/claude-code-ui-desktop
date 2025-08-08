@@ -92,14 +92,55 @@ function AppContent() {
     useEffect(() => {
         // Fetch projects on component mount
         console.log('🔍 [AppContent] useEffect: Fetching projects...');
-        fetchProjects();
+        (async () => {
+            try {
+                console.log('🔍 [AppContent] fetchProjects: Starting...');
+                setIsLoadingProjects(true);
+                const response = await api.projects();
+                console.log('🔍 [AppContent] fetchProjects: API response status:', response.status);
+                const data = await response.json();
+                console.log('🔍 [AppContent] fetchProjects: Projects data:', data?.length, 'projects');
+
+                // Optimize to preserve object references when data hasn't changed
+                setProjects(prevProjects => {
+                    // If no previous projects, just set the new data
+                    if (prevProjects.length === 0) {
+                        return data;
+                    }
+
+                    // Check if the projects data has actually changed
+                    const hasChanges = data.some((newProject, index) => {
+                        const prevProject = prevProjects[index];
+                        if (!prevProject) return true;
+
+                        // Compare key properties that would affect UI
+                        return (
+                            newProject.name !== prevProject.name ||
+                            newProject.displayName !== prevProject.displayName ||
+                            newProject.fullPath !== prevProject.fullPath ||
+                            JSON.stringify(newProject.sessionMeta) !== JSON.stringify(prevProject.sessionMeta) ||
+                            JSON.stringify(newProject.sessions) !== JSON.stringify(prevProject.sessions)
+                        );
+                    }) || data.length !== prevProjects.length;
+
+                    // Only update if there are actual changes
+                    return hasChanges ? data : prevProjects;
+                });
+
+                // Don't auto-select any project - user should choose manually
+            } catch (error) {
+                console.error('Error fetching projects:', error);
+            } finally {
+                setIsLoadingProjects(false);
+            }
+        })();
     }, []);
 
     // Handle Electron menu events
     useEffect(() => {
         if (!electron.isElectronApp()) return;
 
-        const cleanup = electron.onMenuAction((event, ...args) => {
+        return electron.onMenuAction((event, ...args) => {
             switch (event.type || event) {
                 case 'menu-new-session':
                     if (selectedProject) {
@@ -111,7 +152,48 @@ function AppContent() {
                     if (projectPath) {
                         // Add project manually
                         api.createProject(projectPath).then(() => {
-                            fetchProjects();
+                            (async () => {
+                                try {
+                                    console.log('🔍 [AppContent] fetchProjects: Starting...');
+                                    setIsLoadingProjects(true);
+                                    const response = await api.projects();
+                                    console.log('🔍 [AppContent] fetchProjects: API response status:', response.status);
+                                    const data = await response.json();
+                                    console.log('🔍 [AppContent] fetchProjects: Projects data:', data?.length, 'projects');
+
+                                    // Optimize to preserve object references when data hasn't changed
+                                    setProjects(prevProjects => {
+                                        // If no previous projects, just set the new data
+                                        if (prevProjects.length === 0) {
+                                            return data;
+                                        }
+
+                                        // Check if the projects data has actually changed
+                                        const hasChanges = data.some((newProject, index) => {
+                                            const prevProject = prevProjects[index];
+                                            if (!prevProject) return true;
+
+                                            // Compare key properties that would affect UI
+                                            return (
+                                                newProject.name !== prevProject.name ||
+                                                newProject.displayName !== prevProject.displayName ||
+                                                newProject.fullPath !== prevProject.fullPath ||
+                                                JSON.stringify(newProject.sessionMeta) !== JSON.stringify(prevProject.sessionMeta) ||
+                                                JSON.stringify(newProject.sessions) !== JSON.stringify(prevProject.sessions)
+                                            );
+                                        }) || data.length !== prevProjects.length;
+
+                                        // Only update if there are actual changes
+                                        return hasChanges ? data : prevProjects;
+                                    });
+
+                                    // Don't auto-select any project - user should choose manually
+                                } catch (error) {
+                                    console.error('Error fetching projects:', error);
+                                } finally {
+                                    setIsLoadingProjects(false);
+                                }
+                            })();
                         }).catch(console.error);
                     }
                     break;
@@ -128,8 +210,6 @@ function AppContent() {
                     console.log('Unknown menu event:', event);
             }
         });
-
-        return cleanup;
     }, [electron, selectedProject]);
 
     // Helper function to determine if an update is purely additive (new sessions/projects)
@@ -160,15 +240,12 @@ function AppContent() {
 
         // Check if the selected session's content has changed (modification vs addition)
         // Compare key fields that would affect the loaded chat interface
-        const sessionUnchanged =
-            currentSelectedSession.id === updatedSelectedSession.id &&
+        // This is considered additive if the selected session is unchanged
+        // (new sessions may have been added elsewhere, but active session is protected)
+        return currentSelectedSession.id === updatedSelectedSession.id &&
             currentSelectedSession.title === updatedSelectedSession.title &&
             currentSelectedSession.created_at === updatedSelectedSession.created_at &&
             currentSelectedSession.updated_at === updatedSelectedSession.updated_at;
-
-        // This is considered additive if the selected session is unchanged
-        // (new sessions may have been added elsewhere, but active session is protected)
-        return sessionUnchanged;
     };
 
     // Handle WebSocket messages for real-time project updates
@@ -189,10 +266,8 @@ function AppContent() {
                 if (hasActiveSession) {
                     // Allow updates but be selective: permit additions, prevent changes to existing items
                     const updatedProjects = latestMessage.projects;
-                    const currentProjects = projects;
-
                     // Check if this is purely additive (new sessions/projects) vs modification of existing ones
-                    const isAdditiveUpdate = isUpdateAdditive(currentProjects, updatedProjects, selectedProject, selectedSession);
+                    const isAdditiveUpdate = isUpdateAdditive(projects, updatedProjects, selectedProject, selectedSession);
 
                     if (!isAdditiveUpdate) {
                         // Skip updates that would modify existing selected session/project
@@ -226,7 +301,8 @@ function AppContent() {
         }
     }, [messages, selectedProject, selectedSession, activeSessions]);
 
-    const fetchProjects = async () => {
+    // Expose fetchProjects globally for component access
+    window.refreshProjects = async () => {
         try {
             console.log('🔍 [AppContent] fetchProjects: Starting...');
             setIsLoadingProjects(true);
@@ -268,9 +344,6 @@ function AppContent() {
             setIsLoadingProjects(false);
         }
     };
-
-    // Expose fetchProjects globally for component access
-    window.refreshProjects = fetchProjects;
 
     // Handle URL-based session loading
     useEffect(() => {
