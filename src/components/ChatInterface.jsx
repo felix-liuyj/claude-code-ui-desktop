@@ -20,7 +20,6 @@ import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from '
 import ReactMarkdown from 'react-markdown';
 import { useDropzone } from 'react-dropzone';
 import TodoList from './TodoList';
-import ClaudeLogo from './ClaudeLogo.jsx';
 import { useElectron } from '../utils/electron';
 
 import ClaudeStatus from './ClaudeStatus';
@@ -1113,25 +1112,34 @@ const MessageComponent = memo(({
                             </div>
                         ) : (
                             <div className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-π                                { message.isUserInterrupted && (
-                                    <div className="mb-2 bg-gray-50 dark:bg-gray-900/20 border border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-200 rounded-lg p-3 flex items-start gap-2">
-                                        <svg className="w-5 h-5 text-gray-500 dark:text-gray-400 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                { message.isUserInterrupted && (
+                                    <div
+                                        className="mb-2 bg-gray-50 dark:bg-gray-900/20 border border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-200 rounded-lg p-3 flex items-start gap-2">
+                                        <svg className="w-5 h-5 text-gray-500 dark:text-gray-400 flex-shrink-0"
+                                             viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={ 2 }
+                                                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                         </svg>
                                         <div className="text-sm leading-snug">
                                             <div className="font-medium">会话已被用户中断</div>
                                         </div>
                                     </div>
                                 ) }
-                                {/* Usage limit alert */}
+                                {/* Usage limit alert */ }
                                 { message.isUsageLimit && (
-                                    <div className="mb-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-200 rounded-lg p-3 flex items-start gap-2">
-                                        <svg className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                            <path fillRule="evenodd" d="M8.257 3.099a1.5 1.5 0 012.486 0l6.518 11.59A1.5 1.5 0 0115.94 17H4.06a1.5 1.5 0 01-1.322-2.311l6.518-11.59zM11 14a1 1 0 10-2 0 1 1 0 002 0zm-1-2a1 1 0 01-1-1V7a1 1 0 112 0v4a1 1 0 01-1 1z" clipRule="evenodd" />
+                                    <div
+                                        className="mb-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-200 rounded-lg p-3 flex items-start gap-2">
+                                        <svg className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0"
+                                             viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                            <path fillRule="evenodd"
+                                                  d="M8.257 3.099a1.5 1.5 0 012.486 0l6.518 11.59A1.5 1.5 0 0115.94 17H4.06a1.5 1.5 0 01-1.322-2.311l6.518-11.59zM11 14a1 1 0 10-2 0 1 1 0 002 0zm-1-2a1 1 0 01-1-1V7a1 1 0 112 0v4a1 1 0 01-1 1z"
+                                                  clipRule="evenodd"/>
                                         </svg>
                                         <div className="text-sm leading-snug">
                                             <div className="font-medium">已达到 Claude 使用限额</div>
-                                            <div className="mt-0.5">将于 { new Date(message.usageLimitReset).toLocaleString() } 重置。</div>
+                                            <div
+                                                className="mt-0.5">将于 { new Date(message.usageLimitReset).toLocaleString() } 重置。
+                                            </div>
                                         </div>
                                     </div>
                                 ) }
@@ -1636,10 +1644,10 @@ function ChatInterface({
             // Build a simple hash of converted messages by a stable key
             const keyFor = (m, idx) => {
                 // Prefer explicit id if present (we'll add for local user msgs)
-                if (m._localId) return `local:${m._localId}`;
+                if (m._localId) return `local:${ m._localId }`;
                 // Use combo of type+content+approx timestamp bucket to reduce duplicates
                 const bucket = m.timestamp ? new Date(m.timestamp).getTime() : idx;
-                return `${m.type}|${m.isToolUse?'tool':''}|${(m.content||'').slice(0,50)}|${bucket}`;
+                return `${ m.type }|${ m.isToolUse ? 'tool' : '' }|${ (m.content || '').slice(0, 50) }|${ bucket }`;
             };
 
             const convertedMap = new Map();
@@ -2300,7 +2308,7 @@ function ChatInterface({
             content: input,
             images: uploadedImages,
             timestamp: new Date(),
-            _localId: `u-${Date.now()}-${Math.random().toString(36).slice(2,8)}`
+            _localId: `u-${ Date.now() }-${ Math.random().toString(36).slice(2, 8) }`
         };
 
         setChatMessages(prev => [...prev, userMessage]);
@@ -2328,11 +2336,11 @@ function ChatInterface({
         }
 
         // Get tools settings from localStorage
-    const getToolsSettings = () => {
+        const getToolsSettings = () => {
             try {
                 const savedSettings = safeLocalStorage.getItem('claude-tools-settings');
                 if (savedSettings) {
-            return JSON.parse(savedSettings);
+                    return JSON.parse(savedSettings);
                 }
             } catch (error) {
                 console.error('Error loading tools settings:', error);
@@ -2344,12 +2352,12 @@ function ChatInterface({
             };
         };
 
-    const toolsSettings = getToolsSettings();
-    // Keep local skipPermissions state in sync
-    setSkipPermissions(!!toolsSettings.skipPermissions);
+        const toolsSettings = getToolsSettings();
+        // Keep local skipPermissions state in sync
+        setSkipPermissions(!!toolsSettings.skipPermissions);
 
         // Send command to Claude CLI via WebSocket with images
-    sendMessage({
+        sendMessage({
             type: 'claude-command',
             command: input,
             options: {
@@ -2358,8 +2366,8 @@ function ChatInterface({
                 sessionId: currentSessionId,
                 resume: !!currentSessionId,
                 toolsSettings: toolsSettings,
-        // When --dangerously-skip-permissions is enabled, backend should ignore permissionMode
-        permissionMode: permissionMode,
+                // When --dangerously-skip-permissions is enabled, backend should ignore permissionMode
+                permissionMode: permissionMode,
                 images: uploadedImages // Pass images to backend
             }
         });
@@ -2569,13 +2577,13 @@ function ChatInterface({
                         <div
                             className="pointer-events-none absolute inset-0"
                             aria-hidden="true"
-                            style={{
-                                backgroundImage: `url('${chatBgImageUrl || 'bg-repeat.svg'}')`,
+                            style={ {
+                                backgroundImage: `url('${ chatBgImageUrl || 'bg-repeat.svg' }')`,
                                 backgroundRepeat: 'repeat',
                                 backgroundSize: '72px 72px',
                                 backgroundPosition: 'center top',
                                 opacity: 0.1,
-                            }}
+                            } }
                         />
                     ) }
                     { isLoadingSessionMessages && chatMessages.length === 0 ? (
