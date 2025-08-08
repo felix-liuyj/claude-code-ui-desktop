@@ -578,6 +578,26 @@ function ToolsSettings({ isOpen, onClose }) {
                                 工具
                             </button>
                             <button
+                                onClick={ () => setActiveTab('security') }
+                                className={ `flex-shrink-0 px-4 py-3 text-sm font-medium border-b-2 transition-colors touch-manipulation ${
+                                    activeTab === 'security'
+                                        ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+                                        : 'border-transparent text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
+                                }` }
+                            >
+                                安全项
+                            </button>
+                            <button
+                                onClick={ () => setActiveTab('mcp') }
+                                className={ `flex-shrink-0 px-4 py-3 text-sm font-medium border-b-2 transition-colors touch-manipulation ${
+                                    activeTab === 'mcp'
+                                        ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+                                        : 'border-transparent text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
+                                }` }
+                            >
+                                MCP
+                            </button>
+                            <button
                                 onClick={ () => setActiveTab('appearance') }
                                 className={ `flex-shrink-0 px-4 py-3 text-sm font-medium border-b-2 transition-colors touch-manipulation ${
                                     activeTab === 'appearance'
@@ -604,6 +624,148 @@ function ToolsSettings({ isOpen, onClose }) {
                     </div>
 
                     <div className="p-4 md:p-6 space-y-6 md:space-y-8 pb-safe-area-inset-bottom">
+                        {/* Security Tab */ }
+                        { activeTab === 'security' && (
+                            <div className="space-y-6 md:space-y-8">
+                                {/* Permission Mode */ }
+                                <div className="space-y-4">
+                                    <div className="flex items-center gap-3">
+                                        <Shield className="w-5 h-5 text-blue-500"/>
+                                        <h3 className="text-lg font-medium text-foreground">
+                                            权限模式
+                                        </h3>
+                                    </div>
+                                    <div className="space-y-4">
+                                        <div
+                                            className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                                            <div>
+                                                <div className="font-medium text-foreground mb-3">
+                                                    权限处理模式
+                                                </div>
+                                                <div className="text-sm text-muted-foreground mb-4">
+                                                    选择工具权限的处理方式（当启用 --dangerously-skip-permissions
+                                                    时，此设置将被忽略）
+                                                </div>
+                                                { skipPermissions && (
+                                                    <div
+                                                        className="mb-3 p-3 rounded-lg text-sm bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-200 border border-red-300 dark:border-red-700">
+                                                        已启用 <code
+                                                        className="px-1 bg-red-100/70 dark:bg-red-800/40 rounded">--dangerously-skip-permissions</code>，权限模式已被忽略。请在下方关闭以恢复。
+                                                    </div>
+                                                ) }
+                                                <div className="space-y-3">
+                                                    {/* Default Mode */ }
+                                                    <label className="flex items-center space-x-3 cursor-pointer">
+                                                        <input type="radio" name="permissionMode" value="default"
+                                                               checked={ permissionMode === 'default' }
+                                                               onChange={ (e) => e.target.checked && setPermissionMode('default') }
+                                                               disabled={ skipPermissions }
+                                                               className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600"/>
+                                                        <div className="flex items-center space-x-2">
+                                                            <Shield
+                                                                className="w-4 h-4 text-blue-600 dark:text-blue-400"/>
+                                                            <span
+                                                                className="text-sm text-gray-700 dark:text-gray-300">默认模式</span>
+                                                        </div>
+                                                    </label>
+                                                    <p className="text-xs text-gray-500 dark:text-gray-400 ml-7">每次使用工具时都会提示权限确认</p>
+                                                    {/* Accept Edits Mode */ }
+                                                    <label className="flex items-center space-x-3 cursor-pointer">
+                                                        <input type="radio" name="permissionMode" value="acceptEdits"
+                                                               checked={ permissionMode === 'acceptEdits' }
+                                                               onChange={ (e) => e.target.checked && setPermissionMode('acceptEdits') }
+                                                               disabled={ skipPermissions }
+                                                               className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600"/>
+                                                        <div className="flex items-center space-x-2">
+                                                            <Edit3 className="w-4 h-4 text-green-500"/>
+                                                            <span
+                                                                className="text-sm text-gray-700 dark:text-gray-300">接受编辑</span>
+                                                        </div>
+                                                    </label>
+                                                    <p className="text-xs text-gray-500 dark:text-gray-400 ml-7">自动允许安全的编辑与读取类操作，对潜在危险操作仍会提示</p>
+                                                    {/* Plan Mode */ }
+                                                    <label className="flex items-center space-x-3 cursor-pointer">
+                                                        <input type="radio" name="permissionMode" value="plan"
+                                                               checked={ permissionMode === 'plan' }
+                                                               onChange={ (e) => e.target.checked && setPermissionMode('plan') }
+                                                               disabled={ skipPermissions }
+                                                               className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600"/>
+                                                        <div className="flex items-center space-x-2">
+                                                            <FileText className="w-4 h-4 text-blue-500"/>
+                                                            <span
+                                                                className="text-sm text-gray-700 dark:text-gray-300">计划模式</span>
+                                                        </div>
+                                                    </label>
+                                                    <p className="text-xs text-gray-500 dark:text-gray-400 ml-7">仅生成计划，不直接执行潜在有副作用的操作</p>
+                                                    {/* Bypass Permissions Mode */ }
+                                                    <label className="flex items-center space-x-3 cursor-pointer">
+                                                        <input type="radio" name="permissionMode"
+                                                               value="bypassPermissions"
+                                                               checked={ permissionMode === 'bypassPermissions' }
+                                                               onChange={ (e) => e.target.checked && setPermissionMode('bypassPermissions') }
+                                                               disabled={ skipPermissions }
+                                                               className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600"/>
+                                                        <div className="flex items-center space-x-2">
+                                                            <AlertTriangle className="w-4 h-4 text-orange-500"/>
+                                                            <span
+                                                                className="text-sm text-gray-700 dark:text-gray-300">绕过权限</span>
+                                                        </div>
+                                                    </label>
+                                                    <p className="text-xs text-gray-500 dark:text-gray-400 ml-7">尽量减少权限提示，但与 <code
+                                                        className="px-1 bg-gray-100 dark:bg-gray-800 rounded">--dangerously-skip-permissions</code> 不同，仍会对高风险操作进行保护
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Dangerous Skip Permissions */ }
+                                <div className="space-y-4">
+                                    <div className="flex items-center gap-3">
+                                        <AlertTriangle className="w-5 h-5 text-orange-500"/>
+                                        <h3 className="text-lg font-medium text-foreground">危险选项</h3>
+                                    </div>
+                                    <div
+                                        className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                                        <div className="text-sm text-muted-foreground mb-3">高危设置，请谨慎使用</div>
+                                        <div
+                                            className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-4">
+                                            <label className="flex items-center gap-3">
+                                                <input type="checkbox" checked={ skipPermissions } onChange={ (e) => {
+                                                    const checked = e.target.checked;
+                                                    if (checked) {
+                                                        const first = confirm('危险操作：即将启用 --dangerously-skip-permissions。启用后将跳过所有权限确认，工具可能在无提示的情况下修改/删除文件、执行命令。确定继续？');
+                                                        if (!first) {
+                                                            e.preventDefault();
+                                                            return;
+                                                        }
+                                                        const second = confirm('再次确认：您确实要启用完全跳过权限提示吗？此选项极其危险，仅在完全信任的项目与环境中使用。');
+                                                        if (!second) {
+                                                            e.preventDefault();
+                                                            return;
+                                                        }
+                                                        setSkipPermissions(true);
+                                                    } else {
+                                                        setSkipPermissions(false);
+                                                    }
+                                                } }
+                                                       className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"/>
+                                                <div>
+                                                    <div
+                                                        className="font-medium text-orange-900 dark:text-orange-100">跳过所有权限提示（极度危险）
+                                                    </div>
+                                                    <div
+                                                        className="text-sm text-orange-700 dark:text-orange-300">等同于 <code
+                                                        className="px-1 bg-orange-100 dark:bg-orange-800/40 rounded">--dangerously-skip-permissions</code> 标志。启用后，权限模式将被忽略。
+                                                    </div>
+                                                </div>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        ) }
                         {/* Appearance Tab */ }
                         { activeTab === 'appearance' && (
                             <div className="space-y-6 md:space-y-8">
@@ -798,172 +960,6 @@ function ToolsSettings({ isOpen, onClose }) {
                         {/* Tools Tab */ }
                         { activeTab === 'tools' && (
                             <div className="space-y-6 md:space-y-8">
-
-                                {/* Permission Mode */ }
-                                <div className="space-y-4">
-                                    <div className="flex items-center gap-3">
-                                        <Shield className="w-5 h-5 text-blue-500"/>
-                                        <h3 className="text-lg font-medium text-foreground">
-                                            权限模式
-                                        </h3>
-                                    </div>
-                                    <div className="space-y-4">
-                                        <div
-                                            className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-                                            <div>
-                                                <div className="font-medium text-foreground mb-3">
-                                                    权限处理模式
-                                                </div>
-                                                <div className="text-sm text-muted-foreground mb-4">
-                                                    选择工具权限的处理方式（当启用 --dangerously-skip-permissions 时，此设置将被忽略）
-                                                </div>
-                                                { skipPermissions && (
-                                                    <div className="mb-3 p-3 rounded-lg text-sm bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-200 border border-red-300 dark:border-red-700">
-                                                        已启用 <code className="px-1 bg-red-100/70 dark:bg-red-800/40 rounded">--dangerously-skip-permissions</code>，权限模式已被忽略。请在下方关闭以恢复。
-                                                    </div>
-                                                ) }
-                                                <div className="space-y-3">
-                                                    {/* Default Mode */ }
-                                                    <label className="flex items-center space-x-3 cursor-pointer">
-                                                        <input
-                                                            type="radio"
-                                                            name="permissionMode"
-                                                            value="default"
-                                                            checked={ permissionMode === 'default' }
-                                                            onChange={ (e) => e.target.checked && setPermissionMode('default') }
-                                                            disabled={ skipPermissions }
-                                                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600"
-                                                        />
-                                                        <div className="flex items-center space-x-2">
-                                                            <Shield
-                                                                className="w-4 h-4 text-blue-600 dark:text-blue-400"/>
-                                                            <span className="text-sm text-gray-700 dark:text-gray-300">
-                                                            默认模式
-                                                        </span>
-                                                        </div>
-                                                    </label>
-                                                    <p className="text-xs text-gray-500 dark:text-gray-400 ml-7">
-                                                        每次使用工具时都会提示权限确认
-                                                    </p>
-
-                                                    {/* Accept Edits Mode */ }
-                                                    <label className="flex items-center space-x-3 cursor-pointer">
-                                                        <input
-                                                            type="radio"
-                                                            name="permissionMode"
-                                                            value="acceptEdits"
-                                                            checked={ permissionMode === 'acceptEdits' }
-                                                            onChange={ (e) => e.target.checked && setPermissionMode('acceptEdits') }
-                                                            disabled={ skipPermissions }
-                                                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600"
-                                                        />
-                                                        <div className="flex items-center space-x-2">
-                                                            <Edit3 className="w-4 h-4 text-green-500"/>
-                                                            <span className="text-sm text-gray-700 dark:text-gray-300">
-                                                            接受编辑
-                                                        </span>
-                                                        </div>
-                                                    </label>
-                                                    <p className="text-xs text-gray-500 dark:text-gray-400 ml-7">
-                                                        自动允许安全的编辑与读取类操作，对潜在危险操作仍会提示
-                                                    </p>
-
-                                                    {/* Plan Mode */ }
-                                                    <label className="flex items-center space-x-3 cursor-pointer">
-                                                        <input
-                                                            type="radio"
-                                                            name="permissionMode"
-                                                            value="plan"
-                                                            checked={ permissionMode === 'plan' }
-                                                            onChange={ (e) => e.target.checked && setPermissionMode('plan') }
-                                                            disabled={ skipPermissions }
-                                                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600"
-                                                        />
-                                                        <div className="flex items-center space-x-2">
-                                                            <FileText className="w-4 h-4 text-blue-500"/>
-                                                            <span className="text-sm text-gray-700 dark:text-gray-300">
-                                                            计划模式
-                                                        </span>
-                                                        </div>
-                                                    </label>
-                                                    <p className="text-xs text-gray-500 dark:text-gray-400 ml-7">
-                                                        仅生成计划，不直接执行潜在有副作用的操作
-                                                    </p>
-
-                                                    {/* Bypass Permissions Mode (not the same as dangerous skip) */ }
-                                                    <label className="flex items-center space-x-3 cursor-pointer">
-                                                        <input
-                                                            type="radio"
-                                                            name="permissionMode"
-                                                            value="bypassPermissions"
-                                                            checked={ permissionMode === 'bypassPermissions' }
-                                                            onChange={ (e) => e.target.checked && setPermissionMode('bypassPermissions') }
-                                                            disabled={ skipPermissions }
-                                                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600"
-                                                        />
-                                                        <div className="flex items-center space-x-2">
-                                                            <AlertTriangle className="w-4 h-4 text-orange-500"/>
-                                                            <span className="text-sm text-gray-700 dark:text-gray-300">
-                                                            绕过权限
-                                                        </span>
-                                                        </div>
-                                                    </label>
-                                                    <p className="text-xs text-gray-500 dark:text-gray-400 ml-7">
-                                                        尽量减少权限提示，但与 <code className="px-1 bg-gray-100 dark:bg-gray-800 rounded">--dangerously-skip-permissions</code> 不同，仍会对高风险操作进行保护
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Dangerous Skip Permissions */ }
-                                <div className="space-y-4">
-                                    <div className="flex items-center gap-3">
-                                        <AlertTriangle className="w-5 h-5 text-orange-500"/>
-                                        <h3 className="text-lg font-medium text-foreground">
-                                            危险选项
-                                        </h3>
-                                    </div>
-                                    <div
-                                        className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-4">
-                                        <label className="flex items-center gap-3">
-                                            <input
-                                                type="checkbox"
-                                                checked={ skipPermissions }
-                                                onChange={ (e) => {
-                                                    const checked = e.target.checked;
-                                                    if (checked) {
-                                                        // Double confirmation with strong warnings
-                                                        const first = confirm('危险操作：即将启用 --dangerously-skip-permissions。启用后将跳过所有权限确认，工具可能在无提示的情况下修改/删除文件、执行命令。确定继续？');
-                                                        if (!first) {
-                                                            e.preventDefault();
-                                                            return;
-                                                        }
-                                                        const second = confirm('再次确认：您确实要启用完全跳过权限提示吗？此选项极其危险，仅在完全信任的项目与环境中使用。');
-                                                        if (!second) {
-                                                            e.preventDefault();
-                                                            return;
-                                                        }
-                                                        setSkipPermissions(true);
-                                                    } else {
-                                                        setSkipPermissions(false);
-                                                    }
-                                                } }
-                                                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
-                                            />
-                                            <div>
-                                                <div className="font-medium text-orange-900 dark:text-orange-100">
-                                                    跳过所有权限提示（极度危险）
-                                                </div>
-                                                <div className="text-sm text-orange-700 dark:text-orange-300">
-                                                    等同于 <code className="px-1 bg-orange-100 dark:bg-orange-800/40 rounded">--dangerously-skip-permissions</code> 标志。启用后，权限模式将被忽略。
-                                                </div>
-                                            </div>
-                                        </label>
-                                    </div>
-                                </div>
-
                                 {/* 允许的工具 */ }
                                 <div className="space-y-4">
                                     <div className="flex items-center gap-3">
@@ -972,77 +968,81 @@ function ToolsSettings({ isOpen, onClose }) {
                                             允许的工具
                                         </h3>
                                     </div>
-                                    <p className="text-sm text-muted-foreground">
-                                        无需提示权限即可自动允许的工具
-                                    </p>
-
-                                    <div className="flex flex-col sm:flex-row gap-2">
-                                        <Input
-                                            value={ newAllowedTool }
-                                            onChange={ (e) => setNewAllowedTool(e.target.value) }
-                                            placeholder='e.g., "Bash(git log:*)" or "Write"'
-                                            onKeyPress={ (e) => {
-                                                if (e.key === 'Enter') {
-                                                    addAllowedTool(newAllowedTool);
-                                                }
-                                            } }
-                                            className="flex-1 h-10 touch-manipulation"
-                                            style={ { fontSize: '16px' } }
-                                        />
-                                        <Button
-                                            onClick={ () => addAllowedTool(newAllowedTool) }
-                                            disabled={ !newAllowedTool }
-                                            size="sm"
-                                            className="h-10 px-4 touch-manipulation"
-                                        >
-                                            <Plus className="w-4 h-4 mr-2 sm:mr-0"/>
-                                            <span className="sm:hidden">Add Tool</span>
-                                        </Button>
-                                    </div>
-
-                                    {/* Common tools quick add */ }
-                                    <div className="space-y-2">
-                                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            快速添加常用工具：
+                                    <div
+                                        className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                                        <p className="text-sm text-muted-foreground mb-4">
+                                            无需提示权限即可自动允许的工具
                                         </p>
-                                        <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
-                                            { commonTools.map(tool => (
-                                                <Button
-                                                    key={ tool }
-                                                    variant="outline"
-                                                    size="sm"
-                                                    onClick={ () => addAllowedTool(tool) }
-                                                    disabled={ allowedTools.includes(tool) }
-                                                    className="text-xs h-8 touch-manipulation truncate"
-                                                >
-                                                    { tool }
-                                                </Button>
-                                            )) }
-                                        </div>
-                                    </div>
 
-                                    <div className="space-y-2">
-                                        { allowedTools.map(tool => (
-                                            <div key={ tool }
-                                                 className="flex items-center justify-between bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3">
-                    <span className="font-mono text-sm text-green-800 dark:text-green-200">
-                      { tool }
-                    </span>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={ () => removeAllowedTool(tool) }
-                                                    className="text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300"
-                                                >
-                                                    <X className="w-4 h-4"/>
-                                                </Button>
+                                        <div className="flex flex-col sm:flex-row gap-2">
+                                            <Input
+                                                value={ newAllowedTool }
+                                                onChange={ (e) => setNewAllowedTool(e.target.value) }
+                                                placeholder='e.g., "Bash(git log:*)" or "Write"'
+                                                onKeyPress={ (e) => {
+                                                    if (e.key === 'Enter') {
+                                                        addAllowedTool(newAllowedTool);
+                                                    }
+                                                } }
+                                                className="flex-1 h-10 touch-manipulation"
+                                                style={ { fontSize: '16px' } }
+                                            />
+                                            <Button
+                                                onClick={ () => addAllowedTool(newAllowedTool) }
+                                                disabled={ !newAllowedTool }
+                                                size="sm"
+                                                className="h-10 px-4 touch-manipulation"
+                                            >
+                                                <Plus className="w-4 h-4 mr-2 sm:mr-0"/>
+                                                <span className="sm:hidden">Add Tool</span>
+                                            </Button>
+                                        </div>
+
+                                        {/* Common tools quick add */ }
+                                        <div className="space-y-2 mt-4">
+                                            <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                快速添加常用工具：
+                                            </p>
+                                            <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
+                                                { commonTools.map(tool => (
+                                                    <Button
+                                                        key={ tool }
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={ () => addAllowedTool(tool) }
+                                                        disabled={ allowedTools.includes(tool) }
+                                                        className="text-xs h-8 touch-manipulation truncate"
+                                                    >
+                                                        { tool }
+                                                    </Button>
+                                                )) }
                                             </div>
-                                        )) }
-                                        { allowedTools.length === 0 && (
-                                            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                                                未配置允许的工具
-                                            </div>
-                                        ) }
+                                        </div>
+
+                                        <div className="space-y-2 mt-4">
+                                            { allowedTools.map(tool => (
+                                                <div key={ tool }
+                                                     className="flex items-center justify-between bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3">
+                                                    <span
+                                                        className="font-mono text-sm text-green-800 dark:text-green-200">
+                                                      { tool }
+                                                    </span>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={ () => removeAllowedTool(tool) }
+                                                        className="text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300"
+                                                    >
+                                                        <X className="w-4 h-4"/>
+                                                    </Button>
+                                                </div>
+                                            )) }
+                                            { allowedTools.length === 0 && (
+                                                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                                                    未配置允许的工具
+                                                </div>
+                                            ) }
+                                        </div>
                                     </div>
                                 </div>
 
@@ -1054,56 +1054,59 @@ function ToolsSettings({ isOpen, onClose }) {
                                             禁用的工具
                                         </h3>
                                     </div>
-                                    <p className="text-sm text-muted-foreground">
-                                        无需提示权限即可自动阻止的工具
-                                    </p>
+                                    <div
+                                        className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                                        <p className="text-sm text-muted-foreground mb-4">
+                                            无需提示权限即可自动阻止的工具
+                                        </p>
 
-                                    <div className="flex flex-col sm:flex-row gap-2">
-                                        <Input
-                                            value={ newDisallowedTool }
-                                            onChange={ (e) => setNewDisallowedTool(e.target.value) }
-                                            placeholder='e.g., "Bash(rm:*)" or "Write"'
-                                            onKeyPress={ (e) => {
-                                                if (e.key === 'Enter') {
-                                                    addDisallowedTool(newDisallowedTool);
-                                                }
-                                            } }
-                                            className="flex-1 h-10 touch-manipulation"
-                                            style={ { fontSize: '16px' } }
-                                        />
-                                        <Button
-                                            onClick={ () => addDisallowedTool(newDisallowedTool) }
-                                            disabled={ !newDisallowedTool }
-                                            size="sm"
-                                            className="h-10 px-4 touch-manipulation"
-                                        >
-                                            <Plus className="w-4 h-4 mr-2 sm:mr-0"/>
-                                            <span className="sm:hidden">Add Tool</span>
-                                        </Button>
-                                    </div>
+                                        <div className="flex flex-col sm:flex-row gap-2">
+                                            <Input
+                                                value={ newDisallowedTool }
+                                                onChange={ (e) => setNewDisallowedTool(e.target.value) }
+                                                placeholder='e.g., "Bash(rm:*)" or "Write"'
+                                                onKeyPress={ (e) => {
+                                                    if (e.key === 'Enter') {
+                                                        addDisallowedTool(newDisallowedTool);
+                                                    }
+                                                } }
+                                                className="flex-1 h-10 touch-manipulation"
+                                                style={ { fontSize: '16px' } }
+                                            />
+                                            <Button
+                                                onClick={ () => addDisallowedTool(newDisallowedTool) }
+                                                disabled={ !newDisallowedTool }
+                                                size="sm"
+                                                className="h-10 px-4 touch-manipulation"
+                                            >
+                                                <Plus className="w-4 h-4 mr-2 sm:mr-0"/>
+                                                <span className="sm:hidden">Add Tool</span>
+                                            </Button>
+                                        </div>
 
-                                    <div className="space-y-2">
-                                        { disallowedTools.map(tool => (
-                                            <div key={ tool }
-                                                 className="flex items-center justify-between bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
-                    <span className="font-mono text-sm text-red-800 dark:text-red-200">
-                      { tool }
-                    </span>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={ () => removeDisallowedTool(tool) }
-                                                    className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
-                                                >
-                                                    <X className="w-4 h-4"/>
-                                                </Button>
-                                            </div>
-                                        )) }
-                                        { disallowedTools.length === 0 && (
-                                            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                                                未配置禁用的工具
-                                            </div>
-                                        ) }
+                                        <div className="space-y-2 mt-4">
+                                            { disallowedTools.map(tool => (
+                                                <div key={ tool }
+                                                     className="flex items-center justify-between bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
+                                                    <span className="font-mono text-sm text-red-800 dark:text-red-200">
+                                                      { tool }
+                                                    </span>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={ () => removeDisallowedTool(tool) }
+                                                        className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                                                    >
+                                                        <X className="w-4 h-4"/>
+                                                    </Button>
+                                                </div>
+                                            )) }
+                                            { disallowedTools.length === 0 && (
+                                                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                                                    未配置禁用的工具
+                                                </div>
+                                            ) }
+                                        </div>
                                     </div>
                                 </div>
 
@@ -1133,238 +1136,200 @@ function ToolsSettings({ isOpen, onClose }) {
                                     </ul>
                                 </div>
 
+                            </div>
+                        ) }
+
+                        {/* MCP Tab */ }
+                        { activeTab === 'mcp' && (
+                            <div className="space-y-6 md:space-y-8">
                                 {/* MCP Server Management */ }
                                 <div className="space-y-4">
                                     <div className="flex items-center gap-3">
                                         <Server className="w-5 h-5 text-purple-500"/>
-                                        <h3 className="text-lg font-medium text-foreground">
-                                            MCP 服务器
-                                        </h3>
+                                        <h3 className="text-lg font-medium text-foreground">MCP 服务器</h3>
                                     </div>
-                                    <div className="space-y-2">
-                                        <p className="text-sm text-muted-foreground">
-                                            模型上下文协议服务器为 Claude 提供额外的工具和数据源
-                                        </p>
-                                    </div>
-
-                                    <div className="flex justify-between items-center">
-                                        <Button
-                                            onClick={ () => openMcpForm() }
-                                            className="bg-purple-600 hover:bg-purple-700 text-white"
-                                            size="sm"
-                                        >
-                                            <Plus className="w-4 h-4 mr-2"/>
-                                            添加 MCP 服务器
-                                        </Button>
-                                    </div>
-
-                                    {/* MCP Servers List */ }
-                                    <div className="space-y-2">
-                                        { mcpServers.map(server => (
-                                            <div key={ server.id }
-                                                 className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-                                                <div className="flex items-start justify-between">
-                                                    <div className="flex-1">
-                                                        <div className="flex items-center gap-2 mb-2">
-                                                            { getTransportIcon(server.type) }
-                                                            <span
-                                                                className="font-medium text-foreground">{ server.name }</span>
-                                                            <Badge variant="outline" className="text-xs">
-                                                                { server.type }
-                                                            </Badge>
-                                                            <Badge variant="outline" className="text-xs">
-                                                                { server.scope }
-                                                            </Badge>
-                                                        </div>
-
-                                                        <div className="text-sm text-muted-foreground space-y-1">
-                                                            { server.type === 'stdio' && server.config.command && (
-                                                                <div>Command: <code
-                                                                    className="bg-gray-100 dark:bg-gray-800 px-1 rounded text-xs">{ server.config.command }</code>
-                                                                </div>
-                                                            ) }
-                                                            { (server.type === 'sse' || server.type === 'http') && server.config.url && (
-                                                                <div>URL: <code
-                                                                    className="bg-gray-100 dark:bg-gray-800 px-1 rounded text-xs">{ server.config.url }</code>
-                                                                </div>
-                                                            ) }
-                                                            { server.config.args && server.config.args.length > 0 && (
-                                                                <div>Args: <code
-                                                                    className="bg-gray-100 dark:bg-gray-800 px-1 rounded text-xs">{ server.config.args.join(' ') }</code>
-                                                                </div>
-                                                            ) }
-                                                        </div>
-
-                                                        {/* Test Results */ }
-                                                        { mcpTestResults[server.id] && (
-                                                            <div className={ `mt-2 p-2 rounded text-xs ${
-                                                                mcpTestResults[server.id].success
-                                                                    ? 'bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-200'
-                                                                    : 'bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-200'
-                                                            }` }>
-                                                                <div
-                                                                    className="font-medium">{ mcpTestResults[server.id].message }</div>
-                                                                { mcpTestResults[server.id].details && mcpTestResults[server.id].details.length > 0 && (
-                                                                    <ul className="mt-1 space-y-0.5">
-                                                                        { mcpTestResults[server.id].details.map((detail, i) => (
-                                                                            <li key={ i }>• { detail }</li>
-                                                                        )) }
-                                                                    </ul>
-                                                                ) }
+                                    <div
+                                        className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4 space-y-4">
+                                        <div className="space-y-2">
+                                            <p className="text-sm text-muted-foreground">模型上下文协议服务器为 Claude
+                                                提供额外的工具和数据源</p>
+                                        </div>
+                                        <div className="flex justify-between items-center">
+                                            <Button onClick={ () => openMcpForm() }
+                                                    className="bg-purple-600 hover:bg-purple-700 text-white" size="sm">
+                                                <Plus className="w-4 h-4 mr-2"/>添加 MCP 服务器
+                                            </Button>
+                                        </div>
+                                        {/* MCP Servers List */ }
+                                        <div className="space-y-2">
+                                            { mcpServers.map(server => (
+                                                <div key={ server.id }
+                                                     className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                                                    <div className="flex items-start justify-between">
+                                                        <div className="flex-1">
+                                                            <div className="flex items-center gap-2 mb-2">
+                                                                { getTransportIcon(server.type) }
+                                                                <span
+                                                                    className="font-medium text-foreground">{ server.name }</span>
+                                                                <Badge variant="outline"
+                                                                       className="text-xs">{ server.type }</Badge>
+                                                                <Badge variant="outline"
+                                                                       className="text-xs">{ server.scope }</Badge>
                                                             </div>
-                                                        ) }
-
-                                                        {/* Tools Discovery Results */ }
-                                                        { mcpServerTools[server.id] && (
-                                                            <div
-                                                                className="mt-2 p-2 rounded text-xs bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200 border border-blue-200 dark:border-blue-800">
-                                                                <div className="font-medium mb-2">Available Tools &
-                                                                    Resources
+                                                            <div className="text-sm text-muted-foreground space-y-1">
+                                                                { server.type === 'stdio' && server.config.command && (
+                                                                    <div>Command: <code
+                                                                        className="bg-gray-100 dark:bg-gray-800 px-1 rounded text-xs">{ server.config.command }</code>
+                                                                    </div>) }
+                                                                { (server.type === 'sse' || server.type === 'http') && server.config.url && (
+                                                                    <div>URL: <code
+                                                                        className="bg-gray-100 dark:bg-gray-800 px-1 rounded text-xs">{ server.config.url }</code>
+                                                                    </div>) }
+                                                                { server.config.args && server.config.args.length > 0 && (
+                                                                    <div>Args: <code
+                                                                        className="bg-gray-100 dark:bg-gray-800 px-1 rounded text-xs">{ server.config.args.join(' ') }</code>
+                                                                    </div>) }
+                                                            </div>
+                                                            {/* Test Results */ }
+                                                            { mcpTestResults[server.id] && (
+                                                                <div
+                                                                    className={ `mt-2 p-2 rounded text-xs ${ mcpTestResults[server.id].success ? 'bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-200' : 'bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-200' }` }>
+                                                                    <div
+                                                                        className="font-medium">{ mcpTestResults[server.id].message }</div>
+                                                                    { mcpTestResults[server.id].details && mcpTestResults[server.id].details.length > 0 && (
+                                                                        <ul className="mt-1 space-y-0.5">
+                                                                            { mcpTestResults[server.id].details.map((detail, i) => (
+                                                                                <li key={ i }>• { detail }</li>)) }
+                                                                        </ul>
+                                                                    ) }
                                                                 </div>
-
-                                                                { mcpServerTools[server.id].tools && mcpServerTools[server.id].tools.length > 0 && (
-                                                                    <div className="mb-2">
-                                                                        <div className="font-medium text-xs mb-1">Tools
-                                                                            ({ mcpServerTools[server.id].tools.length }):
-                                                                        </div>
-                                                                        <ul className="space-y-0.5">
-                                                                            { mcpServerTools[server.id].tools.map((tool, i) => (
-                                                                                <li key={ i }
-                                                                                    className="flex items-start gap-1">
-                                                                                    <span
-                                                                                        className="text-blue-400 mt-0.5">•</span>
-                                                                                    <div>
-                                                                                        <code
-                                                                                            className="bg-blue-100 dark:bg-blue-800 px-1 rounded">{ tool.name }</code>
-                                                                                        { tool.description && tool.description !== 'No description provided' && (
-                                                                                            <span
-                                                                                                className="ml-1 text-xs opacity-75">- { tool.description }</span>
-                                                                                        ) }
-                                                                                    </div>
-                                                                                </li>
-                                                                            )) }
-                                                                        </ul>
+                                                            ) }
+                                                            {/* Tools Discovery Results */ }
+                                                            { mcpServerTools[server.id] && (
+                                                                <div
+                                                                    className="mt-2 p-2 rounded text-xs bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200 border border-blue-200 dark:border-blue-800">
+                                                                    <div className="font-medium mb-2">Available Tools &
+                                                                        Resources
                                                                     </div>
-                                                                ) }
-
-                                                                { mcpServerTools[server.id].resources && mcpServerTools[server.id].resources.length > 0 && (
-                                                                    <div className="mb-2">
-                                                                        <div
-                                                                            className="font-medium text-xs mb-1">Resources
-                                                                            ({ mcpServerTools[server.id].resources.length }):
+                                                                    { mcpServerTools[server.id].tools && mcpServerTools[server.id].tools.length > 0 && (
+                                                                        <div className="mb-2">
+                                                                            <div
+                                                                                className="font-medium text-xs mb-1">Tools
+                                                                                ({ mcpServerTools[server.id].tools.length }):
+                                                                            </div>
+                                                                            <ul className="space-y-0.5">
+                                                                                { mcpServerTools[server.id].tools.map((tool, i) => (
+                                                                                    <li key={ i }
+                                                                                        className="flex items-start gap-1">
+                                                                                        <span
+                                                                                            className="text-blue-400 mt-0.5">•</span>
+                                                                                        <div>
+                                                                                            <code
+                                                                                                className="bg-blue-100 dark:bg-blue-800 px-1 rounded">{ tool.name }</code>
+                                                                                            { tool.description && tool.description !== 'No description provided' && (
+                                                                                                <span
+                                                                                                    className="ml-1 text-xs opacity-75">- { tool.description }</span>) }
+                                                                                        </div>
+                                                                                    </li>
+                                                                                )) }
+                                                                            </ul>
                                                                         </div>
-                                                                        <ul className="space-y-0.5">
-                                                                            { mcpServerTools[server.id].resources.map((resource, i) => (
-                                                                                <li key={ i }
-                                                                                    className="flex items-start gap-1">
-                                                                                    <span
-                                                                                        className="text-blue-400 mt-0.5">•</span>
-                                                                                    <div>
-                                                                                        <code
-                                                                                            className="bg-blue-100 dark:bg-blue-800 px-1 rounded">{ resource.name }</code>
-                                                                                        { resource.description && resource.description !== 'No description provided' && (
-                                                                                            <span
-                                                                                                className="ml-1 text-xs opacity-75">- { resource.description }</span>
-                                                                                        ) }
-                                                                                    </div>
-                                                                                </li>
-                                                                            )) }
-                                                                        </ul>
-                                                                    </div>
-                                                                ) }
-
-                                                                { mcpServerTools[server.id].prompts && mcpServerTools[server.id].prompts.length > 0 && (
-                                                                    <div>
-                                                                        <div
-                                                                            className="font-medium text-xs mb-1">Prompts
-                                                                            ({ mcpServerTools[server.id].prompts.length }):
+                                                                    ) }
+                                                                    { mcpServerTools[server.id].resources && mcpServerTools[server.id].resources.length > 0 && (
+                                                                        <div className="mb-2">
+                                                                            <div
+                                                                                className="font-medium text-xs mb-1">Resources
+                                                                                ({ mcpServerTools[server.id].resources.length }):
+                                                                            </div>
+                                                                            <ul className="space-y-0.5">
+                                                                                { mcpServerTools[server.id].resources.map((resource, i) => (
+                                                                                    <li key={ i }
+                                                                                        className="flex items-start gap-1">
+                                                                                        <span
+                                                                                            className="text-blue-400 mt-0.5">•</span>
+                                                                                        <div>
+                                                                                            <code
+                                                                                                className="bg-blue-100 dark:bg-blue-800 px-1 rounded">{ resource.name }</code>
+                                                                                            { resource.description && resource.description !== 'No description provided' && (
+                                                                                                <span
+                                                                                                    className="ml-1 text-xs opacity-75">- { resource.description }</span>) }
+                                                                                        </div>
+                                                                                    </li>
+                                                                                )) }
+                                                                            </ul>
                                                                         </div>
-                                                                        <ul className="space-y-0.5">
-                                                                            { mcpServerTools[server.id].prompts.map((prompt, i) => (
-                                                                                <li key={ i }
-                                                                                    className="flex items-start gap-1">
-                                                                                    <span
-                                                                                        className="text-blue-400 mt-0.5">•</span>
-                                                                                    <div>
-                                                                                        <code
-                                                                                            className="bg-blue-100 dark:bg-blue-800 px-1 rounded">{ prompt.name }</code>
-                                                                                        { prompt.description && prompt.description !== 'No description provided' && (
-                                                                                            <span
-                                                                                                className="ml-1 text-xs opacity-75">- { prompt.description }</span>
-                                                                                        ) }
-                                                                                    </div>
-                                                                                </li>
-                                                                            )) }
-                                                                        </ul>
-                                                                    </div>
-                                                                ) }
-
-                                                                { (!mcpServerTools[server.id].tools || mcpServerTools[server.id].tools.length === 0) &&
-                                                                    (!mcpServerTools[server.id].resources || mcpServerTools[server.id].resources.length === 0) &&
-                                                                    (!mcpServerTools[server.id].prompts || mcpServerTools[server.id].prompts.length === 0) && (
+                                                                    ) }
+                                                                    { mcpServerTools[server.id].prompts && mcpServerTools[server.id].prompts.length > 0 && (
+                                                                        <div>
+                                                                            <div
+                                                                                className="font-medium text-xs mb-1">Prompts
+                                                                                ({ mcpServerTools[server.id].prompts.length }):
+                                                                            </div>
+                                                                            <ul className="space-y-0.5">
+                                                                                { mcpServerTools[server.id].prompts.map((prompt, i) => (
+                                                                                    <li key={ i }
+                                                                                        className="flex items-start gap-1">
+                                                                                        <span
+                                                                                            className="text-blue-400 mt-0.5">•</span>
+                                                                                        <div>
+                                                                                            <code
+                                                                                                className="bg-blue-100 dark:bg-blue-800 px-1 rounded">{ prompt.name }</code>
+                                                                                            { prompt.description && prompt.description !== 'No description provided' && (
+                                                                                                <span
+                                                                                                    className="ml-1 text-xs opacity-75">- { prompt.description }</span>) }
+                                                                                        </div>
+                                                                                    </li>
+                                                                                )) }
+                                                                            </ul>
+                                                                        </div>
+                                                                    ) }
+                                                                    { (!mcpServerTools[server.id].tools || mcpServerTools[server.id].tools.length === 0) && (!mcpServerTools[server.id].resources || mcpServerTools[server.id].resources.length === 0) && (!mcpServerTools[server.id].prompts || mcpServerTools[server.id].prompts.length === 0) && (
                                                                         <div className="text-xs opacity-75">No tools,
                                                                             resources, or prompts discovered</div>
                                                                     ) }
-                                                            </div>
-                                                        ) }
-                                                    </div>
-
-                                                    <div className="flex items-center gap-2 ml-4">
-                                                        <Button
-                                                            onClick={ () => handleMcpTest(server.id, server.scope) }
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            disabled={ mcpTestResults[server.id]?.loading }
-                                                            className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
-                                                            title="Test connection"
-                                                        >
-                                                            { mcpTestResults[server.id]?.loading ? (
-                                                                <div
-                                                                    className="w-4 h-4 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"/>
-                                                            ) : (
-                                                                <Play className="w-4 h-4"/>
+                                                                </div>
                                                             ) }
-                                                        </Button>
-                                                        <Button
-                                                            onClick={ () => handleMcpToolsDiscovery(server.id, server.scope) }
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            disabled={ mcpToolsLoading[server.id] }
-                                                            className="text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300"
-                                                            title="Discover tools"
-                                                        >
-                                                            { mcpToolsLoading[server.id] ? (
-                                                                <div
-                                                                    className="w-4 h-4 animate-spin rounded-full border-2 border-purple-600 border-t-transparent"/>
-                                                            ) : (
-                                                                <Settings className="w-4 h-4"/>
-                                                            ) }
-                                                        </Button>
-                                                        <Button
-                                                            onClick={ () => openMcpForm(server) }
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            className="text-gray-600 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-                                                        >
-                                                            <Edit3 className="w-4 h-4"/>
-                                                        </Button>
-                                                        <Button
-                                                            onClick={ () => handleMcpDelete(server.id, server.scope) }
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
-                                                        >
-                                                            <Trash2 className="w-4 h-4"/>
-                                                        </Button>
+                                                        </div>
+                                                        <div className="flex items-center gap-2 ml-4">
+                                                            <Button
+                                                                onClick={ () => handleMcpTest(server.id, server.scope) }
+                                                                variant="ghost" size="sm"
+                                                                disabled={ mcpTestResults[server.id]?.loading }
+                                                                className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                                                                title="Test connection">
+                                                                { mcpTestResults[server.id]?.loading ? (<div
+                                                                    className="w-4 h-4 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"/>) : (
+                                                                    <Play className="w-4 h-4"/>) }
+                                                            </Button>
+                                                            <Button
+                                                                onClick={ () => handleMcpToolsDiscovery(server.id, server.scope) }
+                                                                variant="ghost" size="sm"
+                                                                disabled={ mcpToolsLoading[server.id] }
+                                                                className="text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300"
+                                                                title="Discover tools">
+                                                                { mcpToolsLoading[server.id] ? (<div
+                                                                    className="w-4 h-4 animate-spin rounded-full border-2 border-purple-600 border-t-transparent"/>) : (
+                                                                    <Settings className="w-4 h-4"/>) }
+                                                            </Button>
+                                                            <Button onClick={ () => openMcpForm(server) }
+                                                                    variant="ghost" size="sm"
+                                                                    className="text-gray-600 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
+                                                                <Edit3 className="w-4 h-4"/>
+                                                            </Button>
+                                                            <Button
+                                                                onClick={ () => handleMcpDelete(server.id, server.scope) }
+                                                                variant="ghost" size="sm"
+                                                                className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300">
+                                                                <Trash2 className="w-4 h-4"/>
+                                                            </Button>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        )) }
-                                        { mcpServers.length === 0 && (
-                                            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                                                未配置 MCP 服务器
-                                            </div>
-                                        ) }
+                                            )) }
+                                            { mcpServers.length === 0 && (
+                                                <div className="text-center py-8 text-gray-500 dark:text-gray-400">未配置
+                                                    MCP 服务器</div>) }
+                                        </div>
                                     </div>
                                 </div>
 
@@ -1376,116 +1341,74 @@ function ToolsSettings({ isOpen, onClose }) {
                                             className="bg-background border border-border rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
                                             <div
                                                 className="flex items-center justify-between p-4 border-b border-border">
-                                                <h3 className="text-lg font-medium text-foreground">
-                                                    { editingMcpServer ? '编辑 MCP 服务器' : '添加 MCP 服务器' }
-                                                </h3>
+                                                <h3 className="text-lg font-medium text-foreground">{ editingMcpServer ? '编辑 MCP 服务器' : '添加 MCP 服务器' }</h3>
                                                 <Button variant="ghost" size="sm" onClick={ resetMcpForm }>
                                                     <X className="w-4 h-4"/>
                                                 </Button>
                                             </div>
-
                                             <form onSubmit={ handleMcpSubmit } className="p-4 space-y-4">
-                                                {/* Basic Info */ }
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                     <div>
                                                         <label
-                                                            className="block text-sm font-medium text-foreground mb-2">
-                                                            服务器名称 *
-                                                        </label>
-                                                        <Input
-                                                            value={ mcpFormData.name }
-                                                            onChange={ (e) => {
-                                                                setMcpFormData(prev => ({
-                                                                    ...prev,
-                                                                    name: e.target.value
-                                                                }));
-                                                                setMcpConfigTestResult(null);
-                                                                setMcpConfigTested(false);
-                                                            } }
-                                                            placeholder="my-server"
-                                                            required
-                                                        />
+                                                            className="block text-sm font-medium text-foreground mb-2">服务器名称
+                                                            *</label>
+                                                        <Input value={ mcpFormData.name } onChange={ (e) => {
+                                                            setMcpFormData(prev => ({ ...prev, name: e.target.value }));
+                                                            setMcpConfigTestResult(null);
+                                                            setMcpConfigTested(false);
+                                                        } } placeholder="my-server" required/>
                                                     </div>
-
                                                     <div>
                                                         <label
-                                                            className="block text-sm font-medium text-foreground mb-2">
-                                                            传输类型 *
-                                                        </label>
-                                                        <select
-                                                            value={ mcpFormData.type }
-                                                            onChange={ (e) => {
-                                                                setMcpFormData(prev => ({
-                                                                    ...prev,
-                                                                    type: e.target.value
-                                                                }));
-                                                                setMcpConfigTestResult(null);
-                                                                setMcpConfigTested(false);
-                                                            } }
-                                                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                                                        >
+                                                            className="block text-sm font-medium text-foreground mb-2">传输类型
+                                                            *</label>
+                                                        <select value={ mcpFormData.type } onChange={ (e) => {
+                                                            setMcpFormData(prev => ({ ...prev, type: e.target.value }));
+                                                            setMcpConfigTestResult(null);
+                                                            setMcpConfigTested(false);
+                                                        } }
+                                                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-blue-500 focus:border-blue-500">
                                                             <option value="stdio">stdio</option>
                                                             <option value="sse">SSE</option>
                                                             <option value="http">HTTP</option>
                                                         </select>
                                                     </div>
                                                 </div>
-
-                                                {/* Scope is fixed to user - no selection needed */ }
-
-                                                {/* Transport-specific Config */ }
                                                 { mcpFormData.type === 'stdio' && (
                                                     <div className="space-y-4">
                                                         <div>
                                                             <label
-                                                                className="block text-sm font-medium text-foreground mb-2">
-                                                                命令 *
-                                                            </label>
-                                                            <Input
-                                                                value={ mcpFormData.config.command }
-                                                                onChange={ (e) => updateMcpConfig('command', e.target.value) }
-                                                                placeholder="/path/to/mcp-server"
-                                                                required
-                                                            />
+                                                                className="block text-sm font-medium text-foreground mb-2">命令
+                                                                *</label>
+                                                            <Input value={ mcpFormData.config.command }
+                                                                   onChange={ (e) => updateMcpConfig('command', e.target.value) }
+                                                                   placeholder="/path/to/mcp-server" required/>
                                                         </div>
-
                                                         <div>
                                                             <label
-                                                                className="block text-sm font-medium text-foreground mb-2">
-                                                                参数（每行一个）
-                                                            </label>
+                                                                className="block text-sm font-medium text-foreground mb-2">参数（每行一个）</label>
                                                             <textarea
                                                                 value={ Array.isArray(mcpFormData.config.args) ? mcpFormData.config.args.join('\n') : '' }
                                                                 onChange={ (e) => updateMcpConfig('args', e.target.value.split('\n').filter(arg => arg.trim())) }
                                                                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                                                                rows="3"
-                                                                placeholder="--api-key&#10;abc123"
-                                                            />
+                                                                rows="3" placeholder="--api-key&#10;abc123"/>
                                                         </div>
                                                     </div>
                                                 ) }
-
                                                 { (mcpFormData.type === 'sse' || mcpFormData.type === 'http') && (
                                                     <div>
                                                         <label
-                                                            className="block text-sm font-medium text-foreground mb-2">
-                                                            URL *
-                                                        </label>
-                                                        <Input
-                                                            value={ mcpFormData.config.url }
-                                                            onChange={ (e) => updateMcpConfig('url', e.target.value) }
-                                                            placeholder="https://api.example.com/mcp"
-                                                            type="url"
-                                                            required
-                                                        />
+                                                            className="block text-sm font-medium text-foreground mb-2">URL
+                                                            *</label>
+                                                        <Input value={ mcpFormData.config.url }
+                                                               onChange={ (e) => updateMcpConfig('url', e.target.value) }
+                                                               placeholder="https://api.example.com/mcp" type="url"
+                                                               required/>
                                                     </div>
                                                 ) }
-
-                                                {/* Environment Variables */ }
                                                 <div>
-                                                    <label className="block text-sm font-medium text-foreground mb-2">
-                                                        环境变量（KEY=value，每行一个）
-                                                    </label>
+                                                    <label
+                                                        className="block text-sm font-medium text-foreground mb-2">环境变量（KEY=value，每行一个）</label>
                                                     <textarea
                                                         value={ Object.entries(mcpFormData.config.env || {}).map(([k, v]) => `${ k }=${ v }`).join('\n') }
                                                         onChange={ (e) => {
@@ -1499,17 +1422,12 @@ function ToolsSettings({ isOpen, onClose }) {
                                                             updateMcpConfig('env', env);
                                                         } }
                                                         className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                                                        rows="3"
-                                                        placeholder="API_KEY=your-key&#10;DEBUG=true"
-                                                    />
+                                                        rows="3" placeholder="API_KEY=your-key&#10;DEBUG=true"/>
                                                 </div>
-
                                                 { (mcpFormData.type === 'sse' || mcpFormData.type === 'http') && (
                                                     <div>
                                                         <label
-                                                            className="block text-sm font-medium text-foreground mb-2">
-                                                            请求头（KEY=value，每行一个）
-                                                        </label>
+                                                            className="block text-sm font-medium text-foreground mb-2">请求头（KEY=value，每行一个）</label>
                                                         <textarea
                                                             value={ Object.entries(mcpFormData.config.headers || {}).map(([k, v]) => `${ k }=${ v }`).join('\n') }
                                                             onChange={ (e) => {
@@ -1524,48 +1442,27 @@ function ToolsSettings({ isOpen, onClose }) {
                                                             } }
                                                             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                                                             rows="3"
-                                                            placeholder="Authorization=Bearer token&#10;X-API-Key=your-key"
-                                                        />
+                                                            placeholder="Authorization=Bearer token&#10;X-API-Key=your-key"/>
                                                     </div>
                                                 ) }
-
-                                                {/* Test Configuration Section */ }
                                                 <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
                                                     <div className="flex items-center justify-between mb-3">
                                                         <h4 className="font-medium text-foreground">配置测试</h4>
-                                                        <Button
-                                                            type="button"
-                                                            onClick={ handleTestConfiguration }
-                                                            disabled={ mcpConfigTesting || !mcpFormData.name.trim() }
-                                                            variant="outline"
-                                                            size="sm"
-                                                            className="text-blue-600 border-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20"
-                                                        >
-                                                            { mcpConfigTesting ? (
-                                                                <>
-                                                                    <div
-                                                                        className="w-4 h-4 animate-spin rounded-full border-2 border-blue-600 border-t-transparent mr-2"/>
-                                                                    测试中...
-                                                                </>
-                                                            ) : (
-                                                                <>
-                                                                    <Play className="w-4 h-4 mr-2"/>
-                                                                    测试配置
-                                                                </>
-                                                            ) }
+                                                        <Button type="button" onClick={ handleTestConfiguration }
+                                                                disabled={ mcpConfigTesting || !mcpFormData.name.trim() }
+                                                                variant="outline" size="sm"
+                                                                className="text-blue-600 border-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20">
+                                                            { mcpConfigTesting ? (<>
+                                                                <div
+                                                                    className="w-4 h-4 animate-spin rounded-full border-2 border-blue-600 border-t-transparent mr-2"/>
+                                                                测试中...</>) : (<><Play
+                                                                className="w-4 h-4 mr-2"/>测试配置</>) }
                                                         </Button>
                                                     </div>
-
-                                                    <p className="text-sm text-muted-foreground mb-3">
-                                                        您可以测试配置以验证其是否正常工作。
-                                                    </p>
-
+                                                    <p className="text-sm text-muted-foreground mb-3">您可以测试配置以验证其是否正常工作。</p>
                                                     { mcpConfigTestResult && (
-                                                        <div className={ `p-3 rounded-lg text-sm ${
-                                                            mcpConfigTestResult.success
-                                                                ? 'bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-200 border border-green-200 dark:border-green-800'
-                                                                : 'bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-200 border border-red-200 dark:border-red-800'
-                                                        }` }>
+                                                        <div
+                                                            className={ `p-3 rounded-lg text-sm ${ mcpConfigTestResult.success ? 'bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-200 border border-green-200 dark:border-green-800' : 'bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-200 border border-red-200 dark:border-red-800' }` }>
                                                             <div className="font-medium flex items-center gap-2">
                                                                 { mcpConfigTestResult.success ? (
                                                                     <svg className="w-4 h-4" fill="currentColor"
@@ -1573,44 +1470,32 @@ function ToolsSettings({ isOpen, onClose }) {
                                                                         <path fillRule="evenodd"
                                                                               d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
                                                                               clipRule="evenodd"/>
-                                                                    </svg>
-                                                                ) : (
+                                                                    </svg>) : (
                                                                     <svg className="w-4 h-4" fill="currentColor"
                                                                          viewBox="0 0 20 20">
                                                                         <path fillRule="evenodd"
                                                                               d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
                                                                               clipRule="evenodd"/>
-                                                                    </svg>
-                                                                ) }
+                                                                    </svg>) }
                                                                 { mcpConfigTestResult.message }
                                                             </div>
                                                             { mcpConfigTestResult.details && mcpConfigTestResult.details.length > 0 && (
                                                                 <ul className="mt-2 space-y-1 text-xs">
                                                                     { mcpConfigTestResult.details.map((detail, i) => (
                                                                         <li key={ i }
-                                                                            className="flex items-start gap-1">
-                                                                            <span
-                                                                                className="text-gray-400 mt-0.5">•</span>
-                                                                            <span>{ detail }</span>
-                                                                        </li>
-                                                                    )) }
+                                                                            className="flex items-start gap-1"><span
+                                                                            className="text-gray-400 mt-0.5">•</span><span>{ detail }</span>
+                                                                        </li>)) }
                                                                 </ul>
                                                             ) }
                                                         </div>
                                                     ) }
                                                 </div>
-
                                                 <div className="flex justify-end gap-2 pt-4">
-                                                    <Button type="button" variant="outline" onClick={ resetMcpForm }>
-                                                        取消
-                                                    </Button>
-                                                    <Button
-                                                        type="submit"
-                                                        disabled={ mcpLoading }
-                                                        className="bg-purple-600 hover:bg-purple-700 disabled:opacity-50"
-                                                    >
-                                                        { mcpLoading ? '保存中...' : (editingMcpServer ? '更新服务器' : '添加服务器') }
-                                                    </Button>
+                                                    <Button type="button" variant="outline"
+                                                            onClick={ resetMcpForm }>取消</Button>
+                                                    <Button type="submit" disabled={ mcpLoading }
+                                                            className="bg-purple-600 hover:bg-purple-700 disabled:opacity-50">{ mcpLoading ? '保存中...' : (editingMcpServer ? '更新服务器' : '添加服务器') }</Button>
                                                 </div>
                                             </form>
                                         </div>
