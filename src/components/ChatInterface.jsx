@@ -1113,6 +1113,16 @@ const MessageComponent = memo(({
                             </div>
                         ) : (
                             <div className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+π                                { message.isUserInterrupted && (
+                                    <div className="mb-2 bg-gray-50 dark:bg-gray-900/20 border border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-200 rounded-lg p-3 flex items-start gap-2">
+                                        <svg className="w-5 h-5 text-gray-500 dark:text-gray-400 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <div className="text-sm leading-snug">
+                                            <div className="font-medium">会话已被用户中断</div>
+                                        </div>
+                                    </div>
+                                ) }
                                 {/* Usage limit alert */}
                                 { message.isUsageLimit && (
                                     <div className="mb-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-200 rounded-lg p-3 flex items-start gap-2">
@@ -1292,6 +1302,7 @@ function ChatInterface({
     const [isTextareaExpanded, setIsTextareaExpanded] = useState(false);
     const [visibleMessageCount, setVisibleMessageCount] = useState(100);
     const [claudeStatus, setClaudeStatus] = useState(null);
+    const [chatBgImageUrl, setChatBgImageUrl] = useState(null);
     // chatBgEnabled is passed from parent; fallback to localStorage for safety
     const chatBgEnabledResolved = typeof chatBgEnabled === 'boolean'
         ? chatBgEnabled
@@ -1315,6 +1326,10 @@ function ChatInterface({
                     if (mode === 'skip-all') mode = 'bypassPermissions';
                     setPermissionMode(mode);
                     setSkipPermissions(!!settings.skipPermissions);
+                    // Update chat background image URL from settings for reactive rendering
+                    if (typeof settings.chatBgImage === 'string') {
+                        setChatBgImageUrl(settings.chatBgImage || null);
+                    }
                 }
             } catch (e) {
                 // ignore
@@ -1791,6 +1806,17 @@ function ChatInterface({
                                     }
                                 }
 
+                                // Detect user-interrupted session message
+                                if (part.text.trim() === 'Session interrupted by user.') {
+                                    setChatMessages(prev => [...prev, {
+                                        type: 'assistant',
+                                        content: '',
+                                        timestamp: new Date(),
+                                        isUserInterrupted: true
+                                    }]);
+                                    continue;
+                                }
+
                                 // Fallback to regular text message
                                 setChatMessages(prev => [...prev, {
                                     type: 'assistant',
@@ -1818,6 +1844,17 @@ function ChatInterface({
                                     break;
                                 }
                             }
+                        }
+
+                        // Detect user-interrupted session message
+                        if (messageData.content.trim() === 'Session interrupted by user.') {
+                            setChatMessages(prev => [...prev, {
+                                type: 'assistant',
+                                content: '',
+                                timestamp: new Date(),
+                                isUserInterrupted: true
+                            }]);
+                            break;
                         }
 
                         // Fallback to regular text message
@@ -1916,8 +1953,9 @@ function ChatInterface({
 
                     setChatMessages(prev => [...prev, {
                         type: 'assistant',
-                        content: 'Session interrupted by user.',
-                        timestamp: new Date()
+                        content: '',
+                        timestamp: new Date(),
+                        isUserInterrupted: true
                     }]);
                     break;
 
@@ -2528,30 +2566,17 @@ function ChatInterface({
                     className="flex-1 overflow-y-auto overflow-x-hidden px-0 py-3 sm:p-4 space-y-3 sm:space-y-4 relative"
                 >
                     { chatBgEnabledResolved && (
-                        (() => {
-                            let customUrl = null;
-                            try {
-                                const saved = safeLocalStorage.getItem('claude-tools-settings');
-                                if (saved) {
-                                    const settings = JSON.parse(saved);
-                                    if (settings.chatBgImage) customUrl = settings.chatBgImage;
-                                }
-                            } catch (e) { /* ignore */ }
-                            const bgUrl = customUrl || 'bg-repeat.svg';
-                            return (
-                                <div
-                                    className="pointer-events-none absolute inset-0"
-                                    aria-hidden="true"
-                                    style={{
-                                        backgroundImage: `url('${bgUrl}')`,
-                                        backgroundRepeat: 'repeat',
-                                        backgroundSize: '72px 72px',
-                                        backgroundPosition: 'center top',
-                                        opacity: 0.1,
-                                    }}
-                                />
-                            );
-                        })()
+                        <div
+                            className="pointer-events-none absolute inset-0"
+                            aria-hidden="true"
+                            style={{
+                                backgroundImage: `url('${chatBgImageUrl || 'bg-repeat.svg'}')`,
+                                backgroundRepeat: 'repeat',
+                                backgroundSize: '72px 72px',
+                                backgroundPosition: 'center top',
+                                opacity: 0.1,
+                            }}
+                        />
                     ) }
                     { isLoadingSessionMessages && chatMessages.length === 0 ? (
                         <div className="text-center text-gray-500 dark:text-gray-400 mt-8">
