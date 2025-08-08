@@ -14,7 +14,7 @@
 
 <p align="center">
   <a href="https://github.com/felix-liuyj/claude-code-ui-desktop">
-    <img src="public/logo.svg" alt="Claude Code UI Desktop" width="64" height="64">
+    <img src="public/logo.svg" alt="Claude Code UI Desktop" width="128" height="128">
   </a>
 
 <h3 align="center">Claude Code UI Desktop</h3>
