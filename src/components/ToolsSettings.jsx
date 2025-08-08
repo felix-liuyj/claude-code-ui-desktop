@@ -735,24 +735,12 @@ function ToolsSettings({ isOpen, onClose }) {
                                                 当前应用运行环境的详细信息
                                             </div>
 
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                                                 <div className="space-y-2">
                                                     <div className="flex justify-between">
                                                         <span className="text-muted-foreground">运行环境:</span>
                                                         <span className="font-mono">
                                                             { window.electronAPI ? 'Electron Desktop' : 'Web Browser' }
-                                                        </span>
-                                                    </div>
-                                                    <div className="flex justify-between">
-                                                        <span className="text-muted-foreground">开发模式:</span>
-                                                        <span className="font-mono text-green-600">
-                                                            { isDevelopmentMode ? '是' : '否' }
-                                                        </span>
-                                                    </div>
-                                                    <div className="flex justify-between">
-                                                        <span className="text-muted-foreground">平台:</span>
-                                                        <span className="font-mono">
-                                                            { navigator.platform }
                                                         </span>
                                                     </div>
                                                     <div className="flex justify-between">
@@ -765,18 +753,19 @@ function ToolsSettings({ isOpen, onClose }) {
                                                 </div>
                                                 <div className="space-y-2">
                                                     <div className="flex justify-between">
-                                                        <span className="text-muted-foreground">当前地址:</span>
-                                                        <span className="font-mono text-xs truncate max-w-32"
-                                                              title={ window.location.href }>
-                                                            { window.location.protocol }//{ window.location.host }
-                                                        </span>
-                                                    </div>
-                                                    <div className="flex justify-between">
                                                         <span className="text-muted-foreground">窗口尺寸:</span>
                                                         <span className="font-mono">
                                                             { window.innerWidth } × { window.innerHeight }
                                                         </span>
                                                     </div>
+                                                    <div className="flex justify-between">
+                                                        <span className="text-muted-foreground">开发模式:</span>
+                                                        <span className="font-mono text-green-600">
+                                                            { isDevelopmentMode ? '是' : '否' }
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div className="space-y-2">
                                                     <div className="flex justify-between">
                                                         <span className="text-muted-foreground">语言:</span>
                                                         <span className="font-mono">

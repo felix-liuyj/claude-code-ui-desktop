@@ -4,6 +4,7 @@ import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Input } from './ui/input';
 import ClaudeLogo from './ClaudeLogo';
+import { useElectron } from '../utils/electron';
 
 import {
     Check,
@@ -67,9 +68,9 @@ function Sidebar({
                      onShowSettings,
                      updateAvailable,
                      latestVersion,
-                     currentVersion,
                      onShowVersionModal
                  }) {
+    const electron = useElectron();
     const [expandedProjects, setExpandedProjects] = useState(new Set());
     const [editingProject, setEditingProject] = useState(null);
     const [showNewProject, setShowNewProject] = useState(false);
@@ -84,7 +85,6 @@ function Sidebar({
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [editingSession, setEditingSession] = useState(null);
     const [editingSessionName, setEditingSessionName] = useState('');
-    const [generatingSummary, setGeneratingSummary] = useState({});
     const [searchFilter, setSearchFilter] = useState('');
 
 
@@ -397,11 +397,7 @@ function Sidebar({
 
                 // Store additional sessions locally
                 setAdditionalSessions(prev => ({
-                    ...prev,
-                    [project.name]: [
-                        ...(prev[project.name] || []),
-                        ...result.sessions
-                    ]
+                    ...prev, [project.name]: [...(prev[project.name] || []), ...result.sessions]
                 }));
 
                 // Update project metadata if needed
@@ -429,8 +425,7 @@ function Sidebar({
         return displayName.includes(searchLower) || projectName.includes(searchLower);
     });
 
-    return (
-        <div className="h-full flex flex-col bg-card md:select-none">
+    return (<div className="h-full flex flex-col bg-card md:select-none">
             {/* Header */ }
             <div className="md:p-4 md:border-b md:border-border">
                 {/* Desktop Header */ }
@@ -458,7 +453,7 @@ function Sidebar({
                                 }
                             } }
                             disabled={ isRefreshing }
-                            title="刷新项目和会话 (Ctrl+R)"
+                            title={ `刷新项目和会话 (${ electron.getShortcutKey() }+R)` }
                         >
                             <RefreshCw
                                 className={ `w-4 h-4 ${ isRefreshing ? 'animate-spin' : '' } group-hover:rotate-180 transition-transform duration-300` }/>
@@ -468,7 +463,7 @@ function Sidebar({
                             size="sm"
                             className="h-9 w-9 px-0 bg-primary hover:bg-primary/90 transition-all duration-200 shadow-sm hover:shadow-md"
                             onClick={ () => setShowNewProject(true) }
-                            title="创建新项目 (Ctrl+N)"
+                            title={ `创建新项目 (${ electron.getShortcutKey() }+N)` }
                         >
                             <FolderPlus className="w-4 h-4"/>
                         </Button>
@@ -515,8 +510,7 @@ function Sidebar({
             </div>
 
             {/* New Project Form */ }
-            { showNewProject && (
-                <div className="md:p-3 md:border-b md:border-border md:bg-muted/30">
+            { showNewProject && (<div className="md:p-3 md:border-b md:border-border md:bg-muted/30">
                     {/* Desktop Form */ }
                     <div className="hidden md:block space-y-2">
                         <div className="flex items-center gap-2 text-sm font-medium text-foreground">
@@ -613,12 +607,10 @@ function Sidebar({
                             <div className="h-4"/>
                         </div>
                     </div>
-                </div>
-            ) }
+                </div>) }
 
             {/* Search Filter */ }
-            { projects.length > 0 && !isLoading && (
-                <div className="px-3 md:px-4 py-2 border-b border-border">
+            { projects.length > 0 && !isLoading && (<div className="px-3 md:px-4 py-2 border-b border-border">
                     <div className="relative">
                         <Search
                             className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground"/>
@@ -629,23 +621,19 @@ function Sidebar({
                             onChange={ (e) => setSearchFilter(e.target.value) }
                             className="pl-9 h-9 text-sm bg-muted/50 border-0 focus:bg-background focus:ring-1 focus:ring-primary/20"
                         />
-                        { searchFilter && (
-                            <button
+                        { searchFilter && (<button
                                 onClick={ () => setSearchFilter('') }
                                 className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 hover:bg-accent rounded"
                             >
                                 <X className="w-3 h-3 text-muted-foreground"/>
-                            </button>
-                        ) }
+                            </button>) }
                     </div>
-                </div>
-            ) }
+                </div>) }
 
             {/* Projects List */ }
             <ScrollArea className="flex-1 md:px-2 md:py-3 overflow-y-auto overscroll-contain">
                 <div className="md:space-y-1 pb-safe-area-inset-bottom">
-                    { isLoading ? (
-                        <div className="text-center py-12 md:py-8 px-4">
+                    { isLoading ? (<div className="text-center py-12 md:py-8 px-4">
                             <div
                                 className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center mx-auto mb-4 md:mb-3">
                                 <div
@@ -655,9 +643,7 @@ function Sidebar({
                             <p className="text-sm text-muted-foreground">
                                 正在获取您的 Claude 项目和会话
                             </p>
-                        </div>
-                    ) : projects.length === 0 ? (
-                        <div className="text-center py-12 md:py-8 px-4">
+                        </div>) : projects.length === 0 ? (<div className="text-center py-12 md:py-8 px-4">
                             <div
                                 className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center mx-auto mb-4 md:mb-3">
                                 <Folder className="w-6 h-6 text-muted-foreground"/>
@@ -666,9 +652,7 @@ function Sidebar({
                             <p className="text-sm text-muted-foreground">
                                 在项目目录中运行 Claude CLI 以开始使用
                             </p>
-                        </div>
-                    ) : filteredProjects.length === 0 ? (
-                        <div className="text-center py-12 md:py-8 px-4">
+                        </div>) : filteredProjects.length === 0 ? (<div className="text-center py-12 md:py-8 px-4">
                             <div
                                 className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center mx-auto mb-4 md:mb-3">
                                 <Search className="w-6 h-6 text-muted-foreground"/>
@@ -677,25 +661,18 @@ function Sidebar({
                             <p className="text-sm text-muted-foreground">
                                 请尝试调整搜索关键词
                             </p>
-                        </div>
-                    ) : (
-                        filteredProjects.map((project) => {
+                        </div>) : (filteredProjects.map((project) => {
                             const isExpanded = expandedProjects.has(project.name);
                             const isSelected = selectedProject?.name === project.name;
                             const isStarred = isProjectStarred(project.name);
 
-                            return (
-                                <div key={ project.name } className="md:space-y-1">
+                            return (<div key={ project.name } className="md:space-y-1">
                                     {/* Project Header */ }
                                     <div className="group md:group">
                                         {/* Mobile Project Item */ }
                                         <div className="md:hidden">
                                             <div
-                                                className={ cn(
-                                                    "p-3 mx-3 my-1 rounded-lg bg-card border border-border/50 active:scale-[0.98] transition-all duration-150",
-                                                    isSelected && "bg-primary/5 border-primary/20",
-                                                    isStarred && !isSelected && "bg-yellow-50/50 dark:bg-yellow-900/5 border-yellow-200/30 dark:border-yellow-800/30"
-                                                ) }
+                                                className={ cn("p-3 mx-3 my-1 rounded-lg bg-card border border-border/50 active:scale-[0.98] transition-all duration-150", isSelected && "bg-primary/5 border-primary/20", isStarred && !isSelected && "bg-yellow-50/50 dark:bg-yellow-900/5 border-yellow-200/30 dark:border-yellow-800/30") }
                                                 onClick={ () => {
                                                     // On mobile, just toggle the folder - don't select the project
                                                     toggleProject(project.name);
@@ -704,19 +681,14 @@ function Sidebar({
                                             >
                                                 <div className="flex items-center justify-between">
                                                     <div className="flex items-center gap-3 min-w-0 flex-1">
-                                                        <div className={ cn(
-                                                            "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
-                                                            isExpanded ? "bg-primary/10" : "bg-muted"
-                                                        ) }>
+                                                        <div
+                                                            className={ cn("w-8 h-8 rounded-lg flex items-center justify-center transition-colors", isExpanded ? "bg-primary/10" : "bg-muted") }>
                                                             { isExpanded ? (
-                                                                <FolderOpen className="w-4 h-4 text-primary"/>
-                                                            ) : (
-                                                                <Folder className="w-4 h-4 text-muted-foreground"/>
-                                                            ) }
+                                                                <FolderOpen className="w-4 h-4 text-primary"/>) : (
+                                                                <Folder className="w-4 h-4 text-muted-foreground"/>) }
                                                         </div>
                                                         <div className="min-w-0 flex-1">
-                                                            { editingProject === project.name ? (
-                                                                <input
+                                                            { editingProject === project.name ? (<input
                                                                     type="text"
                                                                     value={ editingName }
                                                                     onChange={ (e) => setEditingName(e.target.value) }
@@ -731,12 +703,9 @@ function Sidebar({
                                                                     } }
                                                                     style={ {
                                                                         fontSize: '16px', // Prevents zoom on iOS
-                                                                        WebkitAppearance: 'none',
-                                                                        borderRadius: '8px'
+                                                                        WebkitAppearance: 'none', borderRadius: '8px'
                                                                     } }
-                                                                />
-                                                            ) : (
-                                                                <>
+                                                                />) : (<>
                                                                     <h3 className="text-sm font-medium text-foreground truncate">
                                                                         { project.displayName }
                                                                     </h3>
@@ -748,13 +717,11 @@ function Sidebar({
                                                                             return `${ count } session${ count === 1 ? '' : 's' }`;
                                                                         })() }
                                                                     </p>
-                                                                </>
-                                                            ) }
+                                                                </>) }
                                                         </div>
                                                     </div>
                                                     <div className="flex items-center gap-1">
-                                                        { editingProject === project.name ? (
-                                                            <>
+                                                        { editingProject === project.name ? (<>
                                                                 <button
                                                                     className="w-8 h-8 rounded-lg bg-green-500 dark:bg-green-600 flex items-center justify-center active:scale-90 transition-all duration-150 shadow-sm active:shadow-none"
                                                                     onClick={ (e) => {
@@ -773,17 +740,10 @@ function Sidebar({
                                                                 >
                                                                     <X className="w-4 h-4 text-white"/>
                                                                 </button>
-                                                            </>
-                                                        ) : (
-                                                            <>
+                                                            </>) : (<>
                                                                 {/* Star button */ }
                                                                 <button
-                                                                    className={ cn(
-                                                                        "w-8 h-8 rounded-lg flex items-center justify-center active:scale-90 transition-all duration-150 border",
-                                                                        isStarred
-                                                                            ? "bg-yellow-500/10 dark:bg-yellow-900/30 border-yellow-200 dark:border-yellow-800"
-                                                                            : "bg-gray-500/10 dark:bg-gray-900/30 border-gray-200 dark:border-gray-800"
-                                                                    ) }
+                                                                    className={ cn("w-8 h-8 rounded-lg flex items-center justify-center active:scale-90 transition-all duration-150 border", isStarred ? "bg-yellow-500/10 dark:bg-yellow-900/30 border-yellow-200 dark:border-yellow-800" : "bg-gray-500/10 dark:bg-gray-900/30 border-gray-200 dark:border-gray-800") }
                                                                     onClick={ (e) => {
                                                                         e.stopPropagation();
                                                                         toggleStarProject(project.name);
@@ -791,15 +751,10 @@ function Sidebar({
                                                                     onTouchEnd={ handleTouchClick(() => toggleStarProject(project.name)) }
                                                                     title={ isStarred ? "从收藏夹中移除" : "添加到收藏夹" }
                                                                 >
-                                                                    <Star className={ cn(
-                                                                        "w-4 h-4 transition-colors",
-                                                                        isStarred
-                                                                            ? "text-yellow-600 dark:text-yellow-400 fill-current"
-                                                                            : "text-gray-600 dark:text-gray-400"
-                                                                    ) }/>
+                                                                    <Star
+                                                                        className={ cn("w-4 h-4 transition-colors", isStarred ? "text-yellow-600 dark:text-yellow-400 fill-current" : "text-gray-600 dark:text-gray-400") }/>
                                                                 </button>
-                                                                { getAllSessions(project).length === 0 && (
-                                                                    <button
+                                                                { getAllSessions(project).length === 0 && (<button
                                                                         className="w-8 h-8 rounded-lg bg-red-500/10 dark:bg-red-900/30 flex items-center justify-center active:scale-90 border border-red-200 dark:border-red-800"
                                                                         onClick={ (e) => {
                                                                             e.stopPropagation();
@@ -809,8 +764,7 @@ function Sidebar({
                                                                     >
                                                                         <Trash2
                                                                             className="w-4 h-4 text-red-600 dark:text-red-400"/>
-                                                                    </button>
-                                                                ) }
+                                                                    </button>) }
                                                                 <button
                                                                     className="w-8 h-8 rounded-lg bg-primary/10 dark:bg-primary/20 flex items-center justify-center active:scale-90 border border-primary/20 dark:border-primary/30"
                                                                     onClick={ (e) => {
@@ -823,16 +777,12 @@ function Sidebar({
                                                                 </button>
                                                                 <div
                                                                     className="w-6 h-6 rounded-md bg-muted/30 flex items-center justify-center">
-                                                                    { isExpanded ? (
-                                                                        <ChevronDown
-                                                                            className="w-3 h-3 text-muted-foreground"/>
-                                                                    ) : (
+                                                                    { isExpanded ? (<ChevronDown
+                                                                            className="w-3 h-3 text-muted-foreground"/>) : (
                                                                         <ChevronRight
-                                                                            className="w-3 h-3 text-muted-foreground"/>
-                                                                    ) }
+                                                                            className="w-3 h-3 text-muted-foreground"/>) }
                                                                 </div>
-                                                            </>
-                                                        ) }
+                                                            </>) }
                                                     </div>
                                                 </div>
                                             </div>
@@ -841,11 +791,7 @@ function Sidebar({
                                         {/* Desktop Project Item */ }
                                         <Button
                                             variant="ghost"
-                                            className={ cn(
-                                                "hidden md:flex w-full justify-between p-2 h-auto font-normal hover:bg-accent/50",
-                                                isSelected && "bg-accent text-accent-foreground",
-                                                isStarred && !isSelected && "bg-yellow-50/50 dark:bg-yellow-900/10 hover:bg-yellow-100/50 dark:hover:bg-yellow-900/20"
-                                            ) }
+                                            className={ cn("hidden md:flex w-full justify-between p-2 h-auto font-normal hover:bg-accent/50", isSelected && "bg-accent text-accent-foreground", isStarred && !isSelected && "bg-yellow-50/50 dark:bg-yellow-900/10 hover:bg-yellow-100/50 dark:hover:bg-yellow-900/20") }
                                             onClick={ () => {
                                                 // Desktop behavior: select project and toggle
                                                 if (selectedProject?.name !== project.name) {
@@ -862,13 +808,10 @@ function Sidebar({
                                         >
                                             <div className="flex items-center gap-3 min-w-0 flex-1">
                                                 { isExpanded ? (
-                                                    <FolderOpen className="w-4 h-4 text-primary flex-shrink-0"/>
-                                                ) : (
-                                                    <Folder className="w-4 h-4 text-muted-foreground flex-shrink-0"/>
-                                                ) }
+                                                    <FolderOpen className="w-4 h-4 text-primary flex-shrink-0"/>) : (
+                                                    <Folder className="w-4 h-4 text-muted-foreground flex-shrink-0"/>) }
                                                 <div className="min-w-0 flex-1 text-left">
-                                                    { editingProject === project.name ? (
-                                                        <div className="space-y-1">
+                                                    { editingProject === project.name ? (<div className="space-y-1">
                                                             <input
                                                                 type="text"
                                                                 value={ editingName }
@@ -885,9 +828,7 @@ function Sidebar({
                                                                  title={ project.fullPath }>
                                                                 { project.fullPath }
                                                             </div>
-                                                        </div>
-                                                    ) : (
-                                                        <div>
+                                                        </div>) : (<div>
                                                             <div
                                                                 className="text-sm font-semibold truncate text-foreground"
                                                                 title={ project.displayName }>
@@ -903,17 +844,14 @@ function Sidebar({
                                                                     <span className="ml-1 opacity-60"
                                                                           title={ project.fullPath }>
                                     • { project.fullPath.length > 25 ? '...' + project.fullPath.slice(-22) : project.fullPath }
-                                  </span>
-                                                                ) }
+                                  </span>) }
                                                             </div>
-                                                        </div>
-                                                    ) }
+                                                        </div>) }
                                                 </div>
                                             </div>
 
                                             <div className="flex items-center gap-1 flex-shrink-0">
-                                                { editingProject === project.name ? (
-                                                    <>
+                                                { editingProject === project.name ? (<>
                                                         <div
                                                             className="w-6 h-6 text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20 flex items-center justify-center rounded cursor-pointer transition-colors"
                                                             onClick={ (e) => {
@@ -932,29 +870,18 @@ function Sidebar({
                                                         >
                                                             <X className="w-3 h-3"/>
                                                         </div>
-                                                    </>
-                                                ) : (
-                                                    <>
+                                                    </>) : (<>
                                                         {/* Star button */ }
                                                         <div
-                                                            className={ cn(
-                                                                "w-6 h-6 opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-center justify-center rounded cursor-pointer touch:opacity-100",
-                                                                isStarred
-                                                                    ? "hover:bg-yellow-50 dark:hover:bg-yellow-900/20 opacity-100"
-                                                                    : "hover:bg-accent"
-                                                            ) }
+                                                            className={ cn("w-6 h-6 opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-center justify-center rounded cursor-pointer touch:opacity-100", isStarred ? "hover:bg-yellow-50 dark:hover:bg-yellow-900/20 opacity-100" : "hover:bg-accent") }
                                                             onClick={ (e) => {
                                                                 e.stopPropagation();
                                                                 toggleStarProject(project.name);
                                                             } }
                                                             title={ isStarred ? "从收藏夹中移除" : "添加到收藏夹" }
                                                         >
-                                                            <Star className={ cn(
-                                                                "w-3 h-3 transition-colors",
-                                                                isStarred
-                                                                    ? "text-yellow-600 dark:text-yellow-400 fill-current"
-                                                                    : "text-muted-foreground"
-                                                            ) }/>
+                                                            <Star
+                                                                className={ cn("w-3 h-3 transition-colors", isStarred ? "text-yellow-600 dark:text-yellow-400 fill-current" : "text-muted-foreground") }/>
                                                         </div>
                                                         <div
                                                             className="w-6 h-6 opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-accent flex items-center justify-center rounded cursor-pointer touch:opacity-100"
@@ -966,8 +893,7 @@ function Sidebar({
                                                         >
                                                             <Edit3 className="w-3 h-3"/>
                                                         </div>
-                                                        { getAllSessions(project).length === 0 && (
-                                                            <div
+                                                        { getAllSessions(project).length === 0 && (<div
                                                                 className="w-6 h-6 opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center justify-center rounded cursor-pointer touch:opacity-100"
                                                                 onClick={ (e) => {
                                                                     e.stopPropagation();
@@ -977,26 +903,19 @@ function Sidebar({
                                                             >
                                                                 <Trash2
                                                                     className="w-3 h-3 text-red-600 dark:text-red-400"/>
-                                                            </div>
-                                                        ) }
-                                                        { isExpanded ? (
-                                                            <ChevronDown
-                                                                className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors"/>
-                                                        ) : (
+                                                            </div>) }
+                                                        { isExpanded ? (<ChevronDown
+                                                                className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors"/>) : (
                                                             <ChevronRight
-                                                                className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors"/>
-                                                        ) }
-                                                    </>
-                                                ) }
+                                                                className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors"/>) }
+                                                    </>) }
                                             </div>
                                         </Button>
                                     </div>
 
                                     {/* Sessions List */ }
-                                    { isExpanded && (
-                                        <div className="ml-3 space-y-1 border-l border-border pl-3">
-                                            { !initialSessionsLoaded.has(project.name) ? (
-                                                // Loading skeleton for sessions
+                                    { isExpanded && (<div className="ml-3 space-y-1 border-l border-border pl-3">
+                                            { !initialSessionsLoaded.has(project.name) ? (// Loading skeleton for sessions
                                                 Array.from({ length: 3 }).map((_, i) => (
                                                     <div key={ i } className="p-2 rounded-md">
                                                         <div className="flex items-start gap-2">
@@ -1009,37 +928,26 @@ function Sidebar({
                                                                     className="h-2 bg-muted rounded animate-pulse w-1/2"/>
                                                             </div>
                                                         </div>
-                                                    </div>
-                                                ))
-                                            ) : getAllSessions(project).length === 0 && !loadingSessions[project.name] ? (
+                                                    </div>))) : getAllSessions(project).length === 0 && !loadingSessions[project.name] ? (
                                                 <div className="py-2 px-3 text-left">
                                                     <p className="text-xs text-muted-foreground">暂无会话</p>
-                                                </div>
-                                            ) : (
-                                                getAllSessions(project).map((session) => {
+                                                </div>) : (getAllSessions(project).map((session) => {
                                                     // Calculate if session is active (within last 10 minutes)
                                                     const sessionDate = new Date(session.lastActivity);
                                                     const diffInMinutes = Math.floor((currentTime - sessionDate) / (1000 * 60));
                                                     const isActive = diffInMinutes < 10;
 
-                                                    return (
-                                                        <div key={ session.id } className="group relative">
+                                                    return (<div key={ session.id } className="group relative">
                                                             {/* Active session indicator dot */ }
-                                                            { isActive && (
-                                                                <div
+                                                            { isActive && (<div
                                                                     className="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-1">
                                                                     <div
                                                                         className="w-2 h-2 bg-green-500 rounded-full animate-pulse"/>
-                                                                </div>
-                                                            ) }
+                                                                </div>) }
                                                             {/* Mobile Session Item */ }
                                                             <div className="md:hidden">
                                                                 <div
-                                                                    className={ cn(
-                                                                        "p-2 mx-3 my-0.5 rounded-md bg-card border active:scale-[0.98] transition-all duration-150 relative",
-                                                                        selectedSession?.id === session.id ? "bg-primary/5 border-primary/20" :
-                                                                            isActive ? "border-green-500/30 bg-green-50/5 dark:bg-green-900/5" : "border-border/30"
-                                                                    ) }
+                                                                    className={ cn("p-2 mx-3 my-0.5 rounded-md bg-card border active:scale-[0.98] transition-all duration-150 relative", selectedSession?.id === session.id ? "bg-primary/5 border-primary/20" : isActive ? "border-green-500/30 bg-green-50/5 dark:bg-green-900/5" : "border-border/30") }
                                                                     onClick={ () => {
                                                                         onProjectSelect(project);
                                                                         onSessionSelect(session);
@@ -1050,14 +958,10 @@ function Sidebar({
                                                                     }) }
                                                                 >
                                                                     <div className="flex items-center gap-2">
-                                                                        <div className={ cn(
-                                                                            "w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0",
-                                                                            selectedSession?.id === session.id ? "bg-primary/10" : "bg-muted/50"
-                                                                        ) }>
-                                                                            <MessageSquare className={ cn(
-                                                                                "w-3 h-3",
-                                                                                selectedSession?.id === session.id ? "text-primary" : "text-muted-foreground"
-                                                                            ) }/>
+                                                                        <div
+                                                                            className={ cn("w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0", selectedSession?.id === session.id ? "bg-primary/10" : "bg-muted/50") }>
+                                                                            <MessageSquare
+                                                                                className={ cn("w-3 h-3", selectedSession?.id === session.id ? "text-primary" : "text-muted-foreground") }/>
                                                                         </div>
                                                                         <div className="min-w-0 flex-1">
                                                                             <div
@@ -1076,8 +980,7 @@ function Sidebar({
                                                                                     <Badge variant="secondary"
                                                                                            className="text-xs px-1 py-0 ml-auto">
                                                                                         { session.messageCount }
-                                                                                    </Badge>
-                                                                                ) }
+                                                                                    </Badge>) }
                                                                             </div>
                                                                         </div>
                                                                         {/* Mobile delete button */ }
@@ -1100,10 +1003,7 @@ function Sidebar({
                                                             <div className="hidden md:block">
                                                                 <Button
                                                                     variant="ghost"
-                                                                    className={ cn(
-                                                                        "w-full justify-start p-2 h-auto font-normal text-left hover:bg-accent/50 transition-colors duration-200",
-                                                                        selectedSession?.id === session.id && "bg-accent text-accent-foreground"
-                                                                    ) }
+                                                                    className={ cn("w-full justify-start p-2 h-auto font-normal text-left hover:bg-accent/50 transition-colors duration-200", selectedSession?.id === session.id && "bg-accent text-accent-foreground") }
                                                                     onClick={ () => onSessionSelect(session) }
                                                                     onTouchEnd={ handleTouchClick(() => onSessionSelect(session)) }
                                                                 >
@@ -1128,8 +1028,7 @@ function Sidebar({
                                                                                     <Badge variant="secondary"
                                                                                            className="text-xs px-1 py-0 ml-auto">
                                                                                         { session.messageCount }
-                                                                                    </Badge>
-                                                                                ) }
+                                                                                    </Badge>) }
                                                                             </div>
                                                                         </div>
                                                                     </div>
@@ -1137,8 +1036,7 @@ function Sidebar({
                                                                 {/* Desktop hover buttons */ }
                                                                 <div
                                                                     className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200">
-                                                                    { editingSession === session.id ? (
-                                                                        <>
+                                                                    { editingSession === session.id ? (<>
                                                                             <input
                                                                                 type="text"
                                                                                 value={ editingSessionName }
@@ -1178,9 +1076,7 @@ function Sidebar({
                                                                             >
                                                                                 <X className="w-3 h-3 text-gray-600 dark:text-gray-400"/>
                                                                             </button>
-                                                                        </>
-                                                                    ) : (
-                                                                        <>
+                                                                        </>) : (<>
                                                                             {/* Generate summary button */ }
                                                                             {/* <button
                                       className="w-6 h-6 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 dark:hover:bg-blue-900/40 rounded flex items-center justify-center"
@@ -1222,14 +1118,11 @@ function Sidebar({
                                                                                 <Trash2
                                                                                     className="w-3 h-3 text-red-600 dark:text-red-400"/>
                                                                             </button>
-                                                                        </>
-                                                                    ) }
+                                                                        </>) }
                                                                 </div>
                                                             </div>
-                                                        </div>
-                                                    );
-                                                })
-                                            ) }
+                                                        </div>);
+                                                })) }
 
                                             {/* Show More Sessions Button */ }
                                             { getAllSessions(project).length > 0 && project.sessionMeta?.hasMore !== false && (
@@ -1240,20 +1133,15 @@ function Sidebar({
                                                     onClick={ () => loadMoreSessions(project) }
                                                     disabled={ loadingSessions[project.name] }
                                                 >
-                                                    { loadingSessions[project.name] ? (
-                                                        <>
+                                                    { loadingSessions[project.name] ? (<>
                                                             <div
                                                                 className="w-3 h-3 animate-spin rounded-full border border-muted-foreground border-t-transparent"/>
                                                             正在加载...
-                                                        </>
-                                                    ) : (
-                                                        <>
+                                                        </>) : (<>
                                                             <ChevronDown className="w-3 h-3"/>
                                                             显示更多会话
-                                                        </>
-                                                    ) }
-                                                </Button>
-                                            ) }
+                                                        </>) }
+                                                </Button>) }
 
                                             {/* New Session Button */ }
                                             <div className="md:hidden px-3 pb-2">
@@ -1278,18 +1166,14 @@ function Sidebar({
                                                 <Plus className="w-3 h-3"/>
                                                 新建会话
                                             </Button>
-                                        </div>
-                                    ) }
-                                </div>
-                            );
-                        })
-                    ) }
+                                        </div>) }
+                                </div>);
+                        })) }
                 </div>
             </ScrollArea>
 
             {/* Version Update Notification */ }
-            { updateAvailable && (
-                <div className="md:p-2 border-t border-border/50 flex-shrink-0">
+            { updateAvailable && (<div className="md:p-2 border-t border-border/50 flex-shrink-0">
                     {/* Desktop Version Notification */ }
                     <div className="hidden md:block">
                         <Button
@@ -1338,8 +1222,7 @@ function Sidebar({
                             </div>
                         </button>
                     </div>
-                </div>
-            ) }
+                </div>) }
 
             {/* Settings Section */ }
             <div className="md:p-2 md:border-t md:border-border flex-shrink-0">
@@ -1366,8 +1249,7 @@ function Sidebar({
                     <span className="text-xs">工具设置</span>
                 </Button>
             </div>
-        </div>
-    );
+        </div>);
 }
 
 export default Sidebar;

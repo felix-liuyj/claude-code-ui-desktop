@@ -21,6 +21,7 @@ import ReactMarkdown from 'react-markdown';
 import { useDropzone } from 'react-dropzone';
 import TodoList from './TodoList';
 import ClaudeLogo from './ClaudeLogo.jsx';
+import { useElectron } from '../utils/electron';
 
 import ClaudeStatus from './ClaudeStatus';
 import { MicButton } from './MicButton.jsx';
@@ -111,7 +112,6 @@ const safeLocalStorage = {
 // Memoized message component to prevent unnecessary re-renders
 const MessageComponent = memo(({
                                    message,
-                                   index,
                                    prevMessage,
                                    createDiff,
                                    onFileOpen,
@@ -1234,7 +1234,6 @@ const ImageAttachment = ({ file, onRemove, uploadProgress, error }) => {
 function ChatInterface({
                            selectedProject,
                            selectedSession,
-                           ws,
                            sendMessage,
                            messages,
                            onFileOpen,
@@ -1249,6 +1248,7 @@ function ChatInterface({
                            autoScrollToBottom,
                            sendByCtrlEnter
                        }) {
+    const electron = useElectron();
     const [input, setInput] = useState(() => {
         if (typeof window !== 'undefined' && selectedProject) {
             return safeLocalStorage.getItem(`draft_input_${ selectedProject.name }`) || '';
@@ -1275,7 +1275,7 @@ function ChatInterface({
     const messagesEndRef = useRef(null);
     const textareaRef = useRef(null);
     const scrollContainerRef = useRef(null);
-    const [debouncedInput, setDebouncedInput] = useState('');
+    const [, setDebouncedInput] = useState('');
     const [showFileDropdown, setShowFileDropdown] = useState(false);
     const [fileList, setFileList] = useState([]);
     const [filteredFiles, setFilteredFiles] = useState([]);
@@ -1285,12 +1285,7 @@ function ChatInterface({
     const [canAbortSession, setCanAbortSession] = useState(false);
     const [isUserScrolledUp, setIsUserScrolledUp] = useState(false);
     const scrollPositionRef = useRef({ height: 0, top: 0 });
-    const [showCommandMenu, setShowCommandMenu] = useState(false);
-    const [slashCommands, setSlashCommands] = useState([]);
-    const [filteredCommands, setFilteredCommands] = useState([]);
     const [isTextareaExpanded, setIsTextareaExpanded] = useState(false);
-    const [selectedCommandIndex, setSelectedCommandIndex] = useState(-1);
-    const [slashPosition, setSlashPosition] = useState(-1);
     const [visibleMessageCount, setVisibleMessageCount] = useState(100);
     const [claudeStatus, setClaudeStatus] = useState(null);
 
@@ -2724,7 +2719,7 @@ function ChatInterface({
                         {/* Hint text */ }
                         <div className="text-xs text-gray-500 dark:text-gray-400 text-center mt-2 hidden sm:block">
                             { sendByCtrlEnter
-                                ? "Ctrl+Enter 发送（输入法安全）• Shift+Enter 换行 • Tab 切换模式 • @ 引用文件"
+                                ? `${ electron.getShortcutKey() }+Enter 发送（输入法安全）• Shift+Enter 换行 • Tab 切换模式 • @ 引用文件`
                                 : "按 Enter 发送 • Shift+Enter 换行 • Tab 切换模式 • @ 引用文件" }
                         </div>
                         <div
@@ -2732,7 +2727,7 @@ function ChatInterface({
                                 isInputFocused ? 'opacity-100' : 'opacity-0'
                             }` }>
                             { sendByCtrlEnter
-                                ? "Ctrl+Enter 发送（输入法安全）• Tab 模式 • @ 文件"
+                                ? `${ electron.getShortcutKey() }+Enter 发送（输入法安全）• Tab 模式 • @ 文件`
                                 : "Enter 发送 • Tab 模式 • @ 文件" }
                         </div>
                     </form>

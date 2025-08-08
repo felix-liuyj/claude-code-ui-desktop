@@ -79,6 +79,11 @@ class ElectronBridge {
             };
         }
     }
+
+    // Get platform-specific shortcut key text
+    getShortcutKey() {
+        return this.isMac() ? 'Cmd' : 'Ctrl';
+    }
 }
 
 // Create singleton instance

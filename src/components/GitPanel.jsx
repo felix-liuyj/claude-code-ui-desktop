@@ -18,8 +18,10 @@ import {
 } from 'lucide-react';
 import { MicButton } from './MicButton.jsx';
 import { apiFetch } from '../utils/api';
+import { useElectron } from '../utils/electron';
 
 function GitPanel({ selectedProject, isMobile }) {
+    const electron = useElectron();
     const [gitStatus, setGitStatus] = useState(null);
     const [gitDiff, setGitDiff] = useState({});
     const [isLoading, setIsLoading] = useState(false);
@@ -1013,7 +1015,7 @@ function GitPanel({ selectedProject, isMobile }) {
                           ref={ textareaRef }
                           value={ commitMessage }
                           onChange={ (e) => setCommitMessage(e.target.value) }
-                          placeholder="提交消息 (Ctrl+Enter 提交)"
+                          placeholder={ `提交消息 (${electron.getShortcutKey()}+Enter 提交)` }
                           className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 resize-none pr-20"
                           rows="3"
                           onKeyDown={ (e) => {

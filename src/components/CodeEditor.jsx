@@ -11,8 +11,10 @@ import { Decoration, EditorView } from '@codemirror/view';
 import { RangeSetBuilder, StateEffect, StateField } from '@codemirror/state';
 import { Download, Eye, EyeOff, Maximize2, Minimize2, Save, X } from 'lucide-react';
 import { api } from '../utils/api';
+import { useElectron } from '../utils/electron';
 
 function CodeEditor({ file, onClose, projectPath }) {
+    const electron = useElectron();
     const [content, setContent] = useState('');
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -417,7 +419,7 @@ function CodeEditor({ file, onClose, projectPath }) {
                     </div>
 
                     <div className="text-sm text-gray-500 dark:text-gray-400">
-                        按 Ctrl+S 保存 • Esc 关闭
+                        按 {electron.getShortcutKey()}+S 保存 • Esc 关闭
                     </div>
                 </div>
             </div>

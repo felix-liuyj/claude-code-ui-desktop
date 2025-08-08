@@ -48,28 +48,28 @@ function createWindow() {
         if (input.key === 'F12') {
             event.preventDefault();
         }
-        
+
         // Disable Ctrl+Shift+I / Cmd+Alt+I completely
-        if ((input.control && input.shift && input.key === 'I') || 
+        if ((input.control && input.shift && input.key === 'I') ||
             (input.meta && input.alt && input.key === 'I')) {
             event.preventDefault();
         }
-        
+
         // Disable other common dev tools shortcuts completely
         // Ctrl+Shift+C / Cmd+Alt+C (inspect element)
-        if ((input.control && input.shift && input.key === 'C') || 
+        if ((input.control && input.shift && input.key === 'C') ||
             (input.meta && input.alt && input.key === 'C')) {
             event.preventDefault();
         }
-        
+
         // Ctrl+Shift+J / Cmd+Alt+J (console)
-        if ((input.control && input.shift && input.key === 'J') || 
+        if ((input.control && input.shift && input.key === 'J') ||
             (input.meta && input.alt && input.key === 'J')) {
             event.preventDefault();
         }
-        
+
         // Ctrl+U / Cmd+Alt+U (view source)
-        if ((input.control && input.key === 'U') || 
+        if ((input.control && input.key === 'U') ||
             (input.meta && input.alt && input.key === 'U')) {
             event.preventDefault();
         }
@@ -285,7 +285,21 @@ function createMenu() {
                     }
                 },
                 { type: 'separator' },
-                process.platform === 'darwin' ? { role: 'close' } : { role: 'quit' }
+                process.platform === 'darwin' ? 
+                    { 
+                        label: '退出',
+                        accelerator: 'CmdOrCtrl+Q',
+                        click: () => {
+                            app.quit();
+                        }
+                    } : 
+                    { 
+                        label: '关闭',
+                        accelerator: 'CmdOrCtrl+W',
+                        click: () => {
+                            mainWindow.close();
+                        }
+                    }
             ]
         },
         {

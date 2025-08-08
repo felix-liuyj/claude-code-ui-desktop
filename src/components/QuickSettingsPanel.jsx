@@ -16,6 +16,7 @@ import {
 import DarkModeToggle from './DarkModeToggle';
 import DevTools from './DevTools';
 import { useTheme } from '../contexts/ThemeContext';
+import { useElectron } from '../utils/electron';
 
 const QuickSettingsPanel = ({
                                 isOpen,
@@ -30,6 +31,7 @@ const QuickSettingsPanel = ({
                                 onSendByCtrlEnterChange,
                                 isMobile
                             }) => {
+    const electron = useElectron();
     const [localIsOpen, setLocalIsOpen] = useState(isOpen);
     const [whisperMode, setWhisperMode] = useState(() => {
         return localStorage.getItem('whisperMode') || 'default';
@@ -185,7 +187,7 @@ const QuickSettingsPanel = ({
                                 className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors border border-transparent hover:border-gray-300 dark:hover:border-gray-600">
                 <span className="flex items-center gap-2 text-sm text-gray-900 dark:text-white">
                   <Languages className="h-4 w-4 text-gray-600 dark:text-gray-400"/>
-                  Ctrl+Enter 发送
+                    { electron.getShortcutKey() }+Enter 发送
                 </span>
                                 <input
                                     type="checkbox"
@@ -195,7 +197,8 @@ const QuickSettingsPanel = ({
                                 />
                             </label>
                             <p className="text-xs text-gray-500 dark:text-gray-400 ml-3">
-                                启用后，使用 Ctrl+Enter 发送消息而不是单独的 Enter 键。这对输入法用户有用，可避免意外发送。
+                                启用后，使用 { electron.getShortcutKey() }+Enter 发送消息而不是单独的 Enter
+                                键。这对输入法用户有用，可避免意外发送。
                             </p>
                         </div>
 
