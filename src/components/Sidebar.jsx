@@ -3,6 +3,7 @@ import { ScrollArea } from './ui/scroll-area';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Input } from './ui/input';
+import ClaudeLogo from './ClaudeLogo';
 
 import {
     Check,
@@ -438,7 +439,7 @@ function Sidebar({
                 <div className="hidden md:flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shadow-sm">
-                            <MessageSquare className="w-4 h-4 text-primary-foreground"/>
+                            <ClaudeLogo className="w-4 h-4"/>
                         </div>
                         <div>
                             <h1 className="text-lg font-bold text-foreground">Claude Code UI</h1>

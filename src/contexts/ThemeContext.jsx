@@ -11,27 +11,41 @@ export const useTheme = () => {
 };
 
 export const ThemeProvider = ({ children }) => {
-    // Check for saved theme preference or default to system preference
-    const [isDarkMode, setIsDarkMode] = useState(() => {
-        // Check localStorage first
-        const savedTheme = localStorage.getItem('theme');
-        if (savedTheme) {
-            return savedTheme === 'dark';
-        }
-
-        // Check system preference
-        if (window.matchMedia) {
-            return window.matchMedia('(prefers-color-scheme: dark)').matches;
-        }
-
-        return false;
+    // Theme modes: 'light', 'dark', 'auto'
+    const [themeMode, setThemeMode] = useState(() => {
+        const savedTheme = localStorage.getItem('theme-mode');
+        return savedTheme || 'auto';
     });
 
-    // Update document class and localStorage when theme changes
+    // Current effective dark mode state
+    const [isDarkMode, setIsDarkMode] = useState(() => {
+        if (themeMode === 'auto') {
+            // Check system preference
+            if (window.matchMedia) {
+                return window.matchMedia('(prefers-color-scheme: dark)').matches;
+            }
+            return false;
+        }
+        return themeMode === 'dark';
+    });
+
+    // Update theme mode based on current setting
+    useEffect(() => {
+        if (themeMode === 'auto') {
+            if (window.matchMedia) {
+                const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+                setIsDarkMode(mediaQuery.matches);
+            }
+        } else {
+            setIsDarkMode(themeMode === 'dark');
+        }
+        localStorage.setItem('theme-mode', themeMode);
+    }, [themeMode]);
+
+    // Update document class when dark mode changes
     useEffect(() => {
         if (isDarkMode) {
             document.documentElement.classList.add('dark');
-            localStorage.setItem('theme', 'dark');
 
             // Update iOS status bar style and theme color for dark mode
             const statusBarMeta = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
@@ -45,7 +59,6 @@ export const ThemeProvider = ({ children }) => {
             }
         } else {
             document.documentElement.classList.remove('dark');
-            localStorage.setItem('theme', 'light');
 
             // Update iOS status bar style and theme color for light mode
             const statusBarMeta = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
@@ -60,29 +73,38 @@ export const ThemeProvider = ({ children }) => {
         }
     }, [isDarkMode]);
 
-    // Listen for system theme changes
+    // Listen for system theme changes (only when in auto mode)
     useEffect(() => {
-        if (!window.matchMedia) return;
+        if (!window.matchMedia || themeMode !== 'auto') return;
 
         const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
         const handleChange = (e) => {
-            // Only update if user hasn't manually set a preference
-            const savedTheme = localStorage.getItem('theme');
-            if (!savedTheme) {
-                setIsDarkMode(e.matches);
-            }
+            setIsDarkMode(e.matches);
         };
 
         mediaQuery.addEventListener('change', handleChange);
         return () => mediaQuery.removeEventListener('change', handleChange);
-    }, []);
+    }, [themeMode]);
+
+    const setTheme = (mode) => {
+        setThemeMode(mode);
+    };
 
     const toggleDarkMode = () => {
-        setIsDarkMode(prev => !prev);
+        // Cycle through: auto -> light -> dark -> auto
+        if (themeMode === 'auto') {
+            setThemeMode('light');
+        } else if (themeMode === 'light') {
+            setThemeMode('dark');
+        } else {
+            setThemeMode('auto');
+        }
     };
 
     const value = {
         isDarkMode,
+        themeMode,
+        setTheme,
         toggleDarkMode,
     };
 

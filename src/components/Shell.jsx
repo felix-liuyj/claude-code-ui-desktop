@@ -382,21 +382,10 @@ function Shell({ selectedProject, selectedSession, isActive }) {
         if (isConnecting || isConnected) return;
 
         try {
-            // Get authentication token
-            const token = localStorage.getItem('auth-token');
-            if (!token) {
-                console.error('No authentication token found for Shell WebSocket connection');
-                return;
-            }
-
             // Fetch server configuration to get the correct WebSocket URL
             let wsBaseUrl;
             try {
-                const configResponse = await fetch('/api/config', {
-                    headers: {
-                        'Authorization': `Bearer ${ token }`
-                    }
-                });
+                const configResponse = await fetch('/api/config');
                 const config = await configResponse.json();
                 wsBaseUrl = config.wsUrl;
 

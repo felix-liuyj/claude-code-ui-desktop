@@ -155,15 +155,15 @@ const MessageComponent = memo(({
     return (
         <div
             ref={ messageRef }
-            className={ `chat-message ${ message.type } ${ isGrouped ? 'grouped' : '' } ${ message.type === 'user' ? 'flex justify-end px-3 sm:px-0' : 'px-3 sm:px-0' }` }
+            className={ `chat-message ${ message.type } ${ isGrouped ? 'grouped' : '' } ${ message.type === 'user' ? 'flex justify-end px-4 sm:px-6 py-2' : 'px-4 sm:px-6 py-3' }` }
         >
             { message.type === 'user' ? (
                 /* User message bubble on the right */
                 <div
-                    className="flex items-end space-x-0 sm:space-x-3 w-full sm:w-auto sm:max-w-[85%] md:max-w-md lg:max-w-lg xl:max-w-xl">
+                    className="flex items-end space-x-0 sm:space-x-3 w-full sm:w-auto sm:max-w-[80%] md:max-w-lg lg:max-w-2xl xl:max-w-3xl">
                     <div
-                        className="bg-blue-600 text-white rounded-2xl rounded-br-md px-3 sm:px-4 py-2 shadow-sm flex-1 sm:flex-initial">
-                        <div className="text-sm whitespace-pre-wrap break-words">
+                        className="bg-blue-600 text-white rounded-2xl rounded-br-md px-4 sm:px-5 py-3 shadow-sm flex-1 sm:flex-initial">
+                        <div className="text-sm leading-relaxed whitespace-pre-wrap break-words">
                             { message.content }
                         </div>
                         { message.images && message.images.length > 0 && (
@@ -179,7 +179,7 @@ const MessageComponent = memo(({
                                 )) }
                             </div>
                         ) }
-                        <div className="text-xs text-blue-100 mt-1 text-right">
+                        <div className="text-xs text-blue-100 mt-2 text-right opacity-75">
                             { new Date(message.timestamp).toLocaleTimeString() }
                         </div>
                     </div>
@@ -192,9 +192,9 @@ const MessageComponent = memo(({
                 </div>
             ) : (
                 /* Claude/Error messages on the left */
-                <div className="w-full">
+                <div className="w-full max-w-none">
                     { !isGrouped && (
-                        <div className="flex items-center space-x-3 mb-2">
+                        <div className="flex items-center space-x-3 mb-3">
                             { message.type === 'error' ? (
                                 <div
                                     className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center text-white text-sm flex-shrink-0">
@@ -202,11 +202,11 @@ const MessageComponent = memo(({
                                 </div>
                             ) : (
                                 <div
-                                    className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm flex-shrink-0 p-1">
-                                    <ClaudeLogo className="w-full h-full"/>
+                                    className="w-8 h-8 rounded-full bg-orange-100 dark:bg-orange-900 flex items-center justify-center flex-shrink-0 p-1">
+                                    <ClaudeLogo className="w-5 h-5"/>
                                 </div>
                             ) }
-                            <div className="text-sm font-medium text-gray-900 dark:text-white">
+                            <div className="text-sm font-semibold text-gray-900 dark:text-white">
                                 { message.type === 'error' ? '错误' : 'Claude' }
                             </div>
                         </div>
@@ -1122,21 +1122,21 @@ const MessageComponent = memo(({
                                 📋 读取待办事项列表
                             </div>
                         ) : (
-                            <div className="text-sm text-gray-700 dark:text-gray-300">
+                            <div className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
                                 { message.type === 'assistant' ? (
                                     <div
-                                        className="prose prose-sm max-w-none dark:prose-invert prose-gray [&_code]:!bg-transparent [&_code]:!p-0">
+                                        className="prose prose-sm max-w-none dark:prose-invert prose-gray [&_code]:!bg-transparent [&_code]:!p-0 [&_p]:mb-4 [&_p:last-child]:mb-0 [&_h1]:text-lg [&_h1]:font-semibold [&_h1]:mb-3 [&_h1]:mt-4 [&_h2]:text-base [&_h2]:font-semibold [&_h2]:mb-2 [&_h2]:mt-3 [&_h3]:text-sm [&_h3]:font-semibold [&_h3]:mb-2 [&_h3]:mt-2 [&_ul]:mb-4 [&_ol]:mb-4 [&_li]:mb-1">
                                         <ReactMarkdown
                                             components={ {
                                                 code: ({ node, inline, className, children, ...props }) => {
                                                     return inline ? (
                                                         <strong
-                                                            className="text-blue-600 dark:text-blue-400 font-bold not-prose" { ...props }>
+                                                            className="text-blue-600 dark:text-blue-400 font-semibold not-prose bg-blue-50 dark:bg-blue-900/20 px-1 py-0.5 rounded" { ...props }>
                                                             { children }
                                                         </strong>
                                                     ) : (
                                                         <div
-                                                            className="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg overflow-hidden my-2">
+                                                            className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg overflow-hidden my-3 border border-gray-200 dark:border-gray-700">
                                                             <code
                                                                 className="text-gray-800 dark:text-gray-200 text-sm font-mono block whitespace-pre-wrap break-words" { ...props }>
                                                                 { children }
@@ -2117,15 +2117,8 @@ function ChatInterface({
             });
 
             try {
-                const token = safeLocalStorage.getItem('auth-token');
-                const headers = {};
-                if (token) {
-                    headers['Authorization'] = `Bearer ${ token }`;
-                }
-
                 const response = await fetch(`/api/projects/${ selectedProject.name }/upload-images`, {
                     method: 'POST',
-                    headers: headers,
                     body: formData
                 });
 
