@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
+    AlertTriangle,
     ArrowDown,
     ChevronLeft,
     ChevronRight,
@@ -9,7 +10,9 @@ import {
     Maximize2,
     Mic,
     Moon,
+    Play,
     Settings2,
+    Shield,
     Sparkles,
     Sun
 } from 'lucide-react';
@@ -35,6 +38,14 @@ const QuickSettingsPanel = ({
     const [localIsOpen, setLocalIsOpen] = useState(isOpen);
     const [whisperMode, setWhisperMode] = useState(() => {
         return localStorage.getItem('whisperMode') || 'default';
+    });
+    const [permissionMode, setPermissionMode] = useState(() => {
+        const savedSettings = localStorage.getItem('claude-tools-settings');
+        if (savedSettings) {
+            const settings = JSON.parse(savedSettings);
+            return settings.permissionMode || 'default';
+        }
+        return 'default';
     });
     const [isDevelopmentMode, setIsDevelopmentMode] = useState(false);
     const { isDarkMode } = useTheme();
@@ -72,6 +83,23 @@ const QuickSettingsPanel = ({
         const newState = !localIsOpen;
         setLocalIsOpen(newState);
         onToggle(newState);
+    };
+
+    const handlePermissionModeChange = (newMode) => {
+        setPermissionMode(newMode);
+        
+        // Save to localStorage
+        const savedSettings = localStorage.getItem('claude-tools-settings');
+        let settings = {};
+        if (savedSettings) {
+            settings = JSON.parse(savedSettings);
+        }
+        settings.permissionMode = newMode;
+        settings.lastUpdated = new Date().toISOString();
+        localStorage.setItem('claude-tools-settings', JSON.stringify(settings));
+        
+        // Dispatch event to notify other components
+        window.dispatchEvent(new CustomEvent('permissionModeChanged', { detail: { mode: newMode } }));
     };
 
     return (
@@ -125,6 +153,76 @@ const QuickSettingsPanel = ({
                     深色模式
                 </span>
                                 <DarkModeToggle/>
+                            </div>
+                        </div>
+
+                        {/* Permission Mode Settings */ }
+                        <div className="space-y-2">
+                            <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">权限模式</h4>
+
+                            <div className="space-y-2">
+                                <label
+                                    className="flex items-start p-3 rounded-lg bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors border border-transparent hover:border-gray-300 dark:hover:border-gray-600">
+                                    <input
+                                        type="radio"
+                                        name="permissionMode"
+                                        value="default"
+                                        checked={ permissionMode === 'default' }
+                                        onChange={ () => handlePermissionModeChange('default') }
+                                        className="mt-0.5 h-4 w-4 border-gray-300 dark:border-gray-600 text-blue-600 dark:text-blue-500 focus:ring-blue-500 dark:focus:ring-blue-400 dark:bg-gray-800 dark:checked:bg-blue-600"
+                                    />
+                                    <div className="ml-3 flex-1">
+                                        <span className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-white">
+                                            <Shield className="h-4 w-4 text-blue-600 dark:text-blue-400"/>
+                                            默认模式
+                                        </span>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                            每次使用工具时都会提示权限确认
+                                        </p>
+                                    </div>
+                                </label>
+
+                                <label
+                                    className="flex items-start p-3 rounded-lg bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors border border-transparent hover:border-gray-300 dark:hover:border-gray-600">
+                                    <input
+                                        type="radio"
+                                        name="permissionMode"
+                                        value="auto-allow"
+                                        checked={ permissionMode === 'auto-allow' }
+                                        onChange={ () => handlePermissionModeChange('auto-allow') }
+                                        className="mt-0.5 h-4 w-4 border-gray-300 dark:border-gray-600 text-blue-600 dark:text-blue-500 focus:ring-blue-500 dark:focus:ring-blue-400 dark:bg-gray-800 dark:checked:bg-blue-600"
+                                    />
+                                    <div className="ml-3 flex-1">
+                                        <span className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-white">
+                                            <Play className="h-4 w-4 text-green-500"/>
+                                            自动允许模式
+                                        </span>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                            自动允许安全的工具，仅对危险操作提示
+                                        </p>
+                                    </div>
+                                </label>
+
+                                <label
+                                    className="flex items-start p-3 rounded-lg bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors border border-transparent hover:border-gray-300 dark:hover:border-gray-600">
+                                    <input
+                                        type="radio"
+                                        name="permissionMode"
+                                        value="skip-all"
+                                        checked={ permissionMode === 'skip-all' }
+                                        onChange={ () => handlePermissionModeChange('skip-all') }
+                                        className="mt-0.5 h-4 w-4 border-gray-300 dark:border-gray-600 text-blue-600 dark:text-blue-500 focus:ring-blue-500 dark:focus:ring-blue-400 dark:bg-gray-800 dark:checked:bg-blue-600"
+                                    />
+                                    <div className="ml-3 flex-1">
+                                        <span className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-white">
+                                            <AlertTriangle className="h-4 w-4 text-orange-500"/>
+                                            跳过所有权限
+                                        </span>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                            跳过所有权限提示（谨慎使用）
+                                        </p>
+                                    </div>
+                                </label>
                             </div>
                         </div>
 
