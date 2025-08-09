@@ -10,12 +10,9 @@ export const apiFetch = (url, options = {}) => {
     const baseUrl = getBaseUrl();
     const fullUrl = url.startsWith('http') ? url : `${ baseUrl }${ url }`;
 
-    const defaultHeaders = {};
-
-    // 只为非FormData请求设置JSON Content-Type
-    if (!(options.body instanceof FormData)) {
-        defaultHeaders['Content-Type'] = 'application/json';
-    }
+    const defaultHeaders = {
+        'Content-Type': 'application/json',
+    };
 
     return fetch(fullUrl, {
         ...options,
@@ -63,12 +60,6 @@ export const api = {
         apiFetch(`/api/projects/${ projectName }/files`),
     transcribe: (formData) =>
         apiFetch('/api/transcribe', {
-            method: 'POST',
-            body: formData,
-            headers: {}, // Let browser set Content-Type for FormData
-        }),
-    uploadImages: (projectName, formData) =>
-        apiFetch(`/api/projects/${ projectName }/upload-images`, {
             method: 'POST',
             body: formData,
             headers: {}, // Let browser set Content-Type for FormData

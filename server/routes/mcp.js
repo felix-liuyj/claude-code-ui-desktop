@@ -14,62 +14,41 @@ router.get('/cli/list', async (req, res) => {
     try {
         console.log('📋 Listing MCP servers using Claude CLI');
 
-        // First, try to check if claude CLI is available
-        const claudeProcess = spawn('which', ['claude'], {
+        const { spawn } = await import('child_process');
+        const { promisify } = await import('util');
+        const exec = promisify(spawn);
+
+        const process = spawn('claude', ['mcp', 'list', '-s', 'user'], {
             stdio: ['pipe', 'pipe', 'pipe']
         });
 
-        claudeProcess.on('error', () => {
-            // Claude CLI not found, return empty list
-            console.log('Claude CLI not found, returning empty server list');
-            res.json({ success: true, output: '', servers: [] });
-            return;
+        let stdout = '';
+        let stderr = '';
+
+        process.stdout.on('data', (data) => {
+            stdout += data.toString();
         });
 
-        claudeProcess.on('close', (code) => {
-            if (code !== 0) {
-                // Claude CLI not found, return empty list
-                console.log('Claude CLI not available, returning empty server list');
-                res.json({ success: true, output: '', servers: [] });
-                return;
+        process.stderr.on('data', (data) => {
+            stderr += data.toString();
+        });
+
+        process.on('close', (code) => {
+            if (code === 0) {
+                res.json({ success: true, output: stdout, servers: parseClaudeListOutput(stdout) });
+            } else {
+                console.error('Claude CLI error:', stderr);
+                res.status(500).json({ error: 'Claude CLI command failed', details: stderr });
             }
+        });
 
-            // Claude CLI is available, proceed with listing
-            const process = spawn('claude', ['mcp', 'list'], {
-                stdio: ['pipe', 'pipe', 'pipe']
-            });
-
-            let stdout = '';
-            let stderr = '';
-
-            process.stdout.on('data', (data) => {
-                stdout += data.toString();
-            });
-
-            process.stderr.on('data', (data) => {
-                stderr += data.toString();
-            });
-
-            process.on('close', (code) => {
-                if (code === 0) {
-                    res.json({ success: true, output: stdout, servers: parseClaudeListOutput(stdout) });
-                } else {
-                    console.error('Claude CLI error:', stderr);
-                    // Return empty list instead of error
-                    res.json({ success: false, error: 'Claude CLI command failed', details: stderr, servers: [] });
-                }
-            });
-
-            process.on('error', (error) => {
-                console.error('Error running Claude CLI:', error);
-                // Return empty list instead of error
-                res.json({ success: false, error: 'Failed to run Claude CLI', details: error.message, servers: [] });
-            });
+        process.on('error', (error) => {
+            console.error('Error running Claude CLI:', error);
+            res.status(500).json({ error: 'Failed to run Claude CLI', details: error.message });
         });
     } catch (error) {
         console.error('Error listing MCP servers via CLI:', error);
-        // Return empty list instead of error
-        res.json({ success: false, error: 'Failed to list MCP servers', details: error.message, servers: [] });
+        res.status(500).json({ error: 'Failed to list MCP servers', details: error.message });
     }
 });
 
@@ -80,6 +59,7 @@ router.post('/cli/add', async (req, res) => {
 
         console.log('➕ Adding MCP server using Claude CLI:', name);
 
+        const { spawn } = await import('child_process');
 
         let cliArgs = ['mcp', 'add'];
 
@@ -151,6 +131,7 @@ router.delete('/cli/remove/:name', async (req, res) => {
 
         console.log('🗑️ Removing MCP server using Claude CLI:', name);
 
+        const { spawn } = await import('child_process');
 
         const process = spawn('claude', ['mcp', 'remove', '-s', 'user', name], {
             stdio: ['pipe', 'pipe', 'pipe']
@@ -193,6 +174,7 @@ router.get('/cli/get/:name', async (req, res) => {
 
         console.log('📄 Getting MCP server details using Claude CLI:', name);
 
+        const { spawn } = await import('child_process');
 
         const process = spawn('claude', ['mcp', 'get', '-s', 'user', name], {
             stdio: ['pipe', 'pipe', 'pipe']
@@ -297,17 +279,5 @@ function parseClaudeGetOutput(output) {
         return { raw_output: output, parse_error: error.message };
     }
 }
-
-// GET /api/mcp/servers - Fallback endpoint for listing MCP servers
-router.get('/servers', async (req, res) => {
-    try {
-        console.log('📋 Fallback: returning empty MCP servers list');
-        // Return empty list as fallback when CLI is not available
-        res.json({ servers: [] });
-    } catch (error) {
-        console.error('Error in MCP servers fallback:', error);
-        res.json({ servers: [] });
-    }
-});
 
 export default router;

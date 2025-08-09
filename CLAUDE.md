@@ -4,29 +4,23 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Claude Code UI is a desktop application for Claude Code CLI that provides a native interface for AI-assisted coding
-sessions. Built with Electron, it combines a React frontend and Node.js backend with integrated WebSocket communication.
+Claude Code UI Desktop is a pure desktop application for Claude Code CLI that provides a native Electron interface for AI-assisted coding sessions. This is a desktop-only version based on siteboon/claudecodeui, with all web functionality removed to focus on desktop experience. Built with Electron, it combines a React frontend and Node.js backend with integrated WebSocket communication.
 
 ## Development Commands
 
 ```bash
-# Web Development Mode (Legacy)
-npm run dev                 # Start both frontend and backend for web
-npm run server             # Start backend server only
-npm run client             # Start frontend client only (Vite dev server)
-npm run build              # Build React frontend for production
-npm run start              # Start production web server
-npm run preview            # Preview production build locally
-
-# Electron Desktop App (Primary Development Focus)
-npm run electron           # Run Electron app (requires build first)
+# Desktop Development (Primary)
 npm run electron-dev       # Build and run Electron in development (recommended)
+npm run electron           # Run Electron app (requires build first)
 npm run electron-pack      # Build and package Electron app
 npm run dist               # Create distributable Electron package for current platform
 
+# Build Commands
+npm run build              # Build React frontend for production
+npm start                  # Start Electron app (alias for electron-dev)
+
 # Dependencies & Setup
 npm install                # Install all dependencies (includes Electron)
-cp .env.example .env       # Configure environment (for web mode only)
 ```
 
 ## Architecture
@@ -86,21 +80,14 @@ cp .env.example .env       # Configure environment (for web mode only)
 
 ## Environment Configuration
 
-### Desktop App (Electron)
+### Desktop App (Pure Desktop Version)
 
 No environment configuration required - all settings are automatic:
 
 - Server port: Fixed at 3001
-- No authentication required for desktop security model
+- No authentication required for desktop security model  
 - Build output: `dist/` directory for renderer, `dist-electron/` for packages
-
-### Web Mode (Legacy)
-
-Copy `.env.example` to `.env` and configure:
-
-- `PORT=3001` - Backend server port (can be changed)
-- `VITE_PORT=5173` - Frontend development port
-- No authentication database required for desktop security model
+- No web mode support in this version
 
 ## Development Workflow
 
@@ -110,30 +97,25 @@ Copy `.env.example` to `.env` and configure:
 2. **Setup**: `npm install` (installs Electron and all dependencies)
 3. **Development**: `npm run electron-dev` builds and launches desktop app
 4. **Building**: `npm run dist` creates distributable packages for your platform
-
-### Web Development (Legacy)
-
-1. **Setup**: `npm install`, `cp .env.example .env`
-2. **Development**: `npm run dev` starts both frontend and backend for web
-3. **File Structure**: Frontend proxies API calls to backend during development
+5. **Start Script**: `scripts/start-electron.js` handles build detection and port cleanup
 
 ## Key Files
 
 ### Electron Desktop App
 
 - `electron/main.js`: Electron main process with window management and embedded server
-- `electron/preload.js`: Secure IPC bridge between main and renderer processes
+- `electron/preload.js`: Secure IPC bridge between main and renderer processes  
 - `src/utils/electron.js`: Electron integration utilities and context
+- `scripts/start-electron.js`: Development startup script with build detection and port cleanup
 
 ### Core Application
 
-- `server/index.js`: Main server with API routes and WebSocket handlers (dual mode)
+- `server/index.js`: Main server with API routes and WebSocket handlers (desktop-only mode)
 - `src/App.jsx`: Main React component with routing, session management, and Electron integration
 - `server/projects.js`: Claude project discovery and management with caching
-- `server/claude-cli.js`: Claude CLI process spawning and communication
+- `server/claude-cli.js`: Claude CLI process spawning and communication with image handling
 - `server/routes/`: API route handlers for git and MCP integration
-- `server/database/`: SQLite database setup and management
-- `vite.config.js`: Frontend build configuration with Electron support
+- `vite.config.js`: Frontend build configuration optimized for Electron
 
 ## Important Implementation Details
 
@@ -222,17 +204,57 @@ The application includes a sophisticated permission mode system in the chat inte
 
 **Important**: The `bypassPermissions` mode uses orange coloring as a visual warning for dangerous operations.
 
+## Claude CLI Integration
+
+### Image Upload System
+
+The application supports image uploads through a sophisticated temporary file system:
+
+- **Multer Integration**: Handles multipart form data with 5MB file size limit
+- **Temporary Storage**: Images saved to `.tmp/images/` in project directory
+- **Base64 Processing**: Converts uploaded images to base64, then back to files for Claude CLI
+- **Format Support**: JPEG, PNG, GIF, WebP, SVG
+- **Automatic Cleanup**: Temporary files deleted after Claude CLI session ends
+
+### MCP Server Integration
+
+- **Auto-Detection**: Scans `~/.claude.json` for MCP server configurations
+- **Global & Project Servers**: Supports both global and project-specific MCP servers
+- **Graceful Fallback**: Works without MCP if no servers configured
+- **Configuration Path**: Passes `--mcp-config` flag only when MCP servers detected
+
+### Tools & Permission Management
+
+- **Permission Modes**: default, acceptEdits, bypassPermissions, plan
+- **Plan Mode Tools**: Automatically includes Read, Task, exit_plan_mode, TodoRead, TodoWrite
+- **Tools Settings**: Frontend manages allowed/disallowed tools list
+- **Skip Permissions**: Uses `--dangerously-skip-permissions` when enabled
+
+## Project Discovery & Management
+
+### Intelligent Project Detection
+
+- **JSONL Parsing**: Analyzes Claude session files to extract project directories
+- **Caching System**: In-memory cache for project directory extraction (performance)
+- **Smart Fallback**: Uses most recent or most frequently used working directory
+- **Manual Addition**: Supports adding projects by filesystem path
+- **Display Names**: Auto-generates from package.json or path, with custom override support
+
 ## Development Debugging
 
 ### Common Issues & Solutions
 
 1. **MCP API Errors**: Ensure `apiFetch()` is used instead of direct `fetch()` calls
-2. **Image Upload Failures**: Check that multer dependency is installed (`npm install multer`)
+2. **Image Upload Failures**: Check that multer dependency is installed (`npm install multer`)  
 3. **WebSocket Connection Issues**: Verify port 3001 is available and server is running
 4. **File Path Resolution**: Use absolute paths in API calls, relative paths may fail in Electron
+5. **Build Issues**: Run `npm run build` before `npm run electron` if dist/ doesn't exist
+6. **Port Conflicts**: `scripts/start-electron.js` automatically kills processes on port 3001
 
 ### Electron-Specific Considerations
 
-- **Dynamic Imports**: Avoid dynamic imports in asar-packed code; use `require()` for server-side modules
+- **Dynamic Imports**: Server uses dynamic imports at runtime for embedded architecture
 - **Path Resolution**: Server runs in main process with different path context than renderer
 - **Security**: Electron apps run with node integration, requiring careful handling of external data
+- **Menu Integration**: Chinese language menu system with keyboard shortcuts
+- **Window Management**: macOS-specific titlebar handling and proper window sizing
