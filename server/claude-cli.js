@@ -259,6 +259,34 @@ async function spawnClaude(command, options = {}, ws) {
                     const response = JSON.parse(line);
                     console.log('📄 Parsed JSON response:', response);
 
+                    // Check for usage limit in parsed response
+                    if (response.message && response.message.content) {
+                        let usageLimitDetected = false;
+                        
+                        if (Array.isArray(response.message.content)) {
+                            for (const part of response.message.content) {
+                                if (part.type === 'text' && part.text && part.text.includes('Claude AI usage limit reached|')) {
+                                    usageLimitDetected = true;
+                                    break;
+                                }
+                            }
+                        } else if (typeof response.message.content === 'string' && response.message.content.includes('Claude AI usage limit reached|')) {
+                            usageLimitDetected = true;
+                        }
+                        
+                        if (usageLimitDetected) {
+                            console.log('🚫 Usage limit detected, terminating Claude process');
+                            // Send the response first so client can show the error
+                            ws.send(JSON.stringify({
+                                type: 'claude-response',
+                                data: response
+                            }));
+                            // Then immediately terminate the process
+                            claudeProcess.kill('SIGTERM');
+                            return;
+                        }
+                    }
+
                     // Capture session ID if it's in the response
                     if (response.session_id && !capturedSessionId) {
                         capturedSessionId = response.session_id;
@@ -287,6 +315,20 @@ async function spawnClaude(command, options = {}, ws) {
                     }));
                 } catch (parseError) {
                     console.log('📄 Non-JSON response:', line);
+                    
+                    // Check for usage limit in non-JSON response
+                    if (line.includes('Claude AI usage limit reached|')) {
+                        console.log('🚫 Usage limit detected in raw output, terminating Claude process');
+                        // Send the response first so client can show the error
+                        ws.send(JSON.stringify({
+                            type: 'claude-output',
+                            data: line
+                        }));
+                        // Then immediately terminate the process
+                        claudeProcess.kill('SIGTERM');
+                        return;
+                    }
+                    
                     // If not JSON, send as raw text
                     ws.send(JSON.stringify({
                         type: 'claude-output',

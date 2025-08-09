@@ -45,6 +45,22 @@ const QuickSettingsPanel = ({
         setLocalIsOpen(isOpen);
     }, [isOpen]);
 
+    // ESC key handler for closing quick settings
+    useEffect(() => {
+        if (!isOpen) return;
+
+        const handleKeyDown = (e) => {
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                e.stopPropagation();
+                onToggle(false);
+            }
+        };
+
+        document.addEventListener('keydown', handleKeyDown);
+        return () => document.removeEventListener('keydown', handleKeyDown);
+    }, [isOpen, onToggle]);
+
     useEffect(() => {
         // Check development mode
         const checkDevelopmentMode = async () => {

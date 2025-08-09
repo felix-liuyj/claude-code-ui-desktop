@@ -183,9 +183,9 @@ const MessageComponent = memo(({
                             { new Date(message.timestamp).toLocaleTimeString() }
                         </div>
                     </div>
-                    { !isGrouped && userAvatarUrl && (
+                    { !isGrouped && (
                         <img
-                            src={ userAvatarUrl }
+                            src={ userAvatarUrl || "asker.svg" }
                             alt="User"
                             className="hidden sm:flex w-8 h-8 rounded-full object-cover flex-shrink-0"
                         />
@@ -203,7 +203,7 @@ const MessageComponent = memo(({
                                 </div>
                             ) : (
                                 <img
-                                    src="logo.svg"
+                                    src="claude.svg"
                                     alt="Claude"
                                     className="w-8 h-8 rounded-full object-cover flex-shrink-0"
                                 />
@@ -1808,13 +1808,32 @@ function ChatInterface({
                                         const ts = parseInt(pieces[1], 10);
                                         if (!Number.isNaN(ts)) {
                                             const resetAt = new Date(ts * 1000);
-                                            setChatMessages(prev => [...prev, {
-                                                type: 'assistant',
-                                                content: '',
-                                                timestamp: new Date(),
-                                                isUsageLimit: true,
-                                                usageLimitReset: resetAt
-                                            }]);
+                                            
+                                            // Check if we already have a usage limit message to prevent duplicates
+                                            setChatMessages(prev => {
+                                                const hasUsageLimitMessage = prev.some(msg => msg.isUsageLimit);
+                                                if (hasUsageLimitMessage) {
+                                                    return prev; // Don't add duplicate usage limit message
+                                                }
+                                                return [...prev, {
+                                                    type: 'assistant',
+                                                    content: '',
+                                                    timestamp: new Date(),
+                                                    isUsageLimit: true,
+                                                    usageLimitReset: resetAt
+                                                }];
+                                            });
+                                            
+                                            // Immediately stop processing when usage limit is reached
+                                            setIsLoading(false);
+                                            setCanAbortSession(false);
+                                            setClaudeStatus(null);
+                                            
+                                            // Mark session as inactive to re-enable project updates
+                                            const activeSessionId = currentSessionId || sessionStorage.getItem('pendingSessionId');
+                                            if (activeSessionId && onSessionInactive) {
+                                                onSessionInactive(activeSessionId);
+                                            }
                                             continue;
                                         }
                                     }
@@ -1848,13 +1867,31 @@ function ChatInterface({
                                 const ts = parseInt(pieces[1], 10);
                                 if (!Number.isNaN(ts)) {
                                     const resetAt = new Date(ts * 1000);
-                                    setChatMessages(prev => [...prev, {
-                                        type: 'assistant',
-                                        content: '',
-                                        timestamp: new Date(),
-                                        isUsageLimit: true,
-                                        usageLimitReset: resetAt
-                                    }]);
+                                    // Check if we already have a usage limit message to prevent duplicates
+                                    setChatMessages(prev => {
+                                        const hasUsageLimitMessage = prev.some(msg => msg.isUsageLimit);
+                                        if (hasUsageLimitMessage) {
+                                            return prev; // Don't add duplicate usage limit message
+                                        }
+                                        return [...prev, {
+                                            type: 'assistant',
+                                            content: '',
+                                            timestamp: new Date(),
+                                            isUsageLimit: true,
+                                            usageLimitReset: resetAt
+                                        }];
+                                    });
+                                    
+                                    // Immediately stop processing when usage limit is reached
+                                    setIsLoading(false);
+                                    setCanAbortSession(false);
+                                    setClaudeStatus(null);
+                                    
+                                    // Mark session as inactive to re-enable project updates
+                                    const activeSessionId = currentSessionId || sessionStorage.getItem('pendingSessionId');
+                                    if (activeSessionId && onSessionInactive) {
+                                        onSessionInactive(activeSessionId);
+                                    }
                                     break;
                                 }
                             }
@@ -1925,6 +1962,17 @@ function ChatInterface({
                         content: `Error: ${ latestMessage.error }`,
                         timestamp: new Date()
                     }]);
+                    
+                    // Stop processing on error
+                    setIsLoading(false);
+                    setCanAbortSession(false);
+                    setClaudeStatus(null);
+                    
+                    // Mark session as inactive to re-enable project updates
+                    const errorActiveSessionId = currentSessionId || sessionStorage.getItem('pendingSessionId');
+                    if (errorActiveSessionId && onSessionInactive) {
+                        onSessionInactive(errorActiveSessionId);
+                    }
                     break;
 
                 case 'claude-complete':
@@ -2176,6 +2224,36 @@ function ChatInterface({
             setIsTextareaExpanded(false);
         }
     }, [input]);
+
+    // Global ESC key listener for interrupting Claude tasks
+    useEffect(() => {
+        const handleGlobalKeyDown = (e) => {
+            if (e.key === 'Escape') {
+                // Check if we're in a modal or settings view that should be closed first
+                // If there are overlays/modals, don't interrupt Claude - let them handle the ESC
+                const modals = document.querySelectorAll('[role="dialog"], .modal, .settings-panel, .drawer');
+                const visibleModals = Array.from(modals).filter(modal => {
+                    const style = window.getComputedStyle(modal);
+                    return style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0';
+                });
+                
+                if (visibleModals.length > 0) {
+                    // Let modals handle their own ESC key
+                    return;
+                }
+                
+                // If we're in the chat area and Claude is processing, interrupt it
+                if (canAbortSession && currentSessionId) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleAbortSession();
+                }
+            }
+        };
+
+        document.addEventListener('keydown', handleGlobalKeyDown);
+        return () => document.removeEventListener('keydown', handleGlobalKeyDown);
+    }, [canAbortSession, currentSessionId]);
 
     const handleTranscript = useCallback((text) => {
         if (text.trim()) {
@@ -2654,7 +2732,17 @@ function ChatInterface({
 
                     { isLoading && (
                         <div className="chat-message assistant relative z-10">
-                            <div className="w-full">
+                            <div className="w-full max-w-none">
+                                <div className="flex items-center space-x-3 mb-3">
+                                    <img
+                                        src="claude.svg"
+                                        alt="Claude"
+                                        className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                                    />
+                                    <div className="text-sm font-semibold text-gray-900 dark:text-white">
+                                        Claude
+                                    </div>
+                                </div>
                                 <div className="w-full text-sm text-gray-500 dark:text-gray-400">
                                     <div className="flex items-center space-x-1">
                                         <div className="animate-pulse">●</div>

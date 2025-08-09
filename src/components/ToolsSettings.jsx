@@ -297,6 +297,22 @@ function ToolsSettings({ isOpen, onClose }) {
         }
     }, [isOpen]);
 
+    // ESC key handler for closing settings
+    useEffect(() => {
+        if (!isOpen) return;
+
+        const handleKeyDown = (e) => {
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                e.stopPropagation();
+                onClose();
+            }
+        };
+
+        document.addEventListener('keydown', handleKeyDown);
+        return () => document.removeEventListener('keydown', handleKeyDown);
+    }, [isOpen, onClose]);
+
     // Note: permissionMode and skipPermissions are independent. When skipPermissions is true,
     // UI that selects permissionMode will be disabled and permissionMode is ignored by runtime.
 
