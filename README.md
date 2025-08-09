@@ -87,9 +87,12 @@ Claude Code UI Desktop 是基于 [siteboon/claudecodeui](https://github.com/site
 
 - **嵌入式服务器架构** - Express 服务器直接运行在 Electron 主进程中
 - **简化的本地通信** - 所有 API 调用都通过本地端口，无需网络认证
-- **实时项目同步** - 基于 chokidar 的文件系统监视
-- **会话保护系统** - 防止 WebSocket 更新中断活动对话
-- **跨平台支持** - 支持 Windows、macOS 和 Linux
+- **实时项目同步** - 基于 chokidar 的文件系统监视器，300ms 防抖优化
+- **会话保护系统** - 防止 WebSocket 更新中断活动对话，支持临时会话 ID
+- **智能项目发现** - 自动解析 JSONL 文件提取项目目录，支持缓存优化
+- **图像上传支持** - 完整的图像处理流程，支持多种格式和临时文件管理
+- **MCP 服务器集成** - 自动检测 ~/.claude.json 中的 MCP 配置
+- **跨平台支持** - 支持 Windows、macOS 和 Linux，原生菜单和快捷键
 
 ## 快速开始
 
@@ -130,6 +133,7 @@ Claude Code UI Desktop 是基于 [siteboon/claudecodeui](https://github.com/site
     - 桌面应用会自动启动并连接到端口 3001
     - 应用会自动检测并使用已安装的 Claude Code CLI
     - 无需认证配置，直接开始使用
+    - 首次运行会自动发现现有 Claude 项目，也可手动添加新项目
 
 ## 项目结构
 
@@ -164,13 +168,33 @@ claude-code-ui-desktop/
 
 ## 核心功能
 
-- **💬 交互式聊天界面** - 与 Claude Code 的无缝通信
-- **🖱️ 集成终端** - 内置 shell 功能，直接访问 Claude Code CLI
-- **📁 文件浏览器** - 交互式文件树，支持语法高亮和实时编辑
+### 🎯 智能对话系统
+- **💬 交互式聊天界面** - 与 Claude Code 的无缝通信，支持流式响应
+- **🖼️ 图像上传支持** - 拖拽上传图片，自动转换为临时文件供 Claude 分析
+- **🎛️ 权限模式管理** - 支持默认、自动接受、危险跳过、规划模式四种权限级别
+- **📝 工具配置** - 细粒度工具启用/禁用，规划模式自动配置专用工具
+
+### 🖥️ 桌面集成
+- **🖱️ 集成终端** - 内置 PTY 终端，直接访问 Claude Code CLI
+- **📋 原生菜单** - 中文菜单系统，支持快捷键操作
+- **🖥️ 系统托盘** - 真正的桌面应用体验，支持后台运行
+- **⌨️ 键盘快捷键** - 完整的快捷键支持，提高操作效率
+
+### 📁 文件管理
+- **📁 智能文件浏览器** - 交互式文件树，支持语法高亮和实时编辑
+- **🔍 项目自动发现** - 智能解析 Claude 会话记录，自动提取项目路径
+- **📂 手动项目添加** - 支持通过文件路径手动添加项目
+- **💾 文件备份机制** - 编辑文件时自动创建备份，确保数据安全
+
+### 🌲 版本控制
 - **🌲 Git 集成** - 查看、暂存和提交更改，支持分支切换
-- **📱 响应式设计** - 适配桌面环境的用户界面
-- **🔄 会话管理** - 恢复对话，管理多个会话，跟踪历史
-- **🖥️ 原生体验** - 真正的桌面应用，支持系统集成
+- **📊 MCP 服务器支持** - 自动检测并配置 Model Context Protocol 服务器
+- **🔄 实时同步** - 文件系统监视器实时同步项目变化
+
+### 🔄 会话管理
+- **🔄 会话恢复** - 恢复对话，管理多个会话，跟踪历史记录
+- **🛡️ 会话保护** - 智能防止自动更新中断活动对话
+- **📱 响应式设计** - 适配桌面环境的优化用户界面
 - **💾 完全离线** - 无需互联网连接即可使用所有功能
 - **🔒 本地安全** - 纯本地运行，无网络安全风险
 
@@ -180,20 +204,23 @@ claude-code-ui-desktop/
 
 ```bash
 # 桌面应用开发 (主要开发方式)
-npm run electron-dev         # 构建并运行 Electron 开发模式
+npm run electron-dev         # 构建并运行 Electron 开发模式 (推荐)
 npm run electron             # 运行 Electron (需要先构建)
 npm run electron-pack        # 构建并打包 Electron 应用
 npm run dist                 # 创建可分发的安装包
 
 # 构建命令
 npm run build                # 构建 React 前端
-npm start                    # 启动生产服务器 (等同于 electron)
+npm start                    # 启动 Electron 应用 (等同于 electron-dev)
 
 # 依赖管理
 npm install                  # 安装所有依赖
 ```
 
-**注意**: 本桌面版本已移除 Web 开发模式相关命令，专注于 Electron 桌面应用开发。
+**开发提示**:
+- 使用 `npm run electron-dev` 进行日常开发，会自动处理构建和端口清理
+- `scripts/start-electron.js` 会自动检测并杀死占用 3001 端口的进程
+- 如果 `dist/` 目录不存在，启动脚本会自动运行构建过程
 
 ## 架构设计
 
@@ -246,6 +273,43 @@ npm run dist
 
 **注意**: 本桌面版本专注于本地应用体验，已移除 Docker 部署和 Web 服务器部署选项。
 
+## 高级功能
+
+### 🎯 智能会话保护系统
+
+应用实现了复杂的会话保护机制，确保最佳用户体验：
+
+- **活动会话追踪**: 使用 `activeSessions` Set 追踪正在进行的对话
+- **临时会话支持**: 支持 "new-session-*" 临时标识符，无缝过渡到真实会话 ID
+- **增量更新过滤**: `isUpdateAdditive()` 函数区分安全的侧边栏更新和破坏性内容更改
+- **自动恢复**: 会话完成或中止后自动恢复项目更新功能
+
+### 🔧 高级 Claude CLI 集成
+
+- **权限模式智能管理**: 
+  - 默认模式：标准 Claude Code 操作
+  - 自动接受模式：自动接受文件修改
+  - 危险跳过模式：跳过所有权限检查（橙色警告）
+  - 规划模式：自动配置专用工具集 (Read, Task, exit_plan_mode, TodoRead, TodoWrite)
+
+- **MCP 服务器自动发现**:
+  - 智能扫描 `~/.claude.json` 配置文件
+  - 支持全局和项目特定的 MCP 服务器
+  - 仅在检测到有效配置时传递 `--mcp-config` 参数
+
+- **图像处理流程**:
+  - 支持拖拽上传多种格式图像
+  - 自动转换为临时文件，存储在项目的 `.tmp/images/` 目录
+  - Base64 数据处理和文件路径注入 Claude 提示
+  - 会话结束后自动清理临时文件
+
+### 📊 项目智能管理
+
+- **JSONL 会话分析**: 解析 Claude 会话文件提取真实项目路径
+- **智能目录缓存**: 内存缓存系统提高项目发现性能
+- **多策略路径选择**: 优先使用最近使用或最频繁的工作目录
+- **包名自动检测**: 从 `package.json` 自动生成友好的显示名称
+
 ## 技术栈
 
 ### 核心框架
@@ -265,14 +329,15 @@ npm run dist
 
 ### 数据和通信
 
-- **[WebSocket (ws)](https://github.com/websockets/ws)** - 实时通信
-- **[Chokidar](https://github.com/paulmillr/chokidar)** - 文件系统监视
+- **[WebSocket (ws)](https://github.com/websockets/ws)** - 实时通信，双路由架构 (`/ws`, `/shell`)
+- **[Chokidar](https://github.com/paulmillr/chokidar)** - 文件系统监视，300ms 防抖优化
+- **[Multer](https://github.com/expressjs/multer)** - 多部分文件上传处理
 
 ### 开发工具
 
-- **[node-pty](https://github.com/microsoft/node-pty)** - 伪终端集成
+- **[node-pty](https://github.com/microsoft/node-pty)** - 伪终端集成，支持真彩色
 - **[cross-spawn](https://github.com/moxystudio/node-cross-spawn)** - 跨平台进程spawning
-- **[Electron Builder](https://www.electron.build/)** - Electron 打包工具
+- **[Electron Builder](https://www.electron.build/)** - Electron 打包工具，支持所有主流平台
 
 ## 安全配置
 
@@ -306,6 +371,7 @@ npm run dist
 - 确保 [Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code) 已正确安装
 - 在至少一个项目目录中运行 `claude` 命令进行初始化
 - 验证 `~/.claude/projects/` 目录存在且有正确权限
+- 使用"添加项目"功能手动添加现有项目目录
 
 #### 桌面应用启动失败
 
@@ -313,9 +379,30 @@ npm run dist
 **解决方案**:
 
 - 检查 Node.js 版本是否为 v20+
-- 删除 `node_modules` 并重新安装依赖
-- 查看控制台错误信息
-- 确保端口 3001 未被其他应用占用
+- 删除 `node_modules` 并重新安装依赖：`rm -rf node_modules && npm install`
+- 查看控制台错误信息，特别注意端口占用情况
+- 手动清理端口：`lsof -ti:3001 | xargs kill -9`
+- 确保有足够的磁盘空间用于临时文件
+
+#### 图像上传问题
+
+**问题**: 图像无法上传或处理失败
+**解决方案**:
+
+- 检查图像格式是否支持 (JPEG, PNG, GIF, WebP, SVG)
+- 确保图像文件大小不超过 5MB
+- 验证项目目录有写入权限，用于创建临时文件
+- 检查 `.tmp/images/` 目录是否可以正常创建
+
+#### MCP 服务器连接问题
+
+**问题**: MCP 服务器无法连接或未被检测
+**解决方案**:
+
+- 检查 `~/.claude.json` 文件是否存在和格式正确
+- 验证 MCP 服务器配置是否有效
+- 查看控制台日志中的 MCP 相关错误信息
+- 尝试重启应用以重新检测 MCP 配置
 
 #### 文件浏览器问题
 
@@ -325,6 +412,7 @@ npm run dist
 - 检查项目目录权限 (`ls -la` 在终端中)
 - 验证项目路径存在且可访问
 - 查看服务器控制台日志获取详细错误信息
+- 尝试刷新项目列表或重新添加项目
 
 ## 贡献指南
 

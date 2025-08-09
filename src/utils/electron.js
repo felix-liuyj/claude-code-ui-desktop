@@ -80,9 +80,13 @@ class ElectronBridge {
         }
     }
 
-    // Get platform-specific shortcut key text
+    // Get platform-specific shortcut key modifier
     getShortcutKey() {
-        return this.isMac() ? 'Cmd' : 'Ctrl';
+        if (this.isMac()) {
+            return '⌘';
+        } else {
+            return 'Ctrl';
+        }
     }
 }
 
