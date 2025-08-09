@@ -19,6 +19,13 @@ import Shell from './Shell';
 import GitPanel from './GitPanel';
 import ErrorBoundary from './ErrorBoundary';
 
+// Utility function to truncate text to maximum characters
+const truncateText = (text, maxLength = 40) => {
+    if (!text) return '';
+    if (text.length <= maxLength) return text;
+    return text.slice(0, maxLength) + '...';
+};
+
 function MainContent({
                          selectedProject,
                          selectedSession,
@@ -160,11 +167,12 @@ function MainContent({
                                 </svg>
                             </button>
                         ) }
-                        <div className="min-w-0">
+                        <div className="min-w-0 flex-1 max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg">
                             { activeTab === 'chat' && selectedSession ? (
                                 <div>
-                                    <h2 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white truncate">
-                                        { selectedSession.summary }
+                                    <h2 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white truncate"
+                                        title={ selectedSession.summary }>
+                                        { truncateText(selectedSession.summary, 40) }
                                     </h2>
                                     <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
                                         { selectedProject.displayName } <span
@@ -278,8 +286,8 @@ function MainContent({
                         </div>
                     </div>
                 </div>
-                
-                {/* Mobile Tab Navigation removed for desktop-only */}
+
+                {/* Mobile Tab Navigation removed for desktop-only */ }
             </div>
 
             {/* Content Area */ }

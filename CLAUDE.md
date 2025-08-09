@@ -160,3 +160,79 @@ The app implements a sophisticated system to prevent WebSocket updates from inte
 - **Terminal Integration**: PTY spawning for real Claude CLI access with proper environment setup
 - **Direct Connection**: WebSocket connections without authentication for desktop security
 - **Real-time Updates**: Chokidar file watcher with optimized debouncing and filtering
+
+## API Client Architecture
+
+### API Utilities (`src/utils/api.js`)
+
+The application uses a centralized API client system:
+
+- **`apiFetch()` Function**: Wrapper around native fetch with automatic URL construction
+- **Base URL Detection**: Automatically detects Electron environment and constructs `http://localhost:3001`
+- **Header Management**: Automatically sets JSON Content-Type except for FormData uploads
+- **Environment Adaptation**: Uses `window.electronAPI?.getConfig?.()?.PORT` for port detection
+
+**Critical Implementation Note**: Always use `apiFetch()` instead of direct `fetch()` calls to ensure proper URL
+construction in Electron environment. Direct fetch calls will resolve to `file://` protocol and fail.
+
+### MCP (Model Context Protocol) Integration
+
+The application includes MCP server management capabilities:
+
+- **CLI Integration**: Routes in `server/routes/mcp.js` interface with Claude CLI for MCP server management
+- **Graceful Fallback**: When Claude CLI is not available, returns empty server lists instead of errors
+- **Command Format**: Uses `claude mcp list` (without deprecated `-s` flag) for server discovery
+- **Error Handling**: Implements robust error handling with JSON responses, avoiding HTML error pages
+
+## Image Upload System
+
+### Upload Architecture
+
+- **Multer Integration**: Uses multer for handling multipart form data in `server/index.js:779`
+- **Temporary Storage**: Files stored in OS temp directory (`os.tmpdir()`)
+- **Format Support**: JPEG, PNG, GIF, WebP, SVG with 5MB file size limit
+- **Base64 Conversion**: Images converted to base64 data URLs for frontend display
+- **Automatic Cleanup**: Temporary files deleted immediately after processing
+
+### Usage Pattern
+
+```javascript
+const formData = new FormData();
+attachedImages.forEach(file => formData.append('images', file));
+const response = await api.uploadImages(projectName, formData);
+```
+
+## Permission System
+
+The application includes a sophisticated permission mode system in the chat interface:
+
+### Permission Modes
+
+- **default**: Standard Claude Code operation (gray indicator)
+- **acceptEdits**: Auto-accept file modifications (green indicator)
+- **bypassPermissions**: Skip all permission checks (orange indicator - danger warning)
+- **plan**: Planning mode (blue indicator)
+
+### UI Color Coding
+
+- **Gray**: Default/safe operations
+- **Green**: Auto-accept modes
+- **Orange**: Dangerous/bypass modes (warning color)
+- **Red**: Completely disabled/error states
+
+**Important**: The `bypassPermissions` mode uses orange coloring as a visual warning for dangerous operations.
+
+## Development Debugging
+
+### Common Issues & Solutions
+
+1. **MCP API Errors**: Ensure `apiFetch()` is used instead of direct `fetch()` calls
+2. **Image Upload Failures**: Check that multer dependency is installed (`npm install multer`)
+3. **WebSocket Connection Issues**: Verify port 3001 is available and server is running
+4. **File Path Resolution**: Use absolute paths in API calls, relative paths may fail in Electron
+
+### Electron-Specific Considerations
+
+- **Dynamic Imports**: Avoid dynamic imports in asar-packed code; use `require()` for server-side modules
+- **Path Resolution**: Server runs in main process with different path context than renderer
+- **Security**: Electron apps run with node integration, requiring careful handling of external data

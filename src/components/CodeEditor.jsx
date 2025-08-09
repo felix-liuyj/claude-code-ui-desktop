@@ -419,7 +419,7 @@ function CodeEditor({ file, onClose, projectPath }) {
                     </div>
 
                     <div className="text-sm text-gray-500 dark:text-gray-400">
-                        按 {electron.getShortcutKey()}+S 保存 • Esc 关闭
+                        按 { electron.getShortcutKey() }+S 保存 • Esc 关闭
                     </div>
                 </div>
             </div>

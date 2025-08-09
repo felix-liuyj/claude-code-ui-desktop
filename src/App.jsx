@@ -639,7 +639,8 @@ function AppContent() {
         <div className={ containerClasses }>
             {/* Fixed Desktop Sidebar */ }
             { !isMobile && (
-                <div className="w-80 flex-shrink-0 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+                <div
+                    className="w-80 flex-shrink-0 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
                     <div className="h-full overflow-hidden">
                         <Sidebar
                             projects={ projects }
@@ -788,7 +789,7 @@ function App() {
     return (
         <ElectronContext.Provider value={ electronBridge }>
             <ThemeProvider>
-                <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+                <Router future={ { v7_startTransition: true, v7_relativeSplatPath: true } }>
                     <Routes>
                         <Route path="/" element={ <AppContent/> }/>
                         <Route path="/session/:sessionId" element={ <AppContent/> }/>

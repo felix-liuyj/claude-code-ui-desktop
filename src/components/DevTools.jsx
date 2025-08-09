@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from './ui/button';
-import { Terminal, Code, Bug, X } from 'lucide-react';
+import { Bug, Code, Terminal, X } from 'lucide-react';
 
 const DevTools = ({ className = '' }) => {
     const [isDevToolsOpen, setIsDevToolsOpen] = useState(false);
@@ -10,17 +10,17 @@ const DevTools = ({ className = '' }) => {
     useEffect(() => {
         // Check if running in Electron
         setIsElectron(!!window.electronAPI);
-        
+
         // Check if in development mode
         if (window.electronAPI) {
             checkDevelopmentMode();
             checkDevToolsState();
-            
+
             // Set up periodic state checking to handle manual close
             const stateCheckInterval = setInterval(() => {
                 checkDevToolsState();
             }, 1000); // Check every second
-            
+
             return () => clearInterval(stateCheckInterval);
         } else {
             // In browser, check for development mode via env or other indicators
@@ -56,7 +56,7 @@ const DevTools = ({ className = '' }) => {
 
     const toggleDevTools = async () => {
         if (!window.electronAPI || !isDevelopmentMode) return;
-        
+
         try {
             const result = await window.electronAPI.toggleDevTools();
             if (result.success) {
@@ -71,7 +71,7 @@ const DevTools = ({ className = '' }) => {
 
     const openDevToolsBottom = async () => {
         if (!window.electronAPI || !isDevelopmentMode) return;
-        
+
         try {
             const result = await window.electronAPI.openDevTools({ mode: 'bottom' });
             if (result.success) {
@@ -86,7 +86,7 @@ const DevTools = ({ className = '' }) => {
 
     const openDevToolsRight = async () => {
         if (!window.electronAPI || !isDevelopmentMode) return;
-        
+
         try {
             const result = await window.electronAPI.openDevTools({ mode: 'right' });
             if (result.success) {
@@ -101,7 +101,7 @@ const DevTools = ({ className = '' }) => {
 
     const openDevToolsDetached = async () => {
         if (!window.electronAPI || !isDevelopmentMode) return;
-        
+
         try {
             const result = await window.electronAPI.openDevTools({ mode: 'detach' });
             if (result.success) {
@@ -116,7 +116,7 @@ const DevTools = ({ className = '' }) => {
 
     const closeDevTools = async () => {
         if (!window.electronAPI || !isDevelopmentMode) return;
-        
+
         try {
             const result = await window.electronAPI.closeDevTools();
             if (result.success) {
@@ -135,12 +135,12 @@ const DevTools = ({ className = '' }) => {
             console.log('%c开发者工具仅在开发模式下可用', 'color: #dc2626; font-size: 14px; font-weight: bold;');
             return;
         }
-        
+
         // For web browsers, try to trigger F12
         if (typeof window !== 'undefined' && window.console) {
             console.log('%c欢迎使用开发者控制台！', 'color: #2563eb; font-size: 16px; font-weight: bold;');
             console.log('%c右键选择"检查元素"或使用菜单打开浏览器开发者工具', 'color: #6b7280; font-size: 14px;');
-            
+
             // Try to open dev tools (this won't work in most browsers due to security restrictions)
             try {
                 // This is a common trick, but modern browsers block it
@@ -159,15 +159,15 @@ const DevTools = ({ className = '' }) => {
 
     if (!isElectron) {
         return (
-            <div className={`p-3 space-y-3 ${className}`}>
+            <div className={ `p-3 space-y-3 ${ className }` }>
                 <div className="flex items-center justify-between">
                     <Button
                         variant="outline"
                         size="sm"
-                        onClick={openBrowserDevTools}
+                        onClick={ openBrowserDevTools }
                         className="flex items-center gap-2 text-xs flex-1"
                     >
-                        <Terminal className="w-3 h-3" />
+                        <Terminal className="w-3 h-3"/>
                         浏览器控制台
                     </Button>
                 </div>
@@ -179,66 +179,66 @@ const DevTools = ({ className = '' }) => {
     }
 
     return (
-        <div className={`p-3 space-y-3 ${className}`}>
+        <div className={ `p-3 space-y-3 ${ className }` }>
             <div className="flex items-center justify-between">
                 <Button
-                    variant={isDevToolsOpen ? "default" : "outline"}
+                    variant={ isDevToolsOpen ? "default" : "outline" }
                     size="sm"
-                    onClick={toggleDevTools}
+                    onClick={ toggleDevTools }
                     className="flex items-center gap-2 text-xs flex-1"
                 >
-                    <Terminal className="w-3 h-3" />
-                    {isDevToolsOpen ? '关闭控制台' : '开发者控制台'}
+                    <Terminal className="w-3 h-3"/>
+                    { isDevToolsOpen ? '关闭控制台' : '开发者控制台' }
                 </Button>
             </div>
-            
-            {!isDevToolsOpen && (
+
+            { !isDevToolsOpen && (
                 <div className="grid grid-cols-3 gap-2">
                     <Button
                         variant="outline"
                         size="sm"
-                        onClick={openDevToolsBottom}
+                        onClick={ openDevToolsBottom }
                         className="flex items-center gap-1 text-xs px-2 justify-center"
                         title="在底部打开"
                     >
-                        <Code className="w-3 h-3" />
+                        <Code className="w-3 h-3"/>
                         底部
                     </Button>
                     <Button
                         variant="outline"
                         size="sm"
-                        onClick={openDevToolsRight}
+                        onClick={ openDevToolsRight }
                         className="flex items-center gap-1 text-xs px-2 justify-center"
                         title="在右侧打开"
                     >
-                        <Bug className="w-3 h-3" />
+                        <Bug className="w-3 h-3"/>
                         右侧
                     </Button>
                     <Button
                         variant="outline"
                         size="sm"
-                        onClick={openDevToolsDetached}
+                        onClick={ openDevToolsDetached }
                         className="flex items-center gap-1 text-xs px-2 justify-center"
                         title="独立窗口打开"
                     >
-                        <X className="w-3 h-3" />
+                        <X className="w-3 h-3"/>
                         独立
                     </Button>
                 </div>
-            )}
-            
-            {isDevToolsOpen && (
+            ) }
+
+            { isDevToolsOpen && (
                 <Button
                     variant="outline"
                     size="sm"
-                    onClick={closeDevTools}
+                    onClick={ closeDevTools }
                     className="flex items-center gap-2 text-xs w-full justify-center"
                     title="关闭开发者工具"
                 >
-                    <X className="w-3 h-3" />
+                    <X className="w-3 h-3"/>
                     关闭控制台
                 </Button>
-            )}
+            ) }
         </div>
     );
 };

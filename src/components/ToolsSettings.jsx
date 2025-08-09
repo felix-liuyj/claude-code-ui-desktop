@@ -961,9 +961,10 @@ function ToolsSettings({ isOpen, onClose }) {
                                     </div>
                                 </div>
 
-                                {/* Chat Background */}
+                                {/* Chat Background */ }
                                 <div className="space-y-4">
-                                    <div className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                                    <div
+                                        className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
                                         <div className="mb-3">
                                             <div className="font-medium text-foreground">聊天背景</div>
                                             <div className="text-sm text-muted-foreground mb-4">
@@ -971,49 +972,73 @@ function ToolsSettings({ isOpen, onClose }) {
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-4">
-                                            <div className="w-32 h-20 rounded border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex items-center justify-center overflow-hidden">
+                                            <div
+                                                className="w-32 h-20 rounded border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex items-center justify-center overflow-hidden">
                                                 { chatBgImage ? (
-                                                    <img src={ chatBgImage } alt="背景预览" className="w-full h-full object-cover" />
+                                                    <img src={ chatBgImage } alt="背景预览"
+                                                         className="w-full h-full object-cover"/>
                                                 ) : (
                                                     <div className="text-xs text-gray-400">无自定义背景</div>
                                                 ) }
                                             </div>
                                             <div className="flex items-center gap-2">
-                                                <label className="inline-flex items-center px-3 py-1.5 text-sm rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+                                                <label
+                                                    className="inline-flex items-center px-3 py-1.5 text-sm rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
                                                     选择图片
-                                                    <input type="file" accept="image/png,image/svg+xml,image/jpeg" className="hidden" onChange={(e)=> handleChatBgFileChange(e.target.files?.[0])} />
+                                                    <input type="file" accept="image/png,image/svg+xml,image/jpeg"
+                                                           className="hidden"
+                                                           onChange={ (e) => handleChatBgFileChange(e.target.files?.[0]) }/>
                                                 </label>
-                                                <button type="button" onClick={ handleClearChatBg } className="px-3 py-1.5 text-sm rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50" disabled={!chatBgImage}>清除</button>
+                                                <button type="button" onClick={ handleClearChatBg }
+                                                        className="px-3 py-1.5 text-sm rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
+                                                        disabled={ !chatBgImage }>清除
+                                                </button>
                                             </div>
                                         </div>
-                                        <div className="text-[11px] text-gray-500 dark:text-gray-400 mt-2">未设置时使用内置背景图 bg-repeat.svg</div>
+                                        <div className="text-[11px] text-gray-500 dark:text-gray-400 mt-2">未设置时使用内置背景图
+                                            bg-repeat.svg
+                                        </div>
                                     </div>
                                 </div>
 
-                                {/* User Avatar */}
+                                {/* User Avatar */ }
                                 <div className="space-y-4">
-                                    <div className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                                    <div
+                                        className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
                                         <div className="mb-3">
                                             <div className="font-medium text-foreground">用户头像</div>
-                                            <div className="text-sm text-muted-foreground">上传自定义头像（PNG/SVG/JPG），将在聊天中用于用户消息气泡旁显示</div>
+                                            <div
+                                                className="text-sm text-muted-foreground">上传自定义头像（PNG/SVG/JPG），将在聊天中用于用户消息气泡旁显示
+                                            </div>
                                         </div>
                                         <div className="flex items-center gap-4">
-                                            <div className="w-16 h-16 rounded-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden">
+                                            <div
+                                                className="w-16 h-16 rounded-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden">
                                                 { userAvatar ? (
-                                                    <img src={ userAvatar } alt="头像预览" className="w-full h-full object-cover" />
+                                                    <img src={ userAvatar } alt="头像预览"
+                                                         className="w-full h-full object-cover"/>
                                                 ) : (
-                                                    <div className="w-full h-full flex items-center justify-center text-xs text-gray-400">无</div>
+                                                    <div
+                                                        className="w-full h-full flex items-center justify-center text-xs text-gray-400">无</div>
                                                 ) }
                                             </div>
                                             <div className="flex items-center gap-2">
-                                                <label className="inline-flex items-center px-3 py-1.5 text-sm rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+                                                <label
+                                                    className="inline-flex items-center px-3 py-1.5 text-sm rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
                                                     选择头像
-                                                    <input type="file" accept="image/png,image/svg+xml,image/jpeg" className="hidden" onChange={(e)=> handleUserAvatarFileChange(e.target.files?.[0])} />
+                                                    <input type="file" accept="image/png,image/svg+xml,image/jpeg"
+                                                           className="hidden"
+                                                           onChange={ (e) => handleUserAvatarFileChange(e.target.files?.[0]) }/>
                                                 </label>
-                                                <button type="button" onClick={ handleClearUserAvatar } className="px-3 py-1.5 text-sm rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50" disabled={!userAvatar}>清除</button>
+                                                <button type="button" onClick={ handleClearUserAvatar }
+                                                        className="px-3 py-1.5 text-sm rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
+                                                        disabled={ !userAvatar }>清除
+                                                </button>
                                             </div>
                                         </div>
-                                        <div className="text-[11px] text-gray-500 dark:text-gray-400 mt-2">未设置时使用默认 asker.svg</div>
+                                        <div className="text-[11px] text-gray-500 dark:text-gray-400 mt-2">未设置时使用默认
+                                            asker.svg
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -1147,7 +1172,7 @@ function ToolsSettings({ isOpen, onClose }) {
                                                 className="h-10 px-4"
                                             >
                                                 <Plus className="w-4 h-4 mr-2 sm:mr-0"/>
-                                                
+
                                             </Button>
                                         </div>
 
@@ -1233,7 +1258,7 @@ function ToolsSettings({ isOpen, onClose }) {
                                                 className="h-10 px-4"
                                             >
                                                 <Plus className="w-4 h-4 mr-2 sm:mr-0"/>
-                                                
+
                                             </Button>
                                         </div>
 

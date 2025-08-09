@@ -384,12 +384,12 @@ function Shell({ selectedProject, selectedSession, isActive }) {
         try {
             // 确保使用正确的Electron桌面应用设置
             let wsBaseUrl;
-            
+
             // 优先使用Electron配置
             const port = window.electronAPI?.getConfig?.()?.PORT || '3001';
             const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-            wsBaseUrl = `${protocol}//localhost:${port}`;
-            
+            wsBaseUrl = `${ protocol }//localhost:${ port }`;
+
             // 可选：尝试从服务器获取配置作为验证
             try {
                 const configResponse = await fetch('/api/config');
@@ -402,9 +402,9 @@ function Shell({ selectedProject, selectedSession, isActive }) {
             }
 
             // WebSocket URL without authentication
-            const wsUrl = `${wsBaseUrl}/shell`;
+            const wsUrl = `${ wsBaseUrl }/shell`;
             console.log('Connecting to WebSocket:', wsUrl);
-            
+
             // 验证URL格式
             if (!wsUrl.startsWith('ws://') && !wsUrl.startsWith('wss://')) {
                 throw new Error('Invalid WebSocket URL format');
@@ -493,7 +493,7 @@ function Shell({ selectedProject, selectedSession, isActive }) {
                 console.error('WebSocket error:', error);
                 setIsConnected(false);
                 setIsConnecting(false);
-                
+
                 // Display error in terminal
                 if (terminal.current) {
                     terminal.current.writeln('\x1b[31m✗ 连接终端失败\x1b[0m');
@@ -504,11 +504,11 @@ function Shell({ selectedProject, selectedSession, isActive }) {
             console.error('Failed to connect to terminal:', error);
             setIsConnected(false);
             setIsConnecting(false);
-            
+
             // Display connection error in terminal
             if (terminal.current) {
                 terminal.current.writeln('\x1b[31m✗ 连接失败\x1b[0m');
-                terminal.current.writeln(`\x1b[33m错误：${error.message || '未知错误'}\x1b[0m`);
+                terminal.current.writeln(`\x1b[33m错误：${ error.message || '未知错误' }\x1b[0m`);
                 terminal.current.writeln('\x1b[90m请检查服务器状态或稍后重试\x1b[0m');
             }
         }

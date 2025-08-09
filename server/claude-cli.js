@@ -175,11 +175,11 @@ async function spawnClaude(command, options = {}, ws) {
             args.push('--model', 'sonnet');
         }
 
-    // We'll append --permission-mode later only if not using dangerous skip
+        // We'll append --permission-mode later only if not using dangerous skip
 
-    // Add tools settings flags
-    // When dangerous skip is enabled, always use it and ignore permission mode
-    if (settings.skipPermissions) {
+        // Add tools settings flags
+        // When dangerous skip is enabled, always use it and ignore permission mode
+        if (settings.skipPermissions) {
             args.push('--dangerously-skip-permissions');
             console.log('⚠️  Using --dangerously-skip-permissions (skipping other tool settings and effectively ignoring permission mode)');
         } else {

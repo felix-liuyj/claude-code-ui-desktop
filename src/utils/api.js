@@ -11,7 +11,7 @@ export const apiFetch = (url, options = {}) => {
     const fullUrl = url.startsWith('http') ? url : `${ baseUrl }${ url }`;
 
     const defaultHeaders = {};
-    
+
     // 只为非FormData请求设置JSON Content-Type
     if (!(options.body instanceof FormData)) {
         defaultHeaders['Content-Type'] = 'application/json';

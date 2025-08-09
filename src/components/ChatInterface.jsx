@@ -2743,10 +2743,14 @@ function ChatInterface({
                     <form onSubmit={ handleSubmit } className="relative max-w-4xl mx-auto">
                         {/* Drag overlay */ }
                         { isDragActive && (
-                            <div className="absolute inset-0 z-10 rounded-2xl bg-black/40 flex items-center justify-center pointer-events-none">
-                                <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-lg flex items-center gap-2">
-                                    <svg className="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                            <div
+                                className="absolute inset-0 z-10 rounded-2xl bg-black/40 flex items-center justify-center pointer-events-none">
+                                <div
+                                    className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-lg flex items-center gap-2">
+                                    <svg className="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none"
+                                         stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={ 2 }
+                                              d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
                                     </svg>
                                     <p className="text-sm font-medium">在此放置图像</p>
                                 </div>
@@ -2849,7 +2853,7 @@ function ChatInterface({
                                         }
                                         setIsTextareaExpanded(false);
                                     } }
-                                    
+
                                     className="absolute -left-0.5 -top-3 sm:right-28 sm:left-auto sm:top-1/2 sm:-translate-y-1/2 w-6 h-6 sm:w-8 sm:h-8 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 border border-gray-300 dark:border-gray-600 rounded-full flex items-center justify-center transition-all duration-200 group z-10 shadow-sm"
                                     title="清空输入"
                                 >
@@ -2898,7 +2902,7 @@ function ChatInterface({
                                     e.preventDefault();
                                     handleSubmit(e);
                                 } }
-                                
+
                                 className="absolute right-2 top-1/2 transform -translate-y-1/2 w-12 h-12 sm:w-12 sm:h-12 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed rounded-full flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:ring-offset-gray-800"
                             >
                                 <svg
