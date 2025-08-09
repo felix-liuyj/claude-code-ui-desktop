@@ -22,7 +22,6 @@ import React, { useEffect, useState } from 'react';
 import { HashRouter as Router, Route, Routes, useNavigate, useParams } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import MainContent from './components/MainContent';
-import MobileNav from './components/MobileNav';
 import ToolsSettings from './components/ToolsSettings';
 import QuickSettingsPanel from './components/QuickSettingsPanel';
 
@@ -735,14 +734,6 @@ function AppContent() {
                 />
             </div>
 
-            {/* Mobile Bottom Navigation */ }
-            { isMobile && (
-                <MobileNav
-                    activeTab={ activeTab }
-                    setActiveTab={ setActiveTab }
-                    isInputFocused={ isInputFocused }
-                />
-            ) }
             {/* Quick Settings Panel - Only show on chat tab */ }
             { activeTab === 'chat' && (
                 <QuickSettingsPanel

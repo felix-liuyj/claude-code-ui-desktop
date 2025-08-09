@@ -76,14 +76,14 @@ function ClaudeStatus({ status, onAbort, isLoading }) {
                                         <span
                                             className="text-gray-300 text-sm hidden sm:inline">⚒ { tokens.toLocaleString() } tokens</span>
                                         <span
-                                            className="text-gray-300 text-sm sm:hidden">⚒ { tokens.toLocaleString() }</span>
+                                            className="text-gray-300 text-sm">⚒ { tokens.toLocaleString() }</span>
                                     </>
                                 ) }
                                 <span className="text-gray-400 hidden sm:inline">·</span>
                                 <span className="text-gray-300 text-sm hidden sm:inline">esc to interrupt</span>
                             </div>
                             {/* Second line for mobile */ }
-                            <div className="text-xs text-gray-400 sm:hidden mt-1">
+                            <div className="text-xs text-gray-400 mt-1">
                                 esc to interrupt
                             </div>
                         </div>

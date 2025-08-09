@@ -116,7 +116,8 @@ const MessageComponent = memo(({
                                    onFileOpen,
                                    onShowSettings,
                                    autoExpandTools,
-                                   showRawParameters
+                                   showRawParameters,
+                                   userAvatarUrl
                                }) => {
     const isGrouped = prevMessage && prevMessage.type === message.type &&
         prevMessage.type === 'assistant' &&
@@ -182,9 +183,9 @@ const MessageComponent = memo(({
                             { new Date(message.timestamp).toLocaleTimeString() }
                         </div>
                     </div>
-                    { !isGrouped && (
+                    { !isGrouped && userAvatarUrl && (
                         <img
-                            src="asker.svg"
+                            src={ userAvatarUrl }
                             alt="User"
                             className="hidden sm:flex w-8 h-8 rounded-full object-cover flex-shrink-0"
                         />
@@ -202,7 +203,7 @@ const MessageComponent = memo(({
                                 </div>
                             ) : (
                                 <img
-                                    src="claude.svg"
+                                    src="logo.svg"
                                     alt="Claude"
                                     className="w-8 h-8 rounded-full object-cover flex-shrink-0"
                                 />
@@ -2292,7 +2293,15 @@ function ChatInterface({
                 const response = await api.uploadImages(selectedProject.name, formData);
 
                 if (!response.ok) {
-                    throw new Error('Failed to upload images');
+                    let errorMessage = 'Failed to upload images';
+                    try {
+                        const errorData = await response.json();
+                        errorMessage = errorData.error || errorMessage;
+                    } catch (e) {
+                        // If JSON parsing fails, use status text
+                        errorMessage = response.statusText || errorMessage;
+                    }
+                    throw new Error(errorMessage);
                 }
 
                 const result = await response.json();
@@ -2636,6 +2645,7 @@ function ChatInterface({
                                         onShowSettings={ onShowSettings }
                                         autoExpandTools={ autoExpandTools }
                                         showRawParameters={ showRawParameters }
+                                        userAvatarUrl={ userAvatarUrl }
                                     />
                                 );
                             }) }
@@ -2645,15 +2655,7 @@ function ChatInterface({
                     { isLoading && (
                         <div className="chat-message assistant relative z-10">
                             <div className="w-full">
-                                <div className="flex items-center space-x-3 mb-2">
-                                    <div
-                                        className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center text-white text-sm flex-shrink-0">
-                                        C
-                                    </div>
-                                    <div className="text-sm font-medium text-gray-900 dark:text-white">Claude</div>
-                                    {/* Abort button removed - functionality not yet implemented at backend */ }
-                                </div>
-                                <div className="w-full text-sm text-gray-500 dark:text-gray-400 pl-3 sm:pl-0">
+                                <div className="w-full text-sm text-gray-500 dark:text-gray-400">
                                     <div className="flex items-center space-x-1">
                                         <div className="animate-pulse">●</div>
                                         <div className="animate-pulse" style={ { animationDelay: '0.2s' } }>●</div>
@@ -2847,16 +2849,7 @@ function ChatInterface({
                                         }
                                         setIsTextareaExpanded(false);
                                     } }
-                                    onTouchEnd={ (e) => {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                        setInput('');
-                                        if (textareaRef.current) {
-                                            textareaRef.current.style.height = 'auto';
-                                            textareaRef.current.focus();
-                                        }
-                                        setIsTextareaExpanded(false);
-                                    } }
+                                    
                                     className="absolute -left-0.5 -top-3 sm:right-28 sm:left-auto sm:top-1/2 sm:-translate-y-1/2 w-6 h-6 sm:w-8 sm:h-8 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 border border-gray-300 dark:border-gray-600 rounded-full flex items-center justify-center transition-all duration-200 group z-10 shadow-sm"
                                     title="清空输入"
                                 >
@@ -2905,10 +2898,7 @@ function ChatInterface({
                                     e.preventDefault();
                                     handleSubmit(e);
                                 } }
-                                onTouchStart={ (e) => {
-                                    e.preventDefault();
-                                    handleSubmit(e);
-                                } }
+                                
                                 className="absolute right-2 top-1/2 transform -translate-y-1/2 w-12 h-12 sm:w-12 sm:h-12 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed rounded-full flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:ring-offset-gray-800"
                             >
                                 <svg
@@ -2925,20 +2915,6 @@ function ChatInterface({
                                     />
                                 </svg>
                             </button>
-                        </div>
-                        {/* Hint text */ }
-                        <div className="text-xs text-gray-500 dark:text-gray-400 text-center mt-2 hidden sm:block">
-                            { sendByCtrlEnter
-                                ? `${ electron.getShortcutKey() }+Enter 发送（输入法安全）• Shift+Enter 换行 • Tab 切换模式 • @ 引用文件`
-                                : "按 Enter 发送 • Shift+Enter 换行 • Tab 切换模式 • @ 引用文件" }
-                        </div>
-                        <div
-                            className={ `text-xs text-gray-500 dark:text-gray-400 text-center mt-2 sm:hidden transition-opacity duration-200 ${
-                                isInputFocused ? 'opacity-100' : 'opacity-0'
-                            }` }>
-                            { sendByCtrlEnter
-                                ? `${ electron.getShortcutKey() }+Enter 发送（输入法安全）• Tab 模式 • @ 文件`
-                                : "Enter 发送 • Tab 模式 • @ 文件" }
                         </div>
                     </form>
                 </div>

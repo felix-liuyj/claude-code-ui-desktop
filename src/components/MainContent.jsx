@@ -152,11 +152,7 @@ function MainContent({
                         { isMobile && (
                             <button
                                 onClick={ onMenuClick }
-                                onTouchStart={ (e) => {
-                                    e.preventDefault();
-                                    onMenuClick();
-                                } }
-                                className="p-2.5 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 touch-manipulation active:scale-95"
+                                className="p-2.5 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
                             >
                                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={ 2 }
@@ -274,7 +270,7 @@ function MainContent({
               > 
                 <span className="flex items-center gap-1 sm:gap-1.5">
                   <svg className="w-3 sm:w-3.5 h-3 sm:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c-1.657 0-3-4.03-3-9s1.343-9 3-9m0 18c1.657 0 3-4.03 3-9s-1.343-9-3-9m-9 9a9 9 0 019-9" />
                   </svg>
                   <span className="hidden sm:inline">Preview</span>
                 </span>
@@ -283,77 +279,7 @@ function MainContent({
                     </div>
                 </div>
                 
-                {/* Mobile Tab Navigation - Bottom of header */ }
-                { isMobile && (
-                    <div className="sm:hidden border-t border-gray-200 dark:border-gray-700 px-3 py-2">
-                        <div className="flex gap-1 overflow-x-auto">
-                            <button
-                                onClick={ () => setActiveTab('chat') }
-                                className={ `flex-shrink-0 px-3 py-2 text-xs font-medium rounded-lg transition-colors ${
-                                    activeTab === 'chat'
-                                        ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
-                                        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
-                                }` }
-                            >
-                                <span className="flex items-center gap-1.5">
-                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={ 2 }
-                                              d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-                                    </svg>
-                                    聊天
-                                </span>
-                            </button>
-                            <button
-                                onClick={ () => setActiveTab('shell') }
-                                className={ `flex-shrink-0 px-3 py-2 text-xs font-medium rounded-lg transition-colors ${
-                                    activeTab === 'shell'
-                                        ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
-                                        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
-                                }` }
-                            >
-                                <span className="flex items-center gap-1.5">
-                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={ 2 }
-                                              d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2z"/>
-                                    </svg>
-                                    终端
-                                </span>
-                            </button>
-                            <button
-                                onClick={ () => setActiveTab('files') }
-                                className={ `flex-shrink-0 px-3 py-2 text-xs font-medium rounded-lg transition-colors ${
-                                    activeTab === 'files'
-                                        ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
-                                        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
-                                }` }
-                            >
-                                <span className="flex items-center gap-1.5">
-                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={ 2 }
-                                              d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-5l-2-2H5a2 2 0 00-2 2z"/>
-                                    </svg>
-                                    文件
-                                </span>
-                            </button>
-                            <button
-                                onClick={ () => setActiveTab('git') }
-                                className={ `flex-shrink-0 px-3 py-2 text-xs font-medium rounded-lg transition-colors ${
-                                    activeTab === 'git'
-                                        ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
-                                        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
-                                }` }
-                            >
-                                <span className="flex items-center gap-1.5">
-                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={ 2 }
-                                              d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                                    </svg>
-                                    Git
-                                </span>
-                            </button>
-                        </div>
-                    </div>
-                ) }
+                {/* Mobile Tab Navigation removed for desktop-only */}
             </div>
 
             {/* Content Area */ }

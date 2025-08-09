@@ -778,10 +778,10 @@ Agent instructions:`;
 // Image upload endpoint
 app.post('/api/projects/:projectName/upload-images', async (req, res) => {
     try {
-        const multer = (await import('multer')).default;
-        const path = (await import('path')).default;
-        const fs = (await import('fs')).promises;
-        const os = (await import('os')).default;
+        const multer = require('multer');
+        const path = require('path');
+        const fs = require('fs').promises;
+        const os = require('os');
 
         // Configure multer for image uploads
         const storage = multer.diskStorage({

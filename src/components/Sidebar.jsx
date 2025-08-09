@@ -429,7 +429,7 @@ function Sidebar({
             {/* Header */ }
             <div className="md:p-4 md:border-b md:border-border">
                 {/* Desktop Header */ }
-                <div className="hidden md:flex items-center justify-between">
+                <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <div className="w-12 h-12 rounded-lg overflow-hidden shadow-sm">
                             <img src="logo.svg" alt="AI 编程助手" className="w-full h-full object-cover" />
@@ -470,49 +470,13 @@ function Sidebar({
                     </div>
                 </div>
 
-                {/* Mobile Header */ }
-                <div className="md:hidden p-3 border-b border-border">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                                <MessageSquare className="w-4 h-4 text-primary-foreground"/>
-                            </div>
-                            <div>
-                                <h1 className="text-lg font-semibold text-foreground">Claude Code UI</h1>
-                                <p className="text-sm text-muted-foreground">项目</p>
-                            </div>
-                        </div>
-                        <div className="flex gap-2">
-                            <button
-                                className="w-8 h-8 rounded-md bg-background border border-border flex items-center justify-center active:scale-95 transition-all duration-150"
-                                onClick={ async () => {
-                                    setIsRefreshing(true);
-                                    try {
-                                        await onRefresh();
-                                    } finally {
-                                        setIsRefreshing(false);
-                                    }
-                                } }
-                                disabled={ isRefreshing }
-                            >
-                                <RefreshCw
-                                    className={ `w-4 h-4 text-foreground ${ isRefreshing ? 'animate-spin' : '' }` }/>
-                            </button>
-                            <button
-                                className="w-8 h-8 rounded-md bg-primary text-primary-foreground flex items-center justify-center active:scale-95 transition-all duration-150"
-                                onClick={ () => setShowNewProject(true) }
-                            >
-                                <FolderPlus className="w-4 h-4"/>
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                {/* Mobile Header removed */ }
             </div>
 
             {/* New Project Form */ }
-            { showNewProject && (<div className="md:p-3 md:border-b md:border-border md:bg-muted/30">
+        { showNewProject && (<div className="md:p-3 md:border-b md:border-border md:bg-muted/30">
                     {/* Desktop Form */ }
-                    <div className="hidden md:block space-y-2">
+            <div className="space-y-2">
                         <div className="flex items-center gap-2 text-sm font-medium text-foreground">
                             <FolderPlus className="w-4 h-4"/>
                             创建新项目
@@ -549,64 +513,7 @@ function Sidebar({
                         </div>
                     </div>
 
-                    {/* Mobile Form - Simple Overlay */ }
-                    <div className="md:hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-sm">
-                        <div
-                            className="absolute bottom-0 left-0 right-0 bg-card rounded-t-lg border-t border-border p-4 space-y-4 animate-in slide-in-from-bottom duration-300">
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                    <div className="w-6 h-6 bg-primary/10 rounded-md flex items-center justify-center">
-                                        <FolderPlus className="w-3 h-3 text-primary"/>
-                                    </div>
-                                    <div>
-                                        <h2 className="text-base font-semibold text-foreground">新项目</h2>
-                                    </div>
-                                </div>
-                                <button
-                                    onClick={ cancelNewProject }
-                                    disabled={ creatingProject }
-                                    className="w-6 h-6 rounded-md bg-muted flex items-center justify-center active:scale-95 transition-transform"
-                                >
-                                    <X className="w-3 h-3"/>
-                                </button>
-                            </div>
-
-                            <div className="space-y-3">
-                                <Input
-                                    value={ newProjectPath }
-                                    onChange={ (e) => setNewProjectPath(e.target.value) }
-                                    placeholder="/path/to/project 或 relative/path"
-                                    className="text-sm h-10 rounded-md focus:border-primary transition-colors"
-                                    autoFocus
-                                    onKeyDown={ (e) => {
-                                        if (e.key === 'Enter') createNewProject();
-                                        if (e.key === 'Escape') cancelNewProject();
-                                    } }
-                                />
-
-                                <div className="flex gap-2">
-                                    <Button
-                                        onClick={ cancelNewProject }
-                                        disabled={ creatingProject }
-                                        variant="outline"
-                                        className="flex-1 h-9 text-sm rounded-md active:scale-95 transition-transform"
-                                    >
-                                        取消
-                                    </Button>
-                                    <Button
-                                        onClick={ createNewProject }
-                                        disabled={ !newProjectPath.trim() || creatingProject }
-                                        className="flex-1 h-9 text-sm rounded-md bg-primary hover:bg-primary/90 active:scale-95 transition-all"
-                                    >
-                                        { creatingProject ? '正在创建...' : '创建' }
-                                    </Button>
-                                </div>
-                            </div>
-
-                            {/* Safe area for mobile */ }
-                            <div className="h-4"/>
-                        </div>
-                    </div>
+                    {/* Mobile overlay removed for desktop-only */ }
                 </div>) }
 
             {/* Search Filter */ }
@@ -669,129 +576,12 @@ function Sidebar({
                             return (<div key={ project.name } className="md:space-y-1">
                                     {/* Project Header */ }
                                     <div className="group md:group">
-                                        {/* Mobile Project Item */ }
-                                        <div className="md:hidden">
-                                            <div
-                                                className={ cn("p-3 mx-3 my-1 rounded-lg bg-card border border-border/50 active:scale-[0.98] transition-all duration-150", isSelected && "bg-primary/5 border-primary/20", isStarred && !isSelected && "bg-yellow-50/50 dark:bg-yellow-900/5 border-yellow-200/30 dark:border-yellow-800/30") }
-                                                onClick={ () => {
-                                                    // On mobile, just toggle the folder - don't select the project
-                                                    toggleProject(project.name);
-                                                } }
-                                                onTouchEnd={ handleTouchClick(() => toggleProject(project.name)) }
-                                            >
-                                                <div className="flex items-center justify-between">
-                                                    <div className="flex items-center gap-3 min-w-0 flex-1">
-                                                        <div
-                                                            className={ cn("w-8 h-8 rounded-lg flex items-center justify-center transition-colors", isExpanded ? "bg-primary/10" : "bg-muted") }>
-                                                            { isExpanded ? (
-                                                                <FolderOpen className="w-4 h-4 text-primary"/>) : (
-                                                                <Folder className="w-4 h-4 text-muted-foreground"/>) }
-                                                        </div>
-                                                        <div className="min-w-0 flex-1">
-                                                            { editingProject === project.name ? (<input
-                                                                    type="text"
-                                                                    value={ editingName }
-                                                                    onChange={ (e) => setEditingName(e.target.value) }
-                                                                    className="w-full px-3 py-2 text-sm border-2 border-primary/40 focus:border-primary rounded-lg bg-background text-foreground shadow-sm focus:shadow-md transition-all duration-200 focus:outline-none"
-                                                                    placeholder="项目名称"
-                                                                    autoFocus
-                                                                    autoComplete="off"
-                                                                    onClick={ (e) => e.stopPropagation() }
-                                                                    onKeyDown={ (e) => {
-                                                                        if (e.key === 'Enter') saveProjectName(project.name);
-                                                                        if (e.key === 'Escape') cancelEditing();
-                                                                    } }
-                                                                    style={ {
-                                                                        fontSize: '16px', // Prevents zoom on iOS
-                                                                        WebkitAppearance: 'none', borderRadius: '8px'
-                                                                    } }
-                                                                />) : (<>
-                                                                    <h3 className="text-sm font-medium text-foreground truncate">
-                                                                        { project.displayName }
-                                                                    </h3>
-                                                                    <p className="text-xs text-muted-foreground">
-                                                                        { (() => {
-                                                                            const sessionCount = getAllSessions(project).length;
-                                                                            const hasMore = project.sessionMeta?.hasMore !== false;
-                                                                            const count = hasMore && sessionCount >= 5 ? `${ sessionCount }+` : sessionCount;
-                                                                            return `${ count } session${ count === 1 ? '' : 's' }`;
-                                                                        })() }
-                                                                    </p>
-                                                                </>) }
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex items-center gap-1">
-                                                        { editingProject === project.name ? (<>
-                                                                <button
-                                                                    className="w-8 h-8 rounded-lg bg-green-500 dark:bg-green-600 flex items-center justify-center active:scale-90 transition-all duration-150 shadow-sm active:shadow-none"
-                                                                    onClick={ (e) => {
-                                                                        e.stopPropagation();
-                                                                        saveProjectName(project.name);
-                                                                    } }
-                                                                >
-                                                                    <Check className="w-4 h-4 text-white"/>
-                                                                </button>
-                                                                <button
-                                                                    className="w-8 h-8 rounded-lg bg-gray-500 dark:bg-gray-600 flex items-center justify-center active:scale-90 transition-all duration-150 shadow-sm active:shadow-none"
-                                                                    onClick={ (e) => {
-                                                                        e.stopPropagation();
-                                                                        cancelEditing();
-                                                                    } }
-                                                                >
-                                                                    <X className="w-4 h-4 text-white"/>
-                                                                </button>
-                                                            </>) : (<>
-                                                                {/* Star button */ }
-                                                                <button
-                                                                    className={ cn("w-8 h-8 rounded-lg flex items-center justify-center active:scale-90 transition-all duration-150 border", isStarred ? "bg-yellow-500/10 dark:bg-yellow-900/30 border-yellow-200 dark:border-yellow-800" : "bg-gray-500/10 dark:bg-gray-900/30 border-gray-200 dark:border-gray-800") }
-                                                                    onClick={ (e) => {
-                                                                        e.stopPropagation();
-                                                                        toggleStarProject(project.name);
-                                                                    } }
-                                                                    onTouchEnd={ handleTouchClick(() => toggleStarProject(project.name)) }
-                                                                    title={ isStarred ? "从收藏夹中移除" : "添加到收藏夹" }
-                                                                >
-                                                                    <Star
-                                                                        className={ cn("w-4 h-4 transition-colors", isStarred ? "text-yellow-600 dark:text-yellow-400 fill-current" : "text-gray-600 dark:text-gray-400") }/>
-                                                                </button>
-                                                                { getAllSessions(project).length === 0 && (<button
-                                                                        className="w-8 h-8 rounded-lg bg-red-500/10 dark:bg-red-900/30 flex items-center justify-center active:scale-90 border border-red-200 dark:border-red-800"
-                                                                        onClick={ (e) => {
-                                                                            e.stopPropagation();
-                                                                            deleteProject(project.name);
-                                                                        } }
-                                                                        onTouchEnd={ handleTouchClick(() => deleteProject(project.name)) }
-                                                                    >
-                                                                        <Trash2
-                                                                            className="w-4 h-4 text-red-600 dark:text-red-400"/>
-                                                                    </button>) }
-                                                                <button
-                                                                    className="w-8 h-8 rounded-lg bg-primary/10 dark:bg-primary/20 flex items-center justify-center active:scale-90 border border-primary/20 dark:border-primary/30"
-                                                                    onClick={ (e) => {
-                                                                        e.stopPropagation();
-                                                                        startEditing(project);
-                                                                    } }
-                                                                    onTouchEnd={ handleTouchClick(() => startEditing(project)) }
-                                                                >
-                                                                    <Edit3 className="w-4 h-4 text-primary"/>
-                                                                </button>
-                                                                <div
-                                                                    className="w-6 h-6 rounded-md bg-muted/30 flex items-center justify-center">
-                                                                    { isExpanded ? (<ChevronDown
-                                                                            className="w-3 h-3 text-muted-foreground"/>) : (
-                                                                        <ChevronRight
-                                                                            className="w-3 h-3 text-muted-foreground"/>) }
-                                                                </div>
-                                                            </>) }
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
+                                        {/* Mobile Project Item removed for desktop-only */}
 
                                         {/* Desktop Project Item */ }
                                         <Button
                                             variant="ghost"
-                                            className={ cn("hidden md:flex w-full justify-between p-2 h-auto font-normal hover:bg-accent/50", isSelected && "bg-accent text-accent-foreground", isStarred && !isSelected && "bg-yellow-50/50 dark:bg-yellow-900/10 hover:bg-yellow-100/50 dark:hover:bg-yellow-900/20") }
+                                            className={ cn("flex w-full justify-between p-2 h-auto font-normal hover:bg-accent/50", isSelected && "bg-accent text-accent-foreground", isStarred && !isSelected && "bg-yellow-50/50 dark:bg-yellow-900/10 hover:bg-yellow-100/50 dark:hover:bg-yellow-900/20") }
                                             onClick={ () => {
                                                 // Desktop behavior: select project and toggle
                                                 if (selectedProject?.name !== project.name) {
@@ -799,12 +589,6 @@ function Sidebar({
                                                 }
                                                 toggleProject(project.name);
                                             } }
-                                            onTouchEnd={ handleTouchClick(() => {
-                                                if (selectedProject?.name !== project.name) {
-                                                    onProjectSelect(project);
-                                                }
-                                                toggleProject(project.name);
-                                            }) }
                                         >
                                             <div className="flex items-center gap-3 min-w-0 flex-1">
                                                 { isExpanded ? (
@@ -938,87 +722,21 @@ function Sidebar({
                                                     const isActive = diffInMinutes < 10;
 
                                                     return (<div key={ session.id } className="group relative">
-                                                            {/* Active session indicator dot */ }
-                                                            { isActive && (<div
-                                                                    className="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-1">
-                                                                    <div
-                                                                        className="w-2 h-2 bg-green-500 rounded-full animate-pulse"/>
-                                                                </div>) }
-                                                            {/* Mobile Session Item */ }
-                                                            <div className="md:hidden">
-                                                                <div
-                                                                    className={ cn("p-2 mx-3 my-0.5 rounded-md bg-card border active:scale-[0.98] transition-all duration-150 relative", selectedSession?.id === session.id ? "bg-primary/5 border-primary/20" : isActive ? "border-green-500/30 bg-green-50/5 dark:bg-green-900/5" : "border-border/30") }
-                                                                    onClick={ () => {
-                                                                        onProjectSelect(project);
-                                                                        onSessionSelect(session);
-                                                                    } }
-                                                                    onTouchEnd={ handleTouchClick(() => {
-                                                                        onProjectSelect(project);
-                                                                        onSessionSelect(session);
-                                                                    }) }
-                                                                >
-                                                                    {/* Active session green left indicator */}
-                                                                    {selectedSession?.id === session.id && (
-                                                                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-green-500 rounded-r-sm" />
-                                                                    )}
-                                                                    <div className="flex items-start gap-2">
-                                                                        <div
-                                                                            className={ cn("w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 mt-0.5", selectedSession?.id === session.id ? "bg-primary/10" : "bg-muted/50") }>
-                                                                            <MessageSquare
-                                                                                className={ cn("w-3 h-3", selectedSession?.id === session.id ? "text-primary" : "text-muted-foreground") }/>
-                                                                        </div>
-                                                                        <div className="min-w-0 flex-1">
-                                                                            <div
-                                                                                className="text-xs font-medium truncate text-foreground mb-1">
-                                                                                { session.summary || '新会话' }
-                                                                            </div>
-                                                                            <div className="flex items-center justify-between">
-                                                                                <div className="flex items-center gap-1">
-                                                                                    <Clock
-                                                                                        className="w-2.5 h-2.5 text-muted-foreground"/>
-                                                                                    <span
-                                                                                        className="text-xs text-muted-foreground">
-                                        { formatTimeAgo(session.lastActivity, currentTime) }
-                                      </span>
-                                                                                </div>
-                                                                                { session.messageCount > 0 && (
-                                                                                    <Badge variant="secondary"
-                                                                                           className="text-xs px-1 py-0">
-                                                                                        { session.messageCount }
-                                                                                    </Badge>) }
-                                                                            </div>
-                                                                        </div>
-                                                                        {/* Mobile delete button - positioned in button area */ }
-                                                                        <div className="flex items-center">
-                                                                            <button
-                                                                                className="w-6 h-6 rounded-md bg-red-50 dark:bg-red-900/20 flex items-center justify-center active:scale-95 transition-transform opacity-70"
-                                                                                onClick={ (e) => {
-                                                                                    e.stopPropagation();
-                                                                                    deleteSession(project.name, session.id);
-                                                                                } }
-                                                                                onTouchEnd={ handleTouchClick(() => deleteSession(project.name, session.id)) }
-                                                                            >
-                                                                                <Trash2
-                                                                                    className="w-2.5 h-2.5 text-red-600 dark:text-red-400"/>
-                                                                            </button>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
+                                                            {/* Mobile Session Item removed */ }
 
                                                             {/* Desktop Session Item */ }
-                                                            <div className="hidden md:block">
+                                                            <div>
                                                                 <div className="group/session relative">
                                                                     <Button
                                                                         variant="ghost"
                                                                         className={ cn("w-full justify-start p-2 h-auto font-normal text-left hover:bg-accent/50 transition-colors duration-200 pr-20 relative", selectedSession?.id === session.id && "bg-accent text-accent-foreground") }
                                                                         onClick={ () => onSessionSelect(session) }
-                                                                        onTouchEnd={ handleTouchClick(() => onSessionSelect(session)) }
                                                                     >
-                                                                        {/* Active session green left indicator */}
-                                                                        {selectedSession?.id === session.id && (
-                                                                            <div className="absolute left-0 top-0 bottom-0 w-1 bg-green-500 rounded-r-sm" />
-                                                                        )}
+                                                                        {/* Active session indicator dot - positioned between project border and session item for desktop */}
+                                                                        { isActive && (<div
+                                                                                className="absolute -left-6 top-1/2 transform -translate-y-1/2 z-10">
+                                                                                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"/>
+                                                                        </div>) }
                                                                         <div className="flex items-start gap-2 min-w-0 w-full">
                                                                             <MessageSquare
                                                                                 className="w-3 h-3 text-muted-foreground mt-0.5 flex-shrink-0"/>
@@ -1156,24 +874,10 @@ function Sidebar({
                                                         </>) }
                                                 </Button>) }
 
-                                            {/* New Session Button */ }
-                                            <div className="md:hidden px-3 pb-2">
-                                                <button
-                                                    className="w-full h-8 bg-primary hover:bg-primary/90 text-primary-foreground rounded-md flex items-center justify-center gap-2 font-medium text-xs active:scale-[0.98] transition-all duration-150"
-                                                    onClick={ () => {
-                                                        onProjectSelect(project);
-                                                        onNewSession(project);
-                                                    } }
-                                                >
-                                                    <Plus className="w-3 h-3"/>
-                                                    新建会话
-                                                </button>
-                                            </div>
-
                                             <Button
                                                 variant="default"
                                                 size="sm"
-                                                className="hidden md:flex w-full justify-start gap-2 mt-1 h-8 text-xs font-medium bg-primary hover:bg-primary/90 text-primary-foreground transition-colors"
+                                                className="flex w-full justify-start gap-2 mt-1 h-8 text-xs font-medium bg-primary hover:bg-primary/90 text-primary-foreground transition-colors"
                                                 onClick={ () => onNewSession(project) }
                                             >
                                                 <Plus className="w-3 h-3"/>
@@ -1186,9 +890,9 @@ function Sidebar({
             </ScrollArea>
 
             {/* Version Update Notification */ }
-            { updateAvailable && (<div className="md:p-2 border-t border-border/50 flex-shrink-0">
+        { updateAvailable && (<div className="md:p-2 border-t border-border/50 flex-shrink-0">
                     {/* Desktop Version Notification */ }
-                    <div className="hidden md:block">
+            <div className="block">
                         <Button
                             variant="ghost"
                             className="w-full justify-start gap-3 p-3 h-auto font-normal text-left hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors duration-200 border border-blue-200 dark:border-blue-700 rounded-lg mb-2"
@@ -1212,50 +916,15 @@ function Sidebar({
                         </Button>
                     </div>
 
-                    {/* Mobile Version Notification */ }
-                    <div className="md:hidden p-3 pb-2">
-                        <button
-                            className="w-full h-12 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-xl flex items-center justify-start gap-3 px-4 active:scale-[0.98] transition-all duration-150"
-                            onClick={ onShowVersionModal }
-                        >
-                            <div className="relative">
-                                <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none"
-                                     stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={ 2 }
-                                          d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"/>
-                                </svg>
-                                <div
-                                    className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full animate-pulse"/>
-                            </div>
-                            <div className="min-w-0 flex-1 text-left">
-                                <div className="text-sm font-medium text-blue-700 dark:text-blue-300">有可用更新</div>
-                                <div
-                                    className="text-xs text-blue-600 dark:text-blue-400">版本 { latestVersion } 已准备就绪
-                                </div>
-                            </div>
-                        </button>
-                    </div>
+                    {/* Mobile Version Notification removed for desktop-only */}
                 </div>) }
 
             {/* Settings Section */ }
             <div className="md:p-2 md:border-t md:border-border flex-shrink-0">
-                {/* Mobile Settings */ }
-                <div className="md:hidden p-4 pb-20 border-t border-border/50">
-                    <button
-                        className="w-full h-14 bg-muted/50 hover:bg-muted/70 rounded-2xl flex items-center justify-start gap-4 px-4 active:scale-[0.98] transition-all duration-150"
-                        onClick={ onShowSettings }
-                    >
-                        <div className="w-10 h-10 rounded-2xl bg-background/80 flex items-center justify-center">
-                            <Settings className="w-5 h-5 text-muted-foreground"/>
-                        </div>
-                        <span className="text-lg font-medium text-foreground">设置</span>
-                    </button>
-                </div>
-
                 {/* Desktop Settings */ }
                 <Button
                     variant="ghost"
-                    className="hidden md:flex w-full justify-start gap-2 p-2 h-auto font-normal text-muted-foreground hover:text-foreground hover:bg-accent transition-colors duration-200"
+                    className="flex w-full justify-start gap-2 p-2 h-auto font-normal text-muted-foreground hover:text-foreground hover:bg-accent transition-colors duration-200"
                     onClick={ onShowSettings }
                 >
                     <Settings className="w-3 h-3"/>

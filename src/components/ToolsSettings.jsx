@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Badge } from './ui/badge';
+import { apiFetch } from '../utils/api';
 import {
     AlertTriangle,
     Bug,
@@ -110,15 +111,12 @@ function ToolsSettings({ isOpen, onClose }) {
     const fetchMcpServers = async () => {
         try {
             // First try to get servers using Claude CLI
-            const cliResponse = await fetch('/api/mcp/cli/list', {
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
+            const cliResponse = await apiFetch('/api/mcp/cli/list');
 
             if (cliResponse.ok) {
                 const cliData = await cliResponse.json();
-                if (cliData.success && cliData.servers) {
+                // Handle both success and failure cases
+                if (cliData.servers) {
                     // Convert CLI format to our format
                     const servers = cliData.servers.map(server => ({
                         id: server.name,
@@ -139,14 +137,14 @@ function ToolsSettings({ isOpen, onClose }) {
                     setMcpServers(servers);
                     return;
                 }
+                // If CLI failed but returned valid JSON, log the error but continue
+                if (!cliData.success) {
+                    console.log('Claude CLI command failed:', cliData.error);
+                }
             }
 
             // Fallback to direct config reading
-            const response = await fetch('/api/mcp/servers?scope=user', {
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
+            const response = await apiFetch('/api/mcp/servers?scope=user');
 
             if (response.ok) {
                 const data = await response.json();
@@ -167,11 +165,8 @@ function ToolsSettings({ isOpen, onClose }) {
             }
 
             // Use Claude CLI to add the server
-            const response = await fetch('/api/mcp/cli/add', {
+            const response = await apiFetch('/api/mcp/cli/add', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
                 body: JSON.stringify({
                     name: serverData.name,
                     type: serverData.type,
@@ -204,7 +199,7 @@ function ToolsSettings({ isOpen, onClose }) {
     const deleteMcpServer = async (serverId, scope = 'user') => {
         try {
             // Use Claude CLI to remove the server
-            const response = await fetch(`/api/mcp/cli/remove/${ serverId }`, {
+            const response = await apiFetch(`/api/mcp/cli/remove/${ serverId }`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json'
@@ -231,7 +226,7 @@ function ToolsSettings({ isOpen, onClose }) {
 
     const testMcpServer = async (serverId, scope = 'user') => {
         try {
-            const response = await fetch(`/api/mcp/servers/${ serverId }/test?scope=${ scope }`, {
+            const response = await apiFetch(`/api/mcp/servers/${ serverId }/test?scope=${ scope }`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -253,7 +248,7 @@ function ToolsSettings({ isOpen, onClose }) {
 
     const testMcpConfiguration = async (formData) => {
         try {
-            const response = await fetch('/api/mcp/servers/test', {
+            const response = await apiFetch('/api/mcp/servers/test', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -276,7 +271,7 @@ function ToolsSettings({ isOpen, onClose }) {
 
     const discoverMcpTools = async (serverId, scope = 'user') => {
         try {
-            const response = await fetch(`/api/mcp/servers/${ serverId }/tools?scope=${ scope }`, {
+            const response = await apiFetch(`/api/mcp/servers/${ serverId }/tools?scope=${ scope }`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -646,7 +641,7 @@ function ToolsSettings({ isOpen, onClose }) {
                         variant="ghost"
                         size="sm"
                         onClick={ onClose }
-                        className="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white touch-manipulation"
+                        className="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
                     >
                         <X className="w-5 h-5"/>
                     </Button>
@@ -658,7 +653,7 @@ function ToolsSettings({ isOpen, onClose }) {
                         <div className="flex px-4 md:px-6 overflow-x-auto">
                             <button
                                 onClick={ () => setActiveTab('tools') }
-                                className={ `flex-shrink-0 px-4 py-3 text-sm font-medium border-b-2 transition-colors touch-manipulation ${
+                                className={ `flex-shrink-0 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
                                     activeTab === 'tools'
                                         ? 'border-blue-600 text-blue-600 dark:text-blue-400'
                                         : 'border-transparent text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
@@ -668,7 +663,7 @@ function ToolsSettings({ isOpen, onClose }) {
                             </button>
                             <button
                                 onClick={ () => setActiveTab('security') }
-                                className={ `flex-shrink-0 px-4 py-3 text-sm font-medium border-b-2 transition-colors touch-manipulation ${
+                                className={ `flex-shrink-0 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
                                     activeTab === 'security'
                                         ? 'border-blue-600 text-blue-600 dark:text-blue-400'
                                         : 'border-transparent text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
@@ -678,7 +673,7 @@ function ToolsSettings({ isOpen, onClose }) {
                             </button>
                             <button
                                 onClick={ () => setActiveTab('mcp') }
-                                className={ `flex-shrink-0 px-4 py-3 text-sm font-medium border-b-2 transition-colors touch-manipulation ${
+                                className={ `flex-shrink-0 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
                                     activeTab === 'mcp'
                                         ? 'border-blue-600 text-blue-600 dark:text-blue-400'
                                         : 'border-transparent text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
@@ -688,7 +683,7 @@ function ToolsSettings({ isOpen, onClose }) {
                             </button>
                             <button
                                 onClick={ () => setActiveTab('appearance') }
-                                className={ `flex-shrink-0 px-4 py-3 text-sm font-medium border-b-2 transition-colors touch-manipulation ${
+                                className={ `flex-shrink-0 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
                                     activeTab === 'appearance'
                                         ? 'border-blue-600 text-blue-600 dark:text-blue-400'
                                         : 'border-transparent text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
@@ -700,7 +695,7 @@ function ToolsSettings({ isOpen, onClose }) {
                             { isDevelopmentMode && (
                                 <button
                                     onClick={ () => setActiveTab('developer') }
-                                    className={ `flex-shrink-0 px-4 py-3 text-sm font-medium border-b-2 transition-colors touch-manipulation ${
+                                    className={ `flex-shrink-0 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
                                         activeTab === 'developer'
                                             ? 'border-blue-600 text-blue-600 dark:text-blue-400'
                                             : 'border-transparent text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
@@ -1142,17 +1137,17 @@ function ToolsSettings({ isOpen, onClose }) {
                                                         addAllowedTool(newAllowedTool);
                                                     }
                                                 } }
-                                                className="flex-1 h-10 touch-manipulation"
+                                                className="flex-1 h-10"
                                                 style={ { fontSize: '16px' } }
                                             />
                                             <Button
                                                 onClick={ () => addAllowedTool(newAllowedTool) }
                                                 disabled={ !newAllowedTool }
                                                 size="sm"
-                                                className="h-10 px-4 touch-manipulation"
+                                                className="h-10 px-4"
                                             >
                                                 <Plus className="w-4 h-4 mr-2 sm:mr-0"/>
-                                                <span className="sm:hidden">Add Tool</span>
+                                                
                                             </Button>
                                         </div>
 
@@ -1169,7 +1164,7 @@ function ToolsSettings({ isOpen, onClose }) {
                                                         size="sm"
                                                         onClick={ () => addAllowedTool(tool) }
                                                         disabled={ allowedTools.includes(tool) }
-                                                        className="text-xs h-8 touch-manipulation truncate"
+                                                        className="text-xs h-8 truncate"
                                                     >
                                                         { tool }
                                                     </Button>
@@ -1228,17 +1223,17 @@ function ToolsSettings({ isOpen, onClose }) {
                                                         addDisallowedTool(newDisallowedTool);
                                                     }
                                                 } }
-                                                className="flex-1 h-10 touch-manipulation"
+                                                className="flex-1 h-10"
                                                 style={ { fontSize: '16px' } }
                                             />
                                             <Button
                                                 onClick={ () => addDisallowedTool(newDisallowedTool) }
                                                 disabled={ !newDisallowedTool }
                                                 size="sm"
-                                                className="h-10 px-4 touch-manipulation"
+                                                className="h-10 px-4"
                                             >
                                                 <Plus className="w-4 h-4 mr-2 sm:mr-0"/>
-                                                <span className="sm:hidden">Add Tool</span>
+                                                
                                             </Button>
                                         </div>
 
@@ -1693,14 +1688,14 @@ function ToolsSettings({ isOpen, onClose }) {
                             variant="outline"
                             onClick={ onClose }
                             disabled={ isSaving }
-                            className="flex-1 sm:flex-none h-10 touch-manipulation"
+                            className="flex-1 sm:flex-none h-10"
                         >
                             取消
                         </Button>
                         <Button
                             onClick={ saveSettings }
                             disabled={ isSaving }
-                            className="flex-1 sm:flex-none h-10 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 touch-manipulation"
+                            className="flex-1 sm:flex-none h-10 bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
                         >
                             { isSaving ? (
                                 <div className="flex items-center gap-2">
