@@ -18,7 +18,7 @@ router.get('/cli/list', async (req, res) => {
         const { promisify } = await import('util');
         const exec = promisify(spawn);
 
-        const process = spawn('claude', ['mcp', 'list', '-s', 'user'], {
+        const process = spawn('claude', ['mcp', 'list'], {
             stdio: ['pipe', 'pipe', 'pipe']
         });
 
@@ -64,25 +64,25 @@ router.post('/cli/add', async (req, res) => {
         let cliArgs = ['mcp', 'add'];
 
         if (type === 'http') {
-            cliArgs.push('--transport', 'http', name, '-s', 'user', url);
+            cliArgs.push('--transport', 'http', '--scope', 'user', name, url);
             // Add headers if provided
             Object.entries(headers).forEach(([key, value]) => {
                 cliArgs.push('--header', `${ key }: ${ value }`);
             });
         } else if (type === 'sse') {
-            cliArgs.push('--transport', 'sse', name, '-s', 'user', url);
+            cliArgs.push('--transport', 'sse', '--scope', 'user', name, url);
             // Add headers if provided
             Object.entries(headers).forEach(([key, value]) => {
                 cliArgs.push('--header', `${ key }: ${ value }`);
             });
         } else {
-            // stdio (default): claude mcp add <name> -s user <command> [args...]
-            cliArgs.push(name, '-s', 'user');
+            // stdio (default): claude mcp add --scope user <name> <command> [args...]
+            cliArgs.push('--scope', 'user');
             // Add environment variables
             Object.entries(env).forEach(([key, value]) => {
                 cliArgs.push('-e', `${ key }=${ value }`);
             });
-            cliArgs.push(command);
+            cliArgs.push(name, command);
             if (args && args.length > 0) {
                 cliArgs.push(...args);
             }
@@ -133,7 +133,7 @@ router.delete('/cli/remove/:name', async (req, res) => {
 
         const { spawn } = await import('child_process');
 
-        const process = spawn('claude', ['mcp', 'remove', '-s', 'user', name], {
+        const process = spawn('claude', ['mcp', 'remove', '--scope', 'user', name], {
             stdio: ['pipe', 'pipe', 'pipe']
         });
 
@@ -176,7 +176,7 @@ router.get('/cli/get/:name', async (req, res) => {
 
         const { spawn } = await import('child_process');
 
-        const process = spawn('claude', ['mcp', 'get', '-s', 'user', name], {
+        const process = spawn('claude', ['mcp', 'get', name], {
             stdio: ['pipe', 'pipe', 'pipe']
         });
 
@@ -213,34 +213,38 @@ router.get('/cli/get/:name', async (req, res) => {
 // Helper functions to parse Claude CLI output
 function parseClaudeListOutput(output) {
     // Parse the output from 'claude mcp list' command
-    // Format: "name: command/url" or "name: url (TYPE)"
+    // Format: "<name>: <command> - <status>"
+    console.log('🔍 Parsing Claude CLI output:', output);
     const servers = [];
     const lines = output.split('\n').filter(line => line.trim());
 
     for (const line of lines) {
-        if (line.includes(':')) {
-            const colonIndex = line.indexOf(':');
-            const name = line.substring(0, colonIndex).trim();
-            const rest = line.substring(colonIndex + 1).trim();
+        // Skip header lines and health check messages
+        if (line.includes('Checking MCP server health') || line.trim() === '') {
+            continue;
+        }
 
-            let type = 'stdio'; // default type
-
-            // Check if it has transport type in parentheses like "(SSE)" or "(HTTP)"
-            const typeMatch = rest.match(/\((\w+)\)\s*$/);
-            if (typeMatch) {
-                type = typeMatch[1].toLowerCase();
-            } else if (rest.startsWith('http://') || rest.startsWith('https://')) {
-                // If it's a URL but no explicit type, assume HTTP
-                type = 'http';
-            }
-
-            if (name) {
-                servers.push({
-                    name,
-                    type,
-                    status: 'active'
-                });
-            }
+        // Parse format: "<name>: <command> - <status>"
+        const match = line.match(/^(.+?):\s*(.+?)\s*-\s*(.+)$/);
+        if (match) {
+            const [, name, command, status] = match;
+            const isHealthy = !status.includes('Failed');
+            
+            servers.push({
+                id: name.trim(),
+                name: name.trim(),
+                type: 'stdio', // Default to stdio, will be updated by get details if needed
+                scope: 'user',
+                config: {
+                    command: command.trim(),
+                    args: [],
+                    env: {},
+                    timeout: 30000
+                },
+                status: isHealthy ? 'healthy' : 'failed',
+                created: new Date().toISOString(),
+                updated: new Date().toISOString()
+            });
         }
     }
 
@@ -250,28 +254,49 @@ function parseClaudeListOutput(output) {
 
 function parseClaudeGetOutput(output) {
     // Parse the output from 'claude mcp get <name>' command
-    // This is a simple parser - might need adjustment based on actual output format
+    // Format is structured text with lines like "Type: stdio", "Command: echo", etc.
     try {
-        // Try to extract JSON if present
-        const jsonMatch = output.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-            return JSON.parse(jsonMatch[0]);
-        }
-
-        // Otherwise, parse as text
         const server = { raw_output: output };
         const lines = output.split('\n');
 
         for (const line of lines) {
-            if (line.includes('Name:')) {
-                server.name = line.split(':')[1]?.trim();
-            } else if (line.includes('Type:')) {
-                server.type = line.split(':')[1]?.trim();
-            } else if (line.includes('Command:')) {
-                server.command = line.split(':')[1]?.trim();
-            } else if (line.includes('URL:')) {
-                server.url = line.split(':')[1]?.trim();
+            const trimmedLine = line.trim();
+            if (trimmedLine.includes('Scope:')) {
+                const scope = trimmedLine.split('Scope:')[1]?.trim();
+                if (scope.includes('User config')) {
+                    server.scope = 'user';
+                } else if (scope.includes('Local config')) {
+                    server.scope = 'local';
+                } else if (scope.includes('Project config')) {
+                    server.scope = 'project';
+                }
+            } else if (trimmedLine.includes('Type:')) {
+                server.type = trimmedLine.split('Type:')[1]?.trim().toLowerCase();
+            } else if (trimmedLine.includes('Command:')) {
+                server.command = trimmedLine.split('Command:')[1]?.trim();
+            } else if (trimmedLine.includes('Args:')) {
+                const argsStr = trimmedLine.split('Args:')[1]?.trim();
+                if (argsStr && argsStr !== '') {
+                    server.args = argsStr.split(' ');
+                } else {
+                    server.args = [];
+                }
+            } else if (trimmedLine.includes('URL:')) {
+                server.url = trimmedLine.split('URL:')[1]?.trim();
+            } else if (trimmedLine.includes('Status:')) {
+                const status = trimmedLine.split('Status:')[1]?.trim();
+                server.status = status.includes('Failed') ? 'failed' : 'healthy';
+            } else if (trimmedLine.includes('Environment:')) {
+                // Environment variables would be listed after this line
+                server.env = {};
             }
+        }
+
+        // Extract server name from the first line (format: "server-name:")
+        const firstLine = lines[0]?.trim();
+        if (firstLine && firstLine.endsWith(':')) {
+            server.name = firstLine.slice(0, -1);
+            server.id = server.name;
         }
 
         return server;

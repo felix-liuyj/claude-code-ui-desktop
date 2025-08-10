@@ -150,8 +150,6 @@ const QuickSettingsPanel = ({
                             {/* 快速区域仅保留二元切换（浅色/深色）；自动模式请前往 外观 设置 */ }
                         </div>
 
-                        {/* 已移除权限模式设置；请在对话区或“工具设置 > 安全项”中更改。 */ }
-
                         {/* Tool Display Settings */ }
                         <div className="space-y-2">
                             <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">工具显示</h4>

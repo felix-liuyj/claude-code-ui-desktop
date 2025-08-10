@@ -927,7 +927,7 @@ function Sidebar({
                 onClick={ onShowSettings }
             >
                 <Settings className="w-3 h-3"/>
-                <span className="text-xs">工具设置</span>
+                <span className="text-xs">设置</span>
             </Button>
         </div>
     </div>);

@@ -678,6 +678,16 @@ function ToolsSettings({ isOpen, onClose }) {
                                 工具
                             </button>
                             <button
+                                onClick={ () => setActiveTab('appearance') }
+                                className={ `flex-shrink-0 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+                                    activeTab === 'appearance'
+                                        ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+                                        : 'border-transparent text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
+                                }` }
+                            >
+                                外观
+                            </button>
+                            <button
                                 onClick={ () => setActiveTab('security') }
                                 className={ `flex-shrink-0 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
                                     activeTab === 'security'
@@ -696,16 +706,6 @@ function ToolsSettings({ isOpen, onClose }) {
                                 }` }
                             >
                                 MCP
-                            </button>
-                            <button
-                                onClick={ () => setActiveTab('appearance') }
-                                className={ `flex-shrink-0 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
-                                    activeTab === 'appearance'
-                                        ? 'border-blue-600 text-blue-600 dark:text-blue-400'
-                                        : 'border-transparent text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
-                                }` }
-                            >
-                                外观
                             </button>
                             {/* Only show developer tab in development mode */ }
                             { isDevelopmentMode && (
@@ -739,9 +739,6 @@ function ToolsSettings({ isOpen, onClose }) {
                                         <div
                                             className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
                                             <div>
-                                                <div className="font-medium text-foreground mb-3">
-                                                    权限处理模式
-                                                </div>
                                                 <div className="text-sm text-muted-foreground mb-4">
                                                     选择工具权限的处理方式（当启用 --dangerously-skip-permissions
                                                     时，此设置将被忽略）
@@ -1052,9 +1049,7 @@ function ToolsSettings({ isOpen, onClose }) {
                                                 </button>
                                             </div>
                                         </div>
-                                        <div className="text-[11px] text-gray-500 dark:text-gray-400 mt-2">未设置时使用默认
-                                            asker.svg
-                                        </div>
+                                        <div className="text-[11px] text-gray-500 dark:text-gray-400 mt-2">未设置时使用默认头像</div>
                                     </div>
                                 </div>
                             </div>
