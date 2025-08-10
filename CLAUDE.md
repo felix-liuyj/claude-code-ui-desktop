@@ -21,7 +21,15 @@ npm start                  # Start Electron app (alias for electron-dev)
 
 # Dependencies & Setup
 npm install                # Install all dependencies (includes Electron)
+npm rebuild                # Rebuild native dependencies if needed (especially for Electron)
 ```
+
+### Testing and Validation
+
+There are no automated tests in this project. Testing is done manually through:
+- Running `npm run electron-dev` for development testing
+- Building and packaging with `npm run dist` for distribution testing
+- Manual verification of core features: file browsing, Claude CLI integration, WebSocket communication
 
 ## Architecture
 
@@ -123,11 +131,11 @@ No environment configuration required - all settings are automatic:
 
 The app implements a sophisticated system to prevent WebSocket updates from interrupting active conversations:
 
-- **Active Session Tracking**: `activeSessions` Set in `src/App.jsx:79`
+- **Active Session Tracking**: `activeSessions` Set in `src/App.jsx:80` - tracks sessions with active conversations
 - **Temporary Session Handling**: Supports "new-session-*" identifiers before real IDs are assigned
-- **Update Filtering**: `isUpdateAdditive()` function distinguishes between safe sidebar updates and disruptive content
-  changes
+- **Update Filtering**: `isUpdateAdditive()` function distinguishes between safe sidebar updates and disruptive content changes
 - **Lifecycle Management**: Sessions marked active on message send, inactive on completion/abort
+- **Implementation Location**: Main logic in `src/App.jsx:76-80` with detailed comments explaining the system
 
 ### File System Integration
 
@@ -154,8 +162,13 @@ The application uses a centralized API client system:
 - **Header Management**: Automatically sets JSON Content-Type except for FormData uploads
 - **Environment Adaptation**: Uses `window.electronAPI?.getConfig?.()?.PORT` for port detection
 
-**Critical Implementation Note**: Always use `apiFetch()` instead of direct `fetch()` calls to ensure proper URL
-construction in Electron environment. Direct fetch calls will resolve to `file://` protocol and fail.
+**Critical Implementation Note**: Always use `apiFetch()` instead of direct `fetch()` calls to ensure proper URL construction in Electron environment. Direct fetch calls will resolve to `file://` protocol and fail.
+
+### Build Configuration
+
+- **Vite Config**: `vite.config.js` sets base path to `'./'` for Electron compatibility
+- **Asset Loading**: All assets must use relative paths for proper loading in Electron
+- **JSON Imports**: Enabled with named exports for configuration loading
 
 ### MCP (Model Context Protocol) Integration
 
@@ -253,8 +266,10 @@ The application supports image uploads through a sophisticated temporary file sy
 
 ### Electron-Specific Considerations
 
-- **Dynamic Imports**: Server uses dynamic imports at runtime for embedded architecture
+- **Dynamic Imports**: Server uses dynamic imports at runtime for embedded architecture (`electron/main.js:213`)
 - **Path Resolution**: Server runs in main process with different path context than renderer
 - **Security**: Electron apps run with node integration, requiring careful handling of external data
-- **Menu Integration**: Chinese language menu system with keyboard shortcuts
+- **Menu Integration**: Chinese language menu system with keyboard shortcuts (`electron/main.js:253-400`)
 - **Window Management**: macOS-specific titlebar handling and proper window sizing
+- **DevTools Control**: F12 and developer shortcuts are disabled in production (`electron/main.js:46-76`)
+- **PATH Enhancement**: Automatic PATH detection and enhancement for Claude CLI access (`electron/main.js:151-207`)

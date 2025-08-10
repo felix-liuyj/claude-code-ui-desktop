@@ -64,4 +64,6 @@ export const api = {
             body: formData,
             headers: {}, // Let browser set Content-Type for FormData
         }),
+    claudeDoctor: () =>
+        apiFetch('/api/claude/doctor'),
 };

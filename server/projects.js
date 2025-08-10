@@ -1,15 +1,159 @@
 import fsSync, { promises as fs } from 'fs';
 import path from 'path';
 import readline from 'readline';
+import { spawn } from 'child_process';
+import { promisify } from 'util';
 
 // Cache for extracted project directories
 const projectDirectoryCache = new Map();
 let cacheTimestamp = Date.now();
 
+// Helper function to run Claude commands in a directory
+async function runClaudeCommand(workingDir, args) {
+    return new Promise((resolve, reject) => {
+        console.log(`🔧 Running Claude command in ${workingDir}:`, 'claude', args.join(' '));
+        
+        const process = spawn('claude', args, {
+            cwd: workingDir,
+            stdio: ['pipe', 'pipe', 'pipe'],
+            env: { ...process.env }
+        });
+
+        let stdout = '';
+        let stderr = '';
+
+        process.stdout.on('data', (data) => {
+            stdout += data.toString();
+        });
+
+        process.stderr.on('data', (data) => {
+            stderr += data.toString();
+        });
+
+        process.on('close', (code) => {
+            if (code === 0) {
+                console.log(`✅ Claude command completed successfully`);
+                resolve({ stdout, stderr });
+            } else {
+                console.error(`❌ Claude command failed with code ${code}`);
+                console.error('STDERR:', stderr);
+                reject(new Error(`Claude command failed: ${stderr || `Exit code ${code}`}`));
+            }
+        });
+
+        process.on('error', (error) => {
+            console.error(`❌ Failed to spawn Claude process:`, error);
+            reject(new Error(`Failed to run Claude: ${error.message}`));
+        });
+    });
+}
+
+// Initialize a Claude project in the given directory
+async function initializeClaudeProject(projectPath) {
+    try {
+        console.log(`🚀 Initializing Claude project in: ${projectPath}`);
+        
+        // Run 'claude' with '/init' as input to initialize and set up the project
+        console.log('📋 Running claude /init to initialize and set up project...');
+        
+        const childProcess = spawn('claude', [], {
+            cwd: projectPath,
+            stdio: ['pipe', 'pipe', 'pipe'],
+            env: { ...process.env }
+        });
+
+        let stdout = '';
+        let stderr = '';
+        let initCompleted = false;
+
+        childProcess.stdout.on('data', (data) => {
+            const output = data.toString();
+            stdout += output;
+            console.log('Claude output:', output);
+            
+            // Check if Claude is ready for input
+            if (output.includes('Ask Claude to help') || output.includes('Type your message') || output.includes('How can I help')) {
+                if (!initCompleted) {
+                    console.log('📋 Sending /init command to Claude...');
+                    childProcess.stdin.write('/init\n');
+                    initCompleted = true;
+                }
+            }
+            
+            // Check for initialization completion
+            if (output.includes('Project initialized') || output.includes('Initialization complete')) {
+                console.log('✅ Project initialization completed');
+                setTimeout(() => childProcess.kill('SIGTERM'), 1000); // Give it a moment then terminate
+            }
+        });
+
+        childProcess.stderr.on('data', (data) => {
+            const output = data.toString();
+            stderr += output;
+            console.log('Claude stderr:', output);
+        });
+
+        return new Promise((resolve, reject) => {
+            const timeout = setTimeout(() => {
+                console.log('⏰ Initialization timeout, terminating process...');
+                childProcess.kill('SIGTERM');
+                resolve({ stdout, stderr }); // Don't reject on timeout, just resolve
+            }, 30000); // 30 second timeout
+
+            childProcess.on('close', (code) => {
+                clearTimeout(timeout);
+                console.log(`✅ Claude initialization process completed`);
+                resolve({ stdout, stderr });
+            });
+
+            childProcess.on('error', (error) => {
+                clearTimeout(timeout);
+                console.error(`❌ Failed to spawn Claude process:`, error);
+                reject(new Error(`Failed to run Claude: ${error.message}`));
+            });
+        });
+        
+    } catch (error) {
+        console.error('❌ Failed to initialize Claude project:', error);
+        throw error;
+    }
+}
+
 // Clear cache when needed (called when project files change)
 function clearProjectDirectoryCache() {
     projectDirectoryCache.clear();
     cacheTimestamp = Date.now();
+}
+
+// Check if a directory is already a Claude project
+async function isClaudeProject(projectPath) {
+    try {
+        const absolutePath = path.resolve(projectPath);
+        
+        // Check for common Claude project indicators
+        const claudeIndicators = [
+            path.join(absolutePath, 'CLAUDE.md'),
+            path.join(absolutePath, '.claude'),
+            path.join(absolutePath, '.claude', 'project.json'),
+        ];
+        
+        // Check if any of the Claude indicators exist
+        for (const indicator of claudeIndicators) {
+            try {
+                await fs.access(indicator);
+                console.log(`✅ Found Claude project indicator: ${indicator}`);
+                return true;
+            } catch (error) {
+                // Continue checking other indicators
+            }
+        }
+        
+        console.log(`📋 No Claude project indicators found in: ${absolutePath}`);
+        return false;
+    } catch (error) {
+        console.error(`❌ Error checking Claude project status:`, error);
+        return false;
+    }
 }
 
 // Load project configuration file
@@ -546,7 +690,7 @@ async function deleteProject(projectName) {
     }
 }
 
-// Add a project manually to the config (without creating folders)
+// Add a project manually to the config and initialize Claude project
 async function addProjectManually(projectPath, displayName = null) {
     const absolutePath = path.resolve(projectPath);
 
@@ -578,6 +722,26 @@ async function addProjectManually(projectPath, displayName = null) {
         throw new Error(`Project already configured for path: ${ absolutePath }`);
     }
 
+    console.log(`🎯 Adding project manually: ${absolutePath}`);
+
+    // Check if directory is already a Claude project
+    const isAlreadyClaudeProject = await isClaudeProject(absolutePath);
+    
+    if (isAlreadyClaudeProject) {
+        console.log('📋 Directory is already a Claude project, skipping initialization');
+    } else {
+        console.log('🚀 Directory is not a Claude project, initializing...');
+        // Initialize Claude project in the directory
+        try {
+            await initializeClaudeProject(absolutePath);
+            console.log('✅ Claude project initialized successfully');
+        } catch (initError) {
+            console.warn('⚠️ Failed to initialize Claude project, but continuing with manual addition:', initError.message);
+            // Don't throw the error here - we still want to add the project to config
+            // The user can manually run Claude later if needed
+        }
+    }
+
     // Add to config as manually added project
     config[projectName] = {
         manuallyAdded: true,
@@ -590,6 +754,7 @@ async function addProjectManually(projectPath, displayName = null) {
 
     await saveProjectConfig(config);
 
+    console.log(`📋 Project added to configuration: ${projectName}`);
 
     return {
         name: projectName,
@@ -615,5 +780,6 @@ export {
     loadProjectConfig,
     saveProjectConfig,
     extractProjectDirectory,
-    clearProjectDirectoryCache
+    clearProjectDirectoryCache,
+    isClaudeProject
 };

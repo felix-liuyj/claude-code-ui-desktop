@@ -30,6 +30,7 @@ import { ThemeProvider } from './contexts/ThemeContext';
 import { useVersionCheck } from './hooks/useVersionCheck';
 import { api } from './utils/api';
 import { electronBridge, ElectronContext } from './utils/electron';
+import claudeDoctorService from './utils/claudeDoctor';
 
 
 // Main App component with routing
@@ -153,16 +154,23 @@ function AppContent() {
                 case 'menu-open-project':
                     const [projectPath] = args;
                     if (projectPath) {
-                        // Add project manually
-                        api.createProject(projectPath).then(() => {
-                            (async () => {
-                                try {
-                                    console.log('🔍 [AppContent] fetchProjects: Starting...');
-                                    setIsLoadingProjects(true);
-                                    const response = await api.projects();
-                                    console.log('🔍 [AppContent] fetchProjects: API response status:', response.status);
-                                    const data = await response.json();
-                                    console.log('🔍 [AppContent] fetchProjects: Projects data:', data?.length, 'projects');
+                        console.log(`🎯 Opening project: ${projectPath}`);
+                        // Add project manually and initialize Claude project
+                        api.createProject(projectPath).then(async (response) => {
+                            if (response.ok) {
+                                console.log('✅ Project created successfully, refreshing project list...');
+                                // Refresh projects to show the new one
+                                if (window.refreshProjects) {
+                                    await window.refreshProjects();
+                                } else {
+                                    // Fallback to manual refresh
+                                    try {
+                                        console.log('🔍 [AppContent] fetchProjects: Starting...');
+                                        setIsLoadingProjects(true);
+                                        const response = await api.projects();
+                                        console.log('🔍 [AppContent] fetchProjects: API response status:', response.status);
+                                        const data = await response.json();
+                                        console.log('🔍 [AppContent] fetchProjects: Projects data:', data?.length, 'projects');
 
                                     // Optimize to preserve object references when data hasn't changed
                                     setProjects(prevProjects => {
@@ -196,8 +204,13 @@ function AppContent() {
                                 } finally {
                                     setIsLoadingProjects(false);
                                 }
-                            })();
-                        }).catch(console.error);
+                                }
+                            } else {
+                                console.error('❌ Failed to create project:', response.status);
+                            }
+                        }).catch(error => {
+                            console.error('❌ Error creating project:', error);
+                        });
                     }
                     break;
                 case 'menu-settings':
@@ -303,6 +316,14 @@ function AppContent() {
             }
         }
     }, [messages, selectedProject, selectedSession, activeSessions]);
+
+    // Initialize Claude doctor on app startup
+    useEffect(() => {
+        console.log('🚀 [AppContent] Initializing Claude doctor on startup...');
+        claudeDoctorService.initializeOnStartup().catch(error => {
+            console.warn('⚠️ Failed to initialize Claude doctor on startup:', error);
+        });
+    }, []); // Run only once on app startup
 
     // Expose fetchProjects globally for component access
     window.refreshProjects = async () => {

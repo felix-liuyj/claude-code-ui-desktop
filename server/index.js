@@ -217,6 +217,257 @@ app.delete('/api/projects/:projectName', async (req, res) => {
     }
 });
 
+// Claude doctor endpoint
+app.get('/api/claude/doctor', async (req, res) => {
+    try {
+        console.log('🔧 Running claude doctor command...');
+        
+        // Set longer timeout for this endpoint
+        req.setTimeout(120000); // 2 minutes
+        res.setTimeout(120000);
+        
+        // Use node-pty to create a pseudo-terminal for claude doctor
+        const ptyProcess = pty.spawn('claude', ['doctor'], {
+            name: 'xterm-color',
+            cols: 80,
+            rows: 30,
+            cwd: process.cwd(),
+            env: { 
+                ...process.env,
+                TERM: 'xterm-256color',
+                CI: 'true'
+            }
+        });
+
+        let output = '';
+        let isResponseSent = false;
+        let lastOutputTime = Date.now();
+        let enterSent = false;
+
+        const sendResponse = (data) => {
+            if (!isResponseSent) {
+                isResponseSent = true;
+                res.json(data);
+            }
+        };
+
+        const sendErrorResponse = (data) => {
+            if (!isResponseSent) {
+                isResponseSent = true;
+                res.status(500).json(data);
+            }
+        };
+
+        ptyProcess.on('data', (data) => {
+            const dataStr = data.toString();
+            output += dataStr;
+            lastOutputTime = Date.now();
+            console.log('PTY output length:', dataStr.length, 'content:', JSON.stringify(dataStr.substring(0, 200)));
+            
+            // Check if Claude doctor is waiting for input
+            if (!enterSent && (
+                dataStr.includes('Press Enter to continue') || 
+                dataStr.includes('Press any key') ||
+                dataStr.includes('Claude doctor') ||
+                (dataStr.includes('✓') && dataStr.includes('✗')) ||
+                dataStr.match(/Status:|Configuration:|Environment:/))) {
+                
+                // Wait a bit for all output to be received, then send Enter
+                setTimeout(() => {
+                    if (!isResponseSent && !enterSent) {
+                        console.log('📋 Sending Enter key to continue...');
+                        ptyProcess.write('\r\n');
+                        enterSent = true;
+                    }
+                }, 2000); // Increased delay to let all output complete
+            }
+        });
+
+        // Backup mechanism: if no output for 5 seconds and no enter sent yet, send enter
+        const outputChecker = setInterval(() => {
+            const timeSinceLastOutput = Date.now() - lastOutputTime;
+            if (timeSinceLastOutput > 5000 && !enterSent && !isResponseSent && output.length > 0) {
+                console.log('⏰ No output for 5s, sending Enter to continue...');
+                ptyProcess.write('\r\n');
+                enterSent = true;
+                clearInterval(outputChecker);
+            }
+        }, 1000);
+
+        // Clear the output checker when we're done
+        const clearChecker = () => clearInterval(outputChecker);
+
+        ptyProcess.on('exit', (code, signal) => {
+            console.log(`Claude doctor process exited with code: ${code}, signal: ${signal}`);
+            clearChecker(); // Clean up the output checker
+            
+            if (code === 0 || signal === null) {
+                console.log('✅ Claude doctor command completed successfully');
+                // Clean up ANSI escape codes for better display
+                const cleanOutput = output
+                    .replace(/\x1b\[[0-9;]*m/g, '') // Remove color codes
+                    .replace(/\x1b\[2K/g, '') // Remove clear line
+                    .replace(/\x1b\[1A/g, '') // Remove cursor up
+                    .replace(/\x1b\[G/g, '') // Remove cursor to column
+                    .replace(/\r/g, '') // Remove carriage returns
+                    .split('\n')
+                    .filter(line => line.trim().length > 0) // Remove empty lines
+                    .join('\n');
+                    
+                sendResponse({ 
+                    success: true, 
+                    output: cleanOutput.trim(),
+                    timestamp: new Date().toISOString()
+                });
+            } else {
+                console.error(`❌ Claude doctor command failed with code ${code}`);
+                const cleanOutput = output
+                    .replace(/\x1b\[[0-9;]*m/g, '')
+                    .replace(/\x1b\[2K/g, '')
+                    .replace(/\x1b\[1A/g, '')
+                    .replace(/\x1b\[G/g, '')
+                    .replace(/\r/g, '')
+                    .split('\n')
+                    .filter(line => line.trim().length > 0)
+                    .join('\n');
+                    
+                sendErrorResponse({ 
+                    success: false, 
+                    error: `Claude doctor failed with exit code ${code}`,
+                    output: cleanOutput.trim(),
+                    timestamp: new Date().toISOString()
+                });
+            }
+        });
+
+        ptyProcess.on('error', (error) => {
+            console.error(`❌ Failed to spawn Claude doctor process:`, error);
+            clearChecker(); // Clean up the output checker
+            sendErrorResponse({ 
+                success: false, 
+                error: `Failed to run Claude doctor: ${error.message}`,
+                timestamp: new Date().toISOString()
+            });
+        });
+
+        // Timeout handler
+        setTimeout(() => {
+            if (!isResponseSent) {
+                console.log('⏰ Claude doctor command timeout, killing process...');
+                clearChecker(); // Clean up the output checker
+                ptyProcess.kill('SIGTERM');
+                const cleanOutput = output
+                    .replace(/\x1b\[[0-9;]*m/g, '')
+                    .replace(/\x1b\[2K/g, '')
+                    .replace(/\x1b\[1A/g, '')
+                    .replace(/\x1b\[G/g, '')
+                    .replace(/\r/g, '')
+                    .split('\n')
+                    .filter(line => line.trim().length > 0)
+                    .join('\n');
+                    
+                sendErrorResponse({
+                    success: false,
+                    error: 'Claude doctor command timed out after 90 seconds',
+                    output: cleanOutput.trim(),
+                    timestamp: new Date().toISOString()
+                });
+            }
+        }, 90000);
+
+    } catch (error) {
+        console.error('Error running Claude doctor:', error);
+        if (!res.headersSent) {
+            res.status(500).json({ 
+                success: false, 
+                error: error.message,
+                timestamp: new Date().toISOString()
+            });
+        }
+    }
+});
+
+// App info endpoint
+app.get('/api/app/info', async (req, res) => {
+    try {
+        // Read package.json to get app info
+        const packagePath = path.join(process.cwd(), 'package.json');
+        const packageData = JSON.parse(await fsPromises.readFile(packagePath, 'utf8'));
+        
+        // Get git info if available
+        let gitInfo = null;
+        try {
+            const { spawn } = await import('child_process');
+            const gitRemote = await new Promise((resolve, reject) => {
+                const process = spawn('git', ['remote', 'get-url', 'origin'], {
+                    stdio: ['pipe', 'pipe', 'pipe'],
+                    cwd: process.cwd()
+                });
+                
+                let stdout = '';
+                process.stdout.on('data', (data) => stdout += data.toString());
+                process.on('close', (code) => {
+                    if (code === 0) resolve(stdout.trim());
+                    else resolve(null);
+                });
+                process.on('error', () => resolve(null));
+            });
+            
+            const gitCommit = await new Promise((resolve, reject) => {
+                const process = spawn('git', ['rev-parse', '--short', 'HEAD'], {
+                    stdio: ['pipe', 'pipe', 'pipe'],
+                    cwd: process.cwd()
+                });
+                
+                let stdout = '';
+                process.stdout.on('data', (data) => stdout += data.toString());
+                process.on('close', (code) => {
+                    if (code === 0) resolve(stdout.trim());
+                    else resolve(null);
+                });
+                process.on('error', () => resolve(null));
+            });
+            
+            if (gitRemote || gitCommit) {
+                gitInfo = {
+                    repository: gitRemote,
+                    commit: gitCommit
+                };
+            }
+        } catch (error) {
+            console.warn('Failed to get git info:', error);
+        }
+        
+        const appInfo = {
+            name: packageData.name,
+            version: packageData.version,
+            description: packageData.description,
+            author: packageData.author,
+            license: packageData.license,
+            keywords: packageData.keywords || [],
+            git: gitInfo,
+            build: {
+                timestamp: new Date().toISOString(),
+                nodeVersion: process.version,
+                platform: process.platform,
+                arch: process.arch
+            }
+        };
+        
+        res.json({
+            success: true,
+            data: appInfo
+        });
+        
+    } catch (error) {
+        console.error('Error getting app info:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
 // Create project endpoint
 app.post('/api/projects/create', async (req, res) => {
     try {

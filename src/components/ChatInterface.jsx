@@ -2659,25 +2659,27 @@ function ChatInterface({
           }
         ` }
             </style>
-            <div className="h-full flex flex-col">
+            <div className="h-full flex flex-col relative">
+                {/* Chat Background - Covers entire chat area including input */ }
+                { chatBgEnabledResolved && (
+                    <div
+                        className="pointer-events-none absolute inset-0 z-0"
+                        aria-hidden="true"
+                        style={ {
+                            backgroundImage: `url('${ chatBgImageUrl || './bg-repeat.svg' }')`,
+                            backgroundRepeat: 'repeat',
+                            backgroundSize: '72px 72px',
+                            backgroundPosition: 'center top',
+                            opacity: 0.1,
+                        } }
+                    />
+                ) }
+                
                 {/* Messages Area - Scrollable Middle Section */ }
                 <div
                     ref={ scrollContainerRef }
-                    className="flex-1 overflow-y-auto overflow-x-hidden px-0 py-3 sm:p-4 space-y-3 sm:space-y-4 relative"
+                    className="flex-1 overflow-y-auto overflow-x-hidden px-0 py-3 sm:p-4 space-y-3 sm:space-y-4 relative z-10"
                 >
-                    { chatBgEnabledResolved && (
-                        <div
-                            className="pointer-events-none absolute inset-0 z-0"
-                            aria-hidden="true"
-                            style={ {
-                                backgroundImage: `url('${ chatBgImageUrl || './bg-repeat.svg' }')`,
-                                backgroundRepeat: 'repeat',
-                                backgroundSize: '72px 72px',
-                                backgroundPosition: 'center top',
-                                opacity: 0.1,
-                            } }
-                        />
-                    ) }
                     { isLoadingSessionMessages && chatMessages.length === 0 ? (
                         <div className="relative z-10 text-center text-gray-500 dark:text-gray-400 mt-8">
                             <div className="flex items-center justify-center space-x-2">
@@ -2760,7 +2762,7 @@ function ChatInterface({
 
 
                 {/* Input Area - Fixed Bottom */ }
-                <div className={ `p-2 sm:p-4 md:p-6 flex-shrink-0 ${
+                <div className={ `p-2 sm:p-4 md:p-6 flex-shrink-0 relative z-10 ${
                     isInputFocused ? 'pb-2 sm:pb-4 md:pb-6' : 'pb-16 sm:pb-4 md:pb-6'
                 }` }>
                     {/* Claude Working Status - positioned above the input form */ }
