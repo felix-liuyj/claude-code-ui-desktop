@@ -23,48 +23,74 @@
 
 @layer base {
     :root {
-        --background: 0 0% 100%;
-        --foreground: 222.2 84% 4.9%;
+        /* Custom Theme Colors */
+        --primary-100: #D77655;
+        --primary-200: #b75a3b;
+        --primary-300: #6d1c01;
+        --accent-100: #6E8CA0;
+        --accent-200: #153546;
+        --text-100: #333333;
+        --text-200: #5c5c5c;
+        --bg-100: #F7F7F7;
+        --bg-200: #ededed;
+        --bg-300: #c4c4c4;
+
+        /* Mapped to Tailwind/shadcn variables */
+        --background: 0 0% 96.9%; /* maps to bg-100 */
+        --foreground: 0 0% 20%; /* maps to text-100 */
         --card: 0 0% 100%;
-        --card-foreground: 222.2 84% 4.9%;
+        --card-foreground: 0 0% 20%;
         --popover: 0 0% 100%;
-        --popover-foreground: 222.2 84% 4.9%;
-        --primary: 221.2 83.2% 53.3%;
+        --popover-foreground: 0 0% 20%;
+        --primary: 12 52% 59%; /* maps to primary-100 */
         --primary-foreground: 210 40% 98%;
-        --secondary: 210 40% 96.1%;
-        --secondary-foreground: 222.2 47.4% 11.2%;
-        --muted: 210 40% 96.1%;
-        --muted-foreground: 215.4 16.3% 46.9%;
-        --accent: 210 40% 96.1%;
-        --accent-foreground: 222.2 47.4% 11.2%;
+        --secondary: 0 0% 92.9%; /* maps to bg-200 */
+        --secondary-foreground: 0 0% 36%; /* maps to text-200 */
+        --muted: 0 0% 92.9%; /* maps to bg-200 */
+        --muted-foreground: 0 0% 36%; /* maps to text-200 */
+        --accent: 205 25% 52%; /* maps to accent-100 */
+        --accent-foreground: 0 0% 100%;
         --destructive: 0 84.2% 60.2%;
         --destructive-foreground: 210 40% 98%;
-        --border: 214.3 31.8% 91.4%;
-        --input: 214.3 31.8% 91.4%;
-        --ring: 221.2 83.2% 53.3%;
+        --border: 0 0% 77%; /* maps to bg-300 */
+        --input: 0 0% 77%; /* maps to bg-300 */
+        --ring: 12 52% 59%; /* maps to primary-100 */
         --radius: 0.5rem;
     }
 
     .dark {
-        --background: 222.2 84% 4.9%;
-        --foreground: 210 40% 98%;
-        --card: 217.2 91.2% 8%;
-        --card-foreground: 210 40% 98%;
-        --popover: 217.2 91.2% 8%;
-        --popover-foreground: 210 40% 98%;
-        --primary: 217.2 91.2% 59.8%;
-        --primary-foreground: 222.2 47.4% 11.2%;
-        --secondary: 217.2 32.6% 17.5%;
-        --secondary-foreground: 210 40% 98%;
-        --muted: 217.2 32.6% 17.5%;
-        --muted-foreground: 215 20.2% 65.1%;
-        --accent: 217.2 32.6% 17.5%;
-        --accent-foreground: 210 40% 98%;
+        /* Custom Theme Colors - Dark Mode */
+        --primary-100: #D77655;
+        --primary-200: #b75a3b;
+        --primary-300: #6d1c01;
+        --accent-100: #6E8CA0;
+        --accent-200: #153546;
+        --text-100: #e5e5e5;
+        --text-200: #b3b3b3;
+        --bg-100: #1a1a1a;
+        --bg-200: #2d2d2d;
+        --bg-300: #404040;
+
+        /* Mapped to Tailwind/shadcn variables - Dark Mode */
+        --background: 0 0% 10.2%; /* maps to bg-100 */
+        --foreground: 0 0% 89.8%; /* maps to text-100 */
+        --card: 0 0% 17.6%; /* maps to bg-200 */
+        --card-foreground: 0 0% 89.8%;
+        --popover: 0 0% 17.6%; /* maps to bg-200 */
+        --popover-foreground: 0 0% 89.8%;
+        --primary: 12 52% 59%; /* maps to primary-100 */
+        --primary-foreground: 0 0% 100%;
+        --secondary: 0 0% 17.6%; /* maps to bg-200 */
+        --secondary-foreground: 0 0% 70.2%; /* maps to text-200 */
+        --muted: 0 0% 17.6%; /* maps to bg-200 */
+        --muted-foreground: 0 0% 70.2%; /* maps to text-200 */
+        --accent: 205 25% 52%; /* maps to accent-100 */
+        --accent-foreground: 0 0% 100%;
         --destructive: 0 62.8% 30.6%;
         --destructive-foreground: 210 40% 98%;
-        --border: 217.2 32.6% 17.5%;
-        --input: 217.2 32.6% 17.5%;
-        --ring: 217.2 91.2% 59.8%;
+        --border: 0 0% 25.1%; /* maps to bg-300 */
+        --input: 0 0% 25.1%; /* maps to bg-300 */
+        --ring: 12 52% 59%; /* maps to primary-100 */
     }
 }
 
@@ -149,6 +175,44 @@
 }
 
 @layer utilities {
+    /* Custom Theme Utility Classes */
+    .bg-primary-100 { background-color: var(--primary-100); }
+    .bg-primary-200 { background-color: var(--primary-200); }
+    .bg-primary-300 { background-color: var(--primary-300); }
+    
+    .bg-accent-100 { background-color: var(--accent-100); }
+    .bg-accent-200 { background-color: var(--accent-200); }
+    
+    .text-primary-100 { color: var(--primary-100); }
+    .text-primary-200 { color: var(--primary-200); }
+    .text-primary-300 { color: var(--primary-300); }
+    
+    .text-accent-100 { color: var(--accent-100); }
+    .text-accent-200 { color: var(--accent-200); }
+    
+    .text-custom-100 { color: var(--text-100); }
+    .text-custom-200 { color: var(--text-200); }
+    
+    .bg-custom-100 { background-color: var(--bg-100); }
+    .bg-custom-200 { background-color: var(--bg-200); }
+    .bg-custom-300 { background-color: var(--bg-300); }
+    
+    .border-primary-100 { border-color: var(--primary-100); }
+    .border-accent-100 { border-color: var(--accent-100); }
+    .border-custom-300 { border-color: var(--bg-300); }
+    
+    .hover\:bg-primary-100:hover { background-color: var(--primary-100); }
+    .hover\:bg-primary-200:hover { background-color: var(--primary-200); }
+    .hover\:text-primary-100:hover { color: var(--primary-100); }
+    
+    /* Ring focus states for accessibility */
+    .focus\:ring-primary-100:focus { 
+        --tw-ring-color: var(--primary-100); 
+    }
+    .focus\:ring-accent-100:focus { 
+        --tw-ring-color: var(--accent-100); 
+    }
+
     /* Smooth hover transitions for interactive elements */
     button:hover,
     a:hover,

@@ -12,7 +12,9 @@ import mime from 'mime-types';
 
 import {
     addProjectManually,
+    clearCorruptedCacheEntries,
     clearProjectDirectoryCache,
+    decodeProjectPath,
     deleteProject,
     deleteSession,
     extractProjectDirectory,
@@ -399,33 +401,33 @@ app.get('/api/app/info', async (req, res) => {
         try {
             const { spawn } = await import('child_process');
             const gitRemote = await new Promise((resolve, reject) => {
-                const process = spawn('git', ['remote', 'get-url', 'origin'], {
+                const gitProcess = spawn('git', ['remote', 'get-url', 'origin'], {
                     stdio: ['pipe', 'pipe', 'pipe'],
                     cwd: process.cwd()
                 });
                 
                 let stdout = '';
-                process.stdout.on('data', (data) => stdout += data.toString());
-                process.on('close', (code) => {
+                gitProcess.stdout.on('data', (data) => stdout += data.toString());
+                gitProcess.on('close', (code) => {
                     if (code === 0) resolve(stdout.trim());
                     else resolve(null);
                 });
-                process.on('error', () => resolve(null));
+                gitProcess.on('error', () => resolve(null));
             });
             
             const gitCommit = await new Promise((resolve, reject) => {
-                const process = spawn('git', ['rev-parse', '--short', 'HEAD'], {
+                const gitCommitProcess = spawn('git', ['rev-parse', '--short', 'HEAD'], {
                     stdio: ['pipe', 'pipe', 'pipe'],
                     cwd: process.cwd()
                 });
                 
                 let stdout = '';
-                process.stdout.on('data', (data) => stdout += data.toString());
-                process.on('close', (code) => {
+                gitCommitProcess.stdout.on('data', (data) => stdout += data.toString());
+                gitCommitProcess.on('close', (code) => {
                     if (code === 0) resolve(stdout.trim());
                     else resolve(null);
                 });
-                process.on('error', () => resolve(null));
+                gitCommitProcess.on('error', () => resolve(null));
             });
             
             if (gitRemote || gitCommit) {
@@ -619,8 +621,8 @@ app.get('/api/projects/:projectName/files', async (req, res) => {
             actualPath = await extractProjectDirectory(req.params.projectName);
         } catch (error) {
             console.error('Error extracting project directory:', error);
-            // Fallback to simple dash replacement
-            actualPath = req.params.projectName.replace(/-/g, '/');
+            // Use improved decoding function
+            actualPath = decodeProjectPath(req.params.projectName);
         }
 
         // Check if path exists
@@ -1211,6 +1213,9 @@ async function startServer() {
 
         server.listen(PORT, host, async () => {
             console.log(`Claude Code UI server running on http://${ host }:${ PORT }`);
+
+            // Clean up any corrupted cache entries on startup
+            clearCorruptedCacheEntries();
 
             // Start watching the projects folder for changes
             await setupProjectsWatcher(); // Re-enabled with better-sqlite3

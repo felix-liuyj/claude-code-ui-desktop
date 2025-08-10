@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Badge } from './ui/badge';
-import { apiFetch } from '../utils/api';
+import { apiFetch, api } from '../utils/api';
 import claudeDoctorService from '../utils/claudeDoctor';
 import {
     AlertTriangle,
@@ -72,10 +72,39 @@ function ToolsSettings({ isOpen, onClose }) {
     // About tab state - using global Claude doctor service
     const [claudeDoctorState, setClaudeDoctorState] = useState(() => claudeDoctorService.getData());
     
+    // App info state
+    const [appInfo, setAppInfo] = useState(null);
+    const [appInfoLoading, setAppInfoLoading] = useState(false);
+    const [appInfoError, setAppInfoError] = useState(null);
+    
     // Function to refresh Claude doctor data manually
     const refreshClaudeDoctor = async () => {
         await claudeDoctorService.refresh();
         setClaudeDoctorState(claudeDoctorService.getData());
+    };
+
+    // Function to fetch app information
+    const fetchAppInfo = async () => {
+        if (appInfoLoading) return;
+        
+        setAppInfoLoading(true);
+        setAppInfoError(null);
+        
+        try {
+            const response = await api.getAppInfo();
+            const result = await response.json();
+            
+            if (result.success) {
+                setAppInfo(result.data);
+            } else {
+                setAppInfoError(result.error || 'Failed to fetch app info');
+            }
+        } catch (error) {
+            console.error('Failed to fetch app info:', error);
+            setAppInfoError(error.message);
+        } finally {
+            setAppInfoLoading(false);
+        }
     };
 
     // Persist permission mode immediately and notify listeners
@@ -304,6 +333,10 @@ function ToolsSettings({ isOpen, onClose }) {
     useEffect(() => {
         if (isOpen) {
             loadSettings();
+            // Load app info when settings dialog opens
+            if (!appInfo && !appInfoLoading) {
+                fetchAppInfo();
+            }
         }
     }, [isOpen]);
 
@@ -658,7 +691,7 @@ function ToolsSettings({ isOpen, onClose }) {
                 <div
                     className="flex items-center justify-between p-4 md:p-6 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
                     <div className="flex items-center gap-3">
-                        <Settings className="w-5 h-5 md:w-6 md:h-6 text-blue-600"/>
+                        <Settings className="w-5 h-5 md:w-6 md:h-6 text-primary"/>
                         <h2 className="text-lg md:text-xl font-semibold text-gray-900 dark:text-white">
                             设置
                         </h2>
@@ -681,7 +714,7 @@ function ToolsSettings({ isOpen, onClose }) {
                                 onClick={ () => setActiveTab('tools') }
                                 className={ `flex-shrink-0 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
                                     activeTab === 'tools'
-                                        ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+                                        ? 'border-primary text-primary'
                                         : 'border-transparent text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
                                 }` }
                             >
@@ -691,7 +724,7 @@ function ToolsSettings({ isOpen, onClose }) {
                                 onClick={ () => setActiveTab('appearance') }
                                 className={ `flex-shrink-0 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
                                     activeTab === 'appearance'
-                                        ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+                                        ? 'border-primary text-primary'
                                         : 'border-transparent text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
                                 }` }
                             >
@@ -701,7 +734,7 @@ function ToolsSettings({ isOpen, onClose }) {
                                 onClick={ () => setActiveTab('security') }
                                 className={ `flex-shrink-0 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
                                     activeTab === 'security'
-                                        ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+                                        ? 'border-primary text-primary'
                                         : 'border-transparent text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
                                 }` }
                             >
@@ -711,7 +744,7 @@ function ToolsSettings({ isOpen, onClose }) {
                                 onClick={ () => setActiveTab('mcp') }
                                 className={ `flex-shrink-0 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
                                     activeTab === 'mcp'
-                                        ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+                                        ? 'border-primary text-primary'
                                         : 'border-transparent text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
                                 }` }
                             >
@@ -723,7 +756,7 @@ function ToolsSettings({ isOpen, onClose }) {
                                     onClick={ () => setActiveTab('developer') }
                                     className={ `flex-shrink-0 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
                                         activeTab === 'developer'
-                                            ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+                                            ? 'border-primary text-primary'
                                             : 'border-transparent text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
                                     }` }
                                 >
@@ -735,7 +768,7 @@ function ToolsSettings({ isOpen, onClose }) {
                                 onClick={ () => setActiveTab('about') }
                                 className={ `flex-shrink-0 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
                                     activeTab === 'about'
-                                        ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+                                        ? 'border-primary text-primary'
                                         : 'border-transparent text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
                                 }` }
                             >
@@ -751,7 +784,7 @@ function ToolsSettings({ isOpen, onClose }) {
                                 {/* Permission Mode */ }
                                 <div className="space-y-4">
                                     <div className="flex items-center gap-3">
-                                        <Shield className="w-5 h-5 text-blue-500"/>
+                                        <Shield className="w-5 h-5 text-primary"/>
                                         <h3 className="text-lg font-medium text-foreground">
                                             权限模式
                                         </h3>
@@ -778,10 +811,10 @@ function ToolsSettings({ isOpen, onClose }) {
                                                                checked={ permissionMode === 'default' }
                                                                onChange={ (e) => e.target.checked && persistPermissionMode('default') }
                                                                disabled={ skipPermissions }
-                                                               className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600"/>
+                                                               className="h-4 w-4 text-primary focus:ring-primary border-gray-300 dark:border-gray-600"/>
                                                         <div className="flex items-center space-x-2">
                                                             <Shield
-                                                                className="w-4 h-4 text-blue-600 dark:text-blue-400"/>
+                                                                className="w-4 h-4 text-primary"/>
                                                             <span
                                                                 className="text-sm text-gray-700 dark:text-gray-300">默认模式</span>
                                                         </div>
@@ -793,7 +826,7 @@ function ToolsSettings({ isOpen, onClose }) {
                                                                checked={ permissionMode === 'acceptEdits' }
                                                                onChange={ (e) => e.target.checked && persistPermissionMode('acceptEdits') }
                                                                disabled={ skipPermissions }
-                                                               className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600"/>
+                                                               className="h-4 w-4 text-primary focus:ring-primary border-gray-300 dark:border-gray-600"/>
                                                         <div className="flex items-center space-x-2">
                                                             <Edit3 className="w-4 h-4 text-green-500"/>
                                                             <span
@@ -808,7 +841,7 @@ function ToolsSettings({ isOpen, onClose }) {
                                                                checked={ permissionMode === 'bypassPermissions' }
                                                                onChange={ (e) => e.target.checked && persistPermissionMode('bypassPermissions') }
                                                                disabled={ skipPermissions }
-                                                               className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600"/>
+                                                               className="h-4 w-4 text-primary focus:ring-primary border-gray-300 dark:border-gray-600"/>
                                                         <div className="flex items-center space-x-2">
                                                             <AlertTriangle className="w-4 h-4 text-orange-500"/>
                                                             <span
@@ -824,9 +857,9 @@ function ToolsSettings({ isOpen, onClose }) {
                                                                checked={ permissionMode === 'plan' }
                                                                onChange={ (e) => e.target.checked && persistPermissionMode('plan') }
                                                                disabled={ skipPermissions }
-                                                               className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600"/>
+                                                               className="h-4 w-4 text-primary focus:ring-primary border-gray-300 dark:border-gray-600"/>
                                                         <div className="flex items-center space-x-2">
-                                                            <FileText className="w-4 h-4 text-blue-500"/>
+                                                            <FileText className="w-4 h-4 text-primary"/>
                                                             <span
                                                                 className="text-sm text-gray-700 dark:text-gray-300">计划模式</span>
                                                         </div>
@@ -881,7 +914,7 @@ function ToolsSettings({ isOpen, onClose }) {
                                                         console.error('Failed to persist skipPermissions:', err);
                                                     }
                                                 } }
-                                                       className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"/>
+                                                       className="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded focus:ring-primary"/>
                                                 <div>
                                                     <div
                                                         className="font-medium text-orange-900 dark:text-orange-100">跳过所有权限提示（极度危险）
@@ -920,7 +953,7 @@ function ToolsSettings({ isOpen, onClose }) {
                                                         value="auto"
                                                         checked={ themeMode === 'auto' }
                                                         onChange={ (e) => e.target.checked && setTheme('auto') }
-                                                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600"
+                                                        className="h-4 w-4 text-primary focus:ring-primary border-gray-300 dark:border-gray-600"
                                                     />
                                                     <div className="flex items-center space-x-2">
                                                         <Monitor className="w-4 h-4 text-gray-600 dark:text-gray-400"/>
@@ -938,7 +971,7 @@ function ToolsSettings({ isOpen, onClose }) {
                                                         value="light"
                                                         checked={ themeMode === 'light' }
                                                         onChange={ (e) => e.target.checked && setTheme('light') }
-                                                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600"
+                                                        className="h-4 w-4 text-primary focus:ring-primary border-gray-300 dark:border-gray-600"
                                                     />
                                                     <div className="flex items-center space-x-2">
                                                         <Sun className="w-4 h-4 text-yellow-500"/>
@@ -956,7 +989,7 @@ function ToolsSettings({ isOpen, onClose }) {
                                                         value="dark"
                                                         checked={ themeMode === 'dark' }
                                                         onChange={ (e) => e.target.checked && setTheme('dark') }
-                                                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600"
+                                                        className="h-4 w-4 text-primary focus:ring-primary border-gray-300 dark:border-gray-600"
                                                     />
                                                     <div className="flex items-center space-x-2">
                                                         <Moon className="w-4 h-4 text-gray-600 dark:text-gray-400"/>
@@ -986,7 +1019,7 @@ function ToolsSettings({ isOpen, onClose }) {
                                             <select
                                                 value={ projectSortOrder }
                                                 onChange={ (e) => setProjectSortOrder(e.target.value) }
-                                                className="text-sm bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2 w-32"
+                                                className="text-sm bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-primary focus:border-blue-500 p-2 w-32"
                                             >
                                                 <option value="name">按字母顺序</option>
                                                 <option value="date">按最近活动</option>
@@ -1095,7 +1128,7 @@ function ToolsSettings({ isOpen, onClose }) {
                                             <DevTools className="mb-4"/>
 
                                             <div
-                                                className="text-xs text-muted-foreground mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                                                className="text-xs text-muted-foreground mt-4 p-3 bg-primary/5 rounded-lg border border-primary/20">
                                                 <div className="font-medium mb-2">使用提示：</div>
                                                 <ul className="list-disc list-inside space-y-1">
                                                     <li>在 Electron 应用中，您可以使用上方按钮控制开发者工具的显示</li>
@@ -1174,7 +1207,7 @@ function ToolsSettings({ isOpen, onClose }) {
                                 <div className="space-y-4">
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-3">
-                                            <Terminal className="w-5 h-5 text-blue-500"/>
+                                            <Terminal className="w-5 h-5 text-primary"/>
                                             <h3 className="text-lg font-medium text-foreground">
                                                 Claude 状态诊断
                                             </h3>
@@ -1243,46 +1276,130 @@ function ToolsSettings({ isOpen, onClose }) {
                                     </div>
                                     
                                     <div className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-                                        <div className="space-y-3 text-sm">
-                                            <div className="flex justify-between">
-                                                <span className="text-gray-600 dark:text-gray-400">应用名称:</span>
-                                                <span className="font-medium">Claude Code UI Desktop</span>
+                                        {appInfoLoading && (
+                                            <div className="text-center py-4">
+                                                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-500 mx-auto mb-2"></div>
+                                                <p className="text-sm text-gray-600 dark:text-gray-400">正在获取应用信息...</p>
                                             </div>
-                                            <div className="flex justify-between">
-                                                <span className="text-gray-600 dark:text-gray-400">运行环境:</span>
-                                                <span className="font-medium">
-                                                    {window.electronAPI?.isElectron?.() ? 'Electron Desktop' : 'Web Browser'}
-                                                </span>
+                                        )}
+                                        
+                                        {appInfoError && !appInfoLoading && (
+                                            <div className="text-center py-4">
+                                                <AlertTriangle className="w-8 h-8 text-red-500 mx-auto mb-2"/>
+                                                <p className="text-sm text-red-600 dark:text-red-400 mb-2">获取应用信息失败</p>
+                                                <p className="text-xs text-gray-600 dark:text-gray-400">{appInfoError}</p>
+                                                <Button
+                                                    onClick={fetchAppInfo}
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="mt-2"
+                                                >
+                                                    重试
+                                                </Button>
                                             </div>
-                                            <div className="flex justify-between">
-                                                <span className="text-gray-600 dark:text-gray-400">平台:</span>
-                                                <span className="font-medium capitalize">
-                                                    {window.electronAPI?.platform || navigator.platform}
-                                                </span>
+                                        )}
+                                        
+                                        {appInfo && !appInfoLoading && (
+                                            <div className="space-y-3 text-sm">
+                                                <div className="flex justify-between">
+                                                    <span className="text-gray-600 dark:text-gray-400">应用名称:</span>
+                                                    <span className="font-medium">{appInfo.name}</span>
+                                                </div>
+                                                <div className="flex justify-between">
+                                                    <span className="text-gray-600 dark:text-gray-400">版本:</span>
+                                                    <span className="font-mono text-xs">{appInfo.version}</span>
+                                                </div>
+                                                {appInfo.description && (
+                                                    <div className="flex justify-between">
+                                                        <span className="text-gray-600 dark:text-gray-400">描述:</span>
+                                                        <span className="font-medium text-right max-w-xs">{appInfo.description}</span>
+                                                    </div>
+                                                )}
+                                                {appInfo.author && (
+                                                    <div className="flex justify-between">
+                                                        <span className="text-gray-600 dark:text-gray-400">作者:</span>
+                                                        <span className="font-medium">{appInfo.author}</span>
+                                                    </div>
+                                                )}
+                                                {appInfo.license && (
+                                                    <div className="flex justify-between">
+                                                        <span className="text-gray-600 dark:text-gray-400">许可证:</span>
+                                                        <span className="font-mono text-xs">{appInfo.license}</span>
+                                                    </div>
+                                                )}
+                                                {appInfo.git?.repository && (
+                                                    <div className="flex justify-between">
+                                                        <span className="text-gray-600 dark:text-gray-400">仓库:</span>
+                                                        <a 
+                                                            href={appInfo.git.repository.replace('git@github.com:', 'https://github.com/').replace('.git', '')}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="font-mono text-xs text-primary hover:text-primary underline"
+                                                        >
+                                                            GitHub
+                                                        </a>
+                                                    </div>
+                                                )}
+                                                {appInfo.git?.commit && (
+                                                    <div className="flex justify-between">
+                                                        <span className="text-gray-600 dark:text-gray-400">提交:</span>
+                                                        <span className="font-mono text-xs">{appInfo.git.commit}</span>
+                                                    </div>
+                                                )}
+                                                <div className="flex justify-between">
+                                                    <span className="text-gray-600 dark:text-gray-400">运行环境:</span>
+                                                    <span className="font-medium">
+                                                        {window.electronAPI?.isElectron?.() ? 'Electron Desktop' : 'Web Browser'}
+                                                    </span>
+                                                </div>
+                                                <div className="flex justify-between">
+                                                    <span className="text-gray-600 dark:text-gray-400">平台:</span>
+                                                    <span className="font-medium capitalize">
+                                                        {appInfo.build?.platform || window.electronAPI?.platform || navigator.platform}
+                                                    </span>
+                                                </div>
+                                                <div className="flex justify-between">
+                                                    <span className="text-gray-600 dark:text-gray-400">架构:</span>
+                                                    <span className="font-mono text-xs">{appInfo.build?.arch}</span>
+                                                </div>
+                                                {window.environment && (
+                                                    <>
+                                                        <div className="flex justify-between">
+                                                            <span className="text-gray-600 dark:text-gray-400">Electron版本:</span>
+                                                            <span className="font-mono text-xs">
+                                                                {window.environment.electronVersion}
+                                                            </span>
+                                                        </div>
+                                                        <div className="flex justify-between">
+                                                            <span className="text-gray-600 dark:text-gray-400">Node.js版本:</span>
+                                                            <span className="font-mono text-xs">
+                                                                {appInfo.build?.nodeVersion || window.environment.nodeVersion}
+                                                            </span>
+                                                        </div>
+                                                        <div className="flex justify-between">
+                                                            <span className="text-gray-600 dark:text-gray-400">Chrome版本:</span>
+                                                            <span className="font-mono text-xs">
+                                                                {window.environment.chromeVersion}
+                                                            </span>
+                                                        </div>
+                                                    </>
+                                                )}
                                             </div>
-                                            {window.environment && (
-                                                <>
-                                                    <div className="flex justify-between">
-                                                        <span className="text-gray-600 dark:text-gray-400">Electron版本:</span>
-                                                        <span className="font-mono text-xs">
-                                                            {window.environment.electronVersion}
-                                                        </span>
-                                                    </div>
-                                                    <div className="flex justify-between">
-                                                        <span className="text-gray-600 dark:text-gray-400">Node.js版本:</span>
-                                                        <span className="font-mono text-xs">
-                                                            {window.environment.nodeVersion}
-                                                        </span>
-                                                    </div>
-                                                    <div className="flex justify-between">
-                                                        <span className="text-gray-600 dark:text-gray-400">Chrome版本:</span>
-                                                        <span className="font-mono text-xs">
-                                                            {window.environment.chromeVersion}
-                                                        </span>
-                                                    </div>
-                                                </>
-                                            )}
-                                        </div>
+                                        )}
+                                        
+                                        {!appInfo && !appInfoLoading && !appInfoError && (
+                                            <div className="text-center py-4">
+                                                <Monitor className="w-8 h-8 text-gray-400 mx-auto mb-2"/>
+                                                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">应用信息未加载</p>
+                                                <Button
+                                                    onClick={fetchAppInfo}
+                                                    variant="outline"
+                                                    size="sm"
+                                                >
+                                                    获取应用信息
+                                                </Button>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -1443,25 +1560,25 @@ function ToolsSettings({ isOpen, onClose }) {
 
                                 {/* Help Section */ }
                                 <div
-                                    className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-                                    <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">
+                                    className="bg-primary/5 border border-primary/20 rounded-lg p-4">
+                                    <h4 className="font-medium text-primary-foreground mb-2">
                                         工具模式示例：
                                     </h4>
-                                    <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
-                                        <li><code className="bg-blue-100 dark:bg-blue-800 px-1 rounded">"Bash(git
+                                    <ul className="text-sm text-primary space-y-1">
+                                        <li><code className="bg-primary/10 px-1 rounded">"Bash(git
                                             log:*)"</code> - 允许所有 git log 命令
                                         </li>
-                                        <li><code className="bg-blue-100 dark:bg-blue-800 px-1 rounded">"Bash(git
+                                        <li><code className="bg-primary/10 px-1 rounded">"Bash(git
                                             diff:*)"</code> - 允许所有 git diff 命令
                                         </li>
-                                        <li><code className="bg-blue-100 dark:bg-blue-800 px-1 rounded">"Write"</code> -
+                                        <li><code className="bg-primary/10 px-1 rounded">"Write"</code> -
                                             允许所有写入工具使用
                                         </li>
-                                        <li><code className="bg-blue-100 dark:bg-blue-800 px-1 rounded">"Read"</code> -
+                                        <li><code className="bg-primary/10 px-1 rounded">"Read"</code> -
                                             允许所有读取工具使用
                                         </li>
                                         <li><code
-                                            className="bg-blue-100 dark:bg-blue-800 px-1 rounded">"Bash(rm:*)"</code> -
+                                            className="bg-primary/10 px-1 rounded">"Bash(rm:*)"</code> -
                                             阻止所有 rm 命令（危险）
                                         </li>
                                     </ul>
@@ -1538,7 +1655,7 @@ function ToolsSettings({ isOpen, onClose }) {
                                                             {/* Tools Discovery Results */ }
                                                             { mcpServerTools[server.id] && (
                                                                 <div
-                                                                    className="mt-2 p-2 rounded text-xs bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200 border border-blue-200 dark:border-blue-800">
+                                                                    className="mt-2 p-2 rounded text-xs bg-primary/5 text-primary border border-primary/20">
                                                                     <div className="font-medium mb-2">Available Tools &
                                                                         Resources
                                                                     </div>
@@ -1553,10 +1670,10 @@ function ToolsSettings({ isOpen, onClose }) {
                                                                                     <li key={ i }
                                                                                         className="flex items-start gap-1">
                                                                                         <span
-                                                                                            className="text-blue-400 mt-0.5">•</span>
+                                                                                            className="text-primary mt-0.5">•</span>
                                                                                         <div>
                                                                                             <code
-                                                                                                className="bg-blue-100 dark:bg-blue-800 px-1 rounded">{ tool.name }</code>
+                                                                                                className="bg-primary/10 px-1 rounded">{ tool.name }</code>
                                                                                             { tool.description && tool.description !== 'No description provided' && (
                                                                                                 <span
                                                                                                     className="ml-1 text-xs opacity-75">- { tool.description }</span>) }
@@ -1577,10 +1694,10 @@ function ToolsSettings({ isOpen, onClose }) {
                                                                                     <li key={ i }
                                                                                         className="flex items-start gap-1">
                                                                                         <span
-                                                                                            className="text-blue-400 mt-0.5">•</span>
+                                                                                            className="text-primary mt-0.5">•</span>
                                                                                         <div>
                                                                                             <code
-                                                                                                className="bg-blue-100 dark:bg-blue-800 px-1 rounded">{ resource.name }</code>
+                                                                                                className="bg-primary/10 px-1 rounded">{ resource.name }</code>
                                                                                             { resource.description && resource.description !== 'No description provided' && (
                                                                                                 <span
                                                                                                     className="ml-1 text-xs opacity-75">- { resource.description }</span>) }
@@ -1601,10 +1718,10 @@ function ToolsSettings({ isOpen, onClose }) {
                                                                                     <li key={ i }
                                                                                         className="flex items-start gap-1">
                                                                                         <span
-                                                                                            className="text-blue-400 mt-0.5">•</span>
+                                                                                            className="text-primary mt-0.5">•</span>
                                                                                         <div>
                                                                                             <code
-                                                                                                className="bg-blue-100 dark:bg-blue-800 px-1 rounded">{ prompt.name }</code>
+                                                                                                className="bg-primary/10 px-1 rounded">{ prompt.name }</code>
                                                                                             { prompt.description && prompt.description !== 'No description provided' && (
                                                                                                 <span
                                                                                                     className="ml-1 text-xs opacity-75">- { prompt.description }</span>) }
@@ -1626,10 +1743,10 @@ function ToolsSettings({ isOpen, onClose }) {
                                                                 onClick={ () => handleMcpTest(server.id, server.scope) }
                                                                 variant="ghost" size="sm"
                                                                 disabled={ mcpTestResults[server.id]?.loading }
-                                                                className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                                                                className="text-primary hover:text-primary/80"
                                                                 title="Test connection">
                                                                 { mcpTestResults[server.id]?.loading ? (<div
-                                                                    className="w-4 h-4 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"/>) : (
+                                                                    className="w-4 h-4 animate-spin rounded-full border-2 border-primary border-t-transparent"/>) : (
                                                                     <Play className="w-4 h-4"/>) }
                                                             </Button>
                                                             <Button
@@ -1698,7 +1815,7 @@ function ToolsSettings({ isOpen, onClose }) {
                                                             setMcpConfigTestResult(null);
                                                             setMcpConfigTested(false);
                                                         } }
-                                                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                                                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-primary focus:border-blue-500">
                                                             <option value="stdio">stdio</option>
                                                             <option value="sse">SSE</option>
                                                             <option value="http">HTTP</option>
@@ -1721,7 +1838,7 @@ function ToolsSettings({ isOpen, onClose }) {
                                                             <textarea
                                                                 value={ Array.isArray(mcpFormData.config.args) ? mcpFormData.config.args.join('\n') : '' }
                                                                 onChange={ (e) => updateMcpConfig('args', e.target.value.split('\n').filter(arg => arg.trim())) }
-                                                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                                                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-primary focus:border-blue-500"
                                                                 rows="3" placeholder="--api-key&#10;abc123"/>
                                                         </div>
                                                     </div>
@@ -1752,7 +1869,7 @@ function ToolsSettings({ isOpen, onClose }) {
                                                             });
                                                             updateMcpConfig('env', env);
                                                         } }
-                                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-primary focus:border-blue-500"
                                                         rows="3" placeholder="API_KEY=your-key&#10;DEBUG=true"/>
                                                 </div>
                                                 { (mcpFormData.type === 'sse' || mcpFormData.type === 'http') && (
@@ -1771,7 +1888,7 @@ function ToolsSettings({ isOpen, onClose }) {
                                                                 });
                                                                 updateMcpConfig('headers', headers);
                                                             } }
-                                                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                                                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-primary focus:border-blue-500"
                                                             rows="3"
                                                             placeholder="Authorization=Bearer token&#10;X-API-Key=your-key"/>
                                                     </div>
@@ -1782,10 +1899,10 @@ function ToolsSettings({ isOpen, onClose }) {
                                                         <Button type="button" onClick={ handleTestConfiguration }
                                                                 disabled={ mcpConfigTesting || !mcpFormData.name.trim() }
                                                                 variant="outline" size="sm"
-                                                                className="text-blue-600 border-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20">
+                                                                className="text-primary border-primary hover:bg-primary/5">
                                                             { mcpConfigTesting ? (<>
                                                                 <div
-                                                                    className="w-4 h-4 animate-spin rounded-full border-2 border-blue-600 border-t-transparent mr-2"/>
+                                                                    className="w-4 h-4 animate-spin rounded-full border-2 border-primary border-t-transparent mr-2"/>
                                                                 测试中...</>) : (<><Play
                                                                 className="w-4 h-4 mr-2"/>测试配置</>) }
                                                         </Button>
@@ -1873,7 +1990,7 @@ function ToolsSettings({ isOpen, onClose }) {
                         <Button
                             onClick={ saveSettings }
                             disabled={ isSaving }
-                            className="flex-1 sm:flex-none h-10 bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+                            className="flex-1 sm:flex-none h-10 bg-primary hover:bg-primary/90 disabled:opacity-50"
                         >
                             { isSaving ? (
                                 <div className="flex items-center gap-2">

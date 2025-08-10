@@ -144,15 +144,15 @@ function AppContent() {
     useEffect(() => {
         if (!electron.isElectronApp()) return;
 
-        return electron.onMenuAction((event, ...args) => {
-            switch (event.type || event) {
+        return electron.onMenuAction((eventType, ...args) => {
+            switch (eventType) {
                 case 'menu-new-session':
                     if (selectedProject) {
                         handleNewSession(selectedProject);
                     }
                     break;
                 case 'menu-open-project':
-                    const [projectPath] = args;
+                    const projectPath = args[0];
                     if (projectPath) {
                         console.log(`🎯 Opening project: ${projectPath}`);
                         // Add project manually and initialize Claude project
@@ -568,8 +568,8 @@ function AppContent() {
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                             <div
-                                className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
-                                <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none"
+                                className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                                <svg className="w-5 h-5 text-primary" fill="none"
                                      stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={ 2 }
                                           d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"/>
@@ -599,10 +599,10 @@ function AppContent() {
                             <span className="text-sm text-gray-900 dark:text-white font-mono">{ currentVersion }</span>
                         </div>
                         <div
-                            className="flex justify-between items-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-700">
-                            <span className="text-sm font-medium text-blue-700 dark:text-blue-300">最新版本</span>
+                            className="flex justify-between items-center p-3 bg-primary/5 rounded-lg border border-primary/20">
+                            <span className="text-sm font-medium text-primary">最新版本</span>
                             <span
-                                className="text-sm text-blue-900 dark:text-blue-100 font-mono">{ latestVersion }</span>
+                                className="text-sm text-primary-foreground font-mono">{ latestVersion }</span>
                         </div>
                     </div>
 
@@ -633,7 +633,7 @@ function AppContent() {
                                 navigator.clipboard.writeText('git checkout main && git pull && npm install');
                                 setShowVersionModal(false);
                             } }
-                            className="flex-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
+                            className="flex-1 px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary/90 rounded-md transition-colors"
                         >
                             复制命令
                         </button>

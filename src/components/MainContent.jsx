@@ -138,8 +138,8 @@ function MainContent({
                             从侧边栏选择一个项目以开始与 Claude 编程。每个项目包含您的聊天会话和文件历史记录。
                         </p>
                         <div
-                            className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
-                            <p className="text-sm text-blue-700 dark:text-blue-300">
+                            className="bg-primary/5 rounded-lg p-4 border border-primary/20">
+                            <p className="text-sm text-primary">
                                 💡 <strong>提示：</strong> { isMobile ? '点击上方菜单按钮访问项目' : '点击侧边栏中的文件夹图标创建新项目' }
                             </p>
                         </div>

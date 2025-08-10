@@ -556,7 +556,7 @@ function GitPanel({ selectedProject, isMobile }) {
                 } ${
                     isAddition ? 'bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-300' :
                         isDeletion ? 'bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-300' :
-                            isHeader ? 'bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300' :
+                            isHeader ? 'bg-primary/5 text-primary' :
                                 'text-gray-600 dark:text-gray-400'
                 }` }
             >
@@ -637,7 +637,7 @@ function GitPanel({ selectedProject, isMobile }) {
                         checked={ isSelected }
                         onChange={ () => toggleFileSelected(filePath) }
                         onClick={ (e) => e.stopPropagation() }
-                        className={ `rounded border-gray-300 dark:border-gray-600 text-blue-600 dark:text-blue-500 focus:ring-blue-500 dark:focus:ring-blue-400 dark:bg-gray-800 dark:checked:bg-blue-600 ${ isMobile ? 'mr-1.5' : 'mr-2' }` }
+                        className={ `rounded border-gray-300 dark:border-gray-600 text-primary focus:ring-primary ${ isMobile ? 'mr-1.5' : 'mr-2' }` }
                     />
                     <div
                         className="flex items-center flex-1 cursor-pointer"
@@ -775,7 +775,7 @@ function GitPanel({ selectedProject, isMobile }) {
                     </span>
                                     ) }
                                     { remoteStatus.behind > 0 && (
-                                        <span className="text-blue-600 dark:text-blue-400"
+                                        <span className="text-primary"
                                               title={ `落后 ${ remoteStatus.behind } 个提交` }>
                       ↓{ remoteStatus.behind }
                     </span>
@@ -891,7 +891,7 @@ function GitPanel({ selectedProject, isMobile }) {
                                         <button
                                             onClick={ handleFetch }
                                             disabled={ isFetching }
-                                            className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 flex items-center gap-1"
+                                            className="px-2 py-1 text-xs bg-primary text-primary-foreground rounded hover:bg-primary/90 disabled:opacity-50 flex items-center gap-1"
                                             title={ `Fetch from ${ remoteStatus.remoteName }` }
                                         >
                                             <RefreshCw className={ `w-3 h-3 ${ isFetching ? 'animate-spin' : '' }` }/>
@@ -928,10 +928,10 @@ function GitPanel({ selectedProject, isMobile }) {
                         <p className="text-sm text-center leading-relaxed mb-6 max-w-md">{ gitStatus.details }</p>
                     ) }
                     <div
-                        className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800 max-w-md">
-                        <p className="text-sm text-blue-700 dark:text-blue-300 text-center">
+                        className="p-4 bg-primary/5 rounded-lg border border-primary/20 max-w-md">
+                        <p className="text-sm text-primary text-center">
                             <strong>提示：</strong> 在项目目录中运行 <code
-                            className="bg-blue-100 dark:bg-blue-900 px-2 py-1 rounded font-mono text-xs">git
+                            className="bg-primary/10 px-2 py-1 rounded font-mono text-xs">git
                             init</code> 来初始化git源代码控制。
                         </p>
                     </div>
@@ -949,7 +949,7 @@ function GitPanel({ selectedProject, isMobile }) {
                             onClick={ () => setActiveView('changes') }
                             className={ `flex-1 px-4 py-2 text-sm font-medium transition-colors ${
                                 activeView === 'changes'
-                                    ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
+                                    ? 'text-primary border-b-2 border-primary'
                                     : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                             }` }
                         >
@@ -962,7 +962,7 @@ function GitPanel({ selectedProject, isMobile }) {
                             onClick={ () => setActiveView('history') }
                             className={ `flex-1 px-4 py-2 text-sm font-medium transition-colors ${
                                 activeView === 'history'
-                                    ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
+                                    ? 'text-primary border-b-2 border-primary'
                                     : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                             }` }
                         >
@@ -986,7 +986,7 @@ function GitPanel({ selectedProject, isMobile }) {
                                     <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
                                         <button
                                             onClick={ () => setIsCommitAreaCollapsed(false) }
-                                            className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                                            className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
                                         >
                                             <GitCommit className="w-4 h-4"/>
                                             <span>提交 { selectedFiles.size } 个文件</span>
@@ -1056,7 +1056,7 @@ function GitPanel({ selectedProject, isMobile }) {
                                                         message: `提交 ${ selectedFiles.size } 个文件，消息为："${ commitMessage.trim() }"？`
                                                     }) }
                                                     disabled={ !commitMessage.trim() || selectedFiles.size === 0 || isCommitting }
-                                                    className="px-3 py-1 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1"
+                                                    className="px-3 py-1 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1"
                                                 >
                                                     <Check className="w-3 h-3"/>
                                                     <span>{ isCommitting ? '正在提交...' : '提交' }</span>
@@ -1091,14 +1091,14 @@ function GitPanel({ selectedProject, isMobile }) {
                                         ]);
                                         setSelectedFiles(allFiles);
                                     } }
-                                    className={ `text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 ${ isMobile ? 'text-xs' : 'text-xs' }` }
+                                    className={ `text-primary hover:text-primary/80 ${ isMobile ? 'text-xs' : 'text-xs' }` }
                                 >
                                     { isMobile ? '全选' : '全选' }
                                 </button>
                                 <span className="text-gray-300 dark:text-gray-600">|</span>
                                 <button
                                     onClick={ () => setSelectedFiles(new Set()) }
-                                    className={ `text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 ${ isMobile ? 'text-xs' : 'text-xs' }` }
+                                    className={ `text-primary hover:text-primary/80 ${ isMobile ? 'text-xs' : 'text-xs' }` }
                                 >
                                     { isMobile ? '取消' : '取消全选' }
                                 </button>
@@ -1246,7 +1246,7 @@ function GitPanel({ selectedProject, isMobile }) {
                                 <button
                                     onClick={ createBranch }
                                     disabled={ !newBranchName.trim() || isCreatingBranch }
-                                    className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                                    className="px-4 py-2 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
                                 >
                                     { isCreatingBranch ? (
                                         <>
@@ -1306,7 +1306,7 @@ function GitPanel({ selectedProject, isMobile }) {
                                         (confirmAction.type === 'discard' || confirmAction.type === 'delete')
                                             ? 'bg-red-600 hover:bg-red-700'
                                             : confirmAction.type === 'commit'
-                                                ? 'bg-blue-600 hover:bg-blue-700'
+                                                ? 'bg-primary hover:bg-primary/90'
                                                 : confirmAction.type === 'pull'
                                                     ? 'bg-green-600 hover:bg-green-700'
                                                     : confirmAction.type === 'publish'

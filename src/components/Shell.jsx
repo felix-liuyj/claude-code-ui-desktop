@@ -541,7 +541,7 @@ function Shell({ selectedProject, selectedSession, isActive }) {
                     <div className="flex items-center space-x-2">
                         <div className={ `w-2 h-2 rounded-full ${ isConnected ? 'bg-green-500' : 'bg-red-500' }` }/>
                         { selectedSession && (
-                            <span className="text-xs text-blue-300">
+                            <span className="text-xs text-primary">
                 ({ selectedSession.summary.slice(0, 30) }...)
               </span>
                         ) }
@@ -552,7 +552,7 @@ function Shell({ selectedProject, selectedSession, isActive }) {
                             <span className="text-xs text-yellow-400">(正在初始化...)</span>
                         ) }
                         { isRestarting && (
-                            <span className="text-xs text-blue-400">(正在重启...)</span>
+                            <span className="text-xs text-primary">(正在重启...)</span>
                         ) }
                     </div>
                     <div className="flex items-center space-x-3">

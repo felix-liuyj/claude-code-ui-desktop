@@ -60,7 +60,7 @@ function ClaudeStatus({ status, onAbort, isLoading }) {
                         {/* Animated spinner */ }
                         <span className={ cn(
                             "text-xl transition-all duration-500",
-                            animationPhase % 2 === 0 ? "text-blue-400 scale-110" : "text-blue-300"
+                            animationPhase % 2 === 0 ? "text-primary scale-110" : "text-primary/80"
                         ) }>
               { currentSpinner }
             </span>
@@ -73,10 +73,7 @@ function ClaudeStatus({ status, onAbort, isLoading }) {
                                 { tokens > 0 && (
                                     <>
                                         <span className="text-gray-400">·</span>
-                                        <span
-                                            className="text-gray-300 text-sm hidden sm:inline">⚒ { tokens.toLocaleString() } tokens</span>
-                                        <span
-                                            className="text-gray-300 text-sm">⚒ { tokens.toLocaleString() }</span>
+                                        <span className="text-gray-300 text-sm">⚒ { tokens.toLocaleString() } tokens</span>
                                     </>
                                 ) }
                                 <span className="text-gray-400 hidden sm:inline">·</span>

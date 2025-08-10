@@ -12,7 +12,7 @@ const TodoList = ({ todos, isResult = false }) => {
             case 'completed':
                 return <CheckCircle2 className="w-4 h-4 text-green-500 dark:text-green-400"/>;
             case 'in_progress':
-                return <Clock className="w-4 h-4 text-blue-500 dark:text-blue-400"/>;
+                return <Clock className="w-4 h-4 text-primary"/>;
             case 'pending':
             default:
                 return <Circle className="w-4 h-4 text-gray-400 dark:text-gray-500"/>;
@@ -24,7 +24,7 @@ const TodoList = ({ todos, isResult = false }) => {
             case 'completed':
                 return 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 border-green-200 dark:border-green-800';
             case 'in_progress':
-                return 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 border-blue-200 dark:border-blue-800';
+                return 'bg-primary/10 text-primary border-primary/20';
             case 'pending':
             default:
                 return 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700';

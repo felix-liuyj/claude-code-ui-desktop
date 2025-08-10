@@ -30,7 +30,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
         ];
 
         events.forEach(event => {
-            ipcRenderer.on(event, callback);
+            ipcRenderer.on(event, (ipcEvent, ...args) => {
+                callback(event, ...args);
+            });
         });
 
         // Return cleanup function

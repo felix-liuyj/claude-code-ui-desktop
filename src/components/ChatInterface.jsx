@@ -162,7 +162,7 @@ const MessageComponent = memo(({
                 <div
                     className="flex items-end space-x-0 sm:space-x-3 w-full sm:w-auto sm:max-w-[80%] md:max-w-lg lg:max-w-2xl xl:max-w-3xl">
                     <div
-                        className="bg-blue-600 text-white rounded-2xl rounded-br-md px-4 sm:px-5 py-3 shadow-sm flex-1 sm:flex-initial">
+                        className="bg-primary text-white rounded-2xl rounded-br-md px-4 sm:px-5 py-3 shadow-sm flex-1 sm:flex-initial">
                         <div className="text-sm leading-relaxed whitespace-pre-wrap break-words">
                             { message.content }
                         </div>
@@ -179,7 +179,7 @@ const MessageComponent = memo(({
                                 )) }
                             </div>
                         ) }
-                        <div className="text-xs text-blue-100 mt-2 text-right opacity-75">
+                        <div className="text-xs text-primary-foreground/80 mt-2 text-right opacity-75">
                             { new Date(message.timestamp).toLocaleTimeString() }
                         </div>
                     </div>
@@ -218,10 +218,10 @@ const MessageComponent = memo(({
 
                         { message.isToolUse && !['Read', 'TodoWrite', 'TodoRead'].includes(message.toolName) ? (
                             <div
-                                className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-2 sm:p-3 mb-2">
+                                className="bg-primary/5 border border-primary/20 rounded-lg p-2 sm:p-3 mb-2">
                                 <div className="flex items-center justify-between mb-2">
                                     <div className="flex items-center gap-2">
-                                        <div className="w-5 h-5 bg-blue-600 rounded flex items-center justify-center">
+                                        <div className="w-5 h-5 bg-primary rounded flex items-center justify-center">
                                             <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor"
                                                  viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={ 2 }
@@ -230,10 +230,10 @@ const MessageComponent = memo(({
                                                       d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                                             </svg>
                                         </div>
-                                        <span className="font-medium text-blue-900 dark:text-blue-100">
+                                        <span className="font-medium text-primary-foreground">
                       Using { message.toolName }
                     </span>
-                                        <span className="text-xs text-blue-600 dark:text-blue-400 font-mono">
+                                        <span className="text-xs text-primary font-mono">
                       { message.toolId }
                     </span>
                                     </div>
@@ -243,10 +243,10 @@ const MessageComponent = memo(({
                                                 e.stopPropagation();
                                                 onShowSettings();
                                             } }
-                                            className="p-1 rounded hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors"
+                                            className="p-1 rounded hover:bg-primary/20 transition-colors"
                                             title="设置"
                                         >
-                                            <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none"
+                                            <svg className="w-4 h-4 text-primary" fill="none"
                                                  stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={ 2 }
                                                       d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
@@ -263,7 +263,7 @@ const MessageComponent = memo(({
                                             return (
                                                 <details className="mt-2" open={ autoExpandTools }>
                                                     <summary
-                                                        className="text-sm text-blue-700 dark:text-blue-300 cursor-pointer hover:text-blue-800 dark:hover:text-blue-200 flex items-center gap-2">
+                                                        className="text-sm text-primary cursor-pointer hover:text-primary/80 flex items-center gap-2">
                                                         <svg className="w-4 h-4 transition-transform details-chevron"
                                                              fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path strokeLinecap="round" strokeLinejoin="round"
@@ -279,7 +279,7 @@ const MessageComponent = memo(({
                                                                     new_string: input.new_string
                                                                 });
                                                             } }
-                                                            className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 underline font-mono"
+                                                            className="text-primary hover:text-primary/80 underline font-mono"
                                                         >
                                                             { input.file_path.split('/').pop() }
                                                         </button>
@@ -294,7 +294,7 @@ const MessageComponent = memo(({
                                                                         old_string: input.old_string,
                                                                         new_string: input.new_string
                                                                     }) }
-                                                                    className="text-xs font-mono text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 truncate underline cursor-pointer"
+                                                                    className="text-xs font-mono text-primary hover:text-primary/80 truncate underline cursor-pointer"
                                                                 >
                                                                     { input.file_path }
                                                                 </button>
@@ -328,11 +328,11 @@ const MessageComponent = memo(({
                                                         { showRawParameters && (
                                                             <details className="mt-2" open={ autoExpandTools }>
                                                                 <summary
-                                                                    className="text-xs text-blue-600 dark:text-blue-400 cursor-pointer hover:text-blue-700 dark:hover:text-blue-300">
+                                                                    className="text-xs text-primary cursor-pointer hover:text-primary/80">
                                                                     查看输入参数 (原始)
                                                                 </summary>
                                                                 <pre
-                                                                    className="mt-2 text-xs bg-blue-100 dark:bg-blue-800/30 p-2 rounded whitespace-pre-wrap break-words overflow-hidden text-blue-900 dark:text-blue-100">
+                                                                    className="mt-2 text-xs bg-primary/10 p-2 rounded whitespace-pre-wrap break-words overflow-hidden text-primary-foreground">
                                                                     { typeof message.toolInput === 'string' ? message.toolInput : JSON.stringify(message.toolInput, null, 2) }
                                                                 </pre>
                                                             </details>
@@ -367,7 +367,7 @@ const MessageComponent = memo(({
                                                 return (
                                                     <details className="mt-2" open={ autoExpandTools }>
                                                         <summary
-                                                            className="text-sm text-blue-700 dark:text-blue-300 cursor-pointer hover:text-blue-800 dark:hover:text-blue-200 flex items-center gap-2">
+                                                            className="text-sm text-primary cursor-pointer hover:text-primary/80 flex items-center gap-2">
                                                             <svg
                                                                 className="w-4 h-4 transition-transform details-chevron"
                                                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -384,7 +384,7 @@ const MessageComponent = memo(({
                                                                         new_string: input.content
                                                                     });
                                                                 } }
-                                                                className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 underline font-mono"
+                                                                className="text-primary hover:text-primary/80 underline font-mono"
                                                             >
                                                                 { input.file_path.split('/').pop() }
                                                             </button>
@@ -399,7 +399,7 @@ const MessageComponent = memo(({
                                                                             old_string: '',
                                                                             new_string: input.content
                                                                         }) }
-                                                                        className="text-xs font-mono text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 truncate underline cursor-pointer"
+                                                                        className="text-xs font-mono text-primary hover:text-primary/80 truncate underline cursor-pointer"
                                                                     >
                                                                         { input.file_path }
                                                                     </button>
@@ -433,11 +433,11 @@ const MessageComponent = memo(({
                                                             { showRawParameters && (
                                                                 <details className="mt-2" open={ autoExpandTools }>
                                                                     <summary
-                                                                        className="text-xs text-blue-600 dark:text-blue-400 cursor-pointer hover:text-blue-700 dark:hover:text-blue-300">
+                                                                        className="text-xs text-primary cursor-pointer hover:text-primary/80">
                                                                         View raw parameters
                                                                     </summary>
                                                                     <pre
-                                                                        className="mt-2 text-xs bg-blue-100 dark:bg-blue-800/30 p-2 rounded whitespace-pre-wrap break-words overflow-hidden text-blue-900 dark:text-blue-100">
+                                                                        className="mt-2 text-xs bg-primary/10 p-2 rounded whitespace-pre-wrap break-words overflow-hidden text-primary-foreground">
                                     { message.toolInput }
                                   </pre>
                                                                 </details>
@@ -459,7 +459,7 @@ const MessageComponent = memo(({
                                                 return (
                                                     <details className="mt-2" open={ autoExpandTools }>
                                                         <summary
-                                                            className="text-sm text-blue-700 dark:text-blue-300 cursor-pointer hover:text-blue-800 dark:hover:text-blue-200 flex items-center gap-2">
+                                                            className="text-sm text-primary cursor-pointer hover:text-primary/80 flex items-center gap-2">
                                                             <svg
                                                                 className="w-4 h-4 transition-transform details-chevron"
                                                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -473,11 +473,11 @@ const MessageComponent = memo(({
                                                             { showRawParameters && (
                                                                 <details className="mt-3" open={ autoExpandTools }>
                                                                     <summary
-                                                                        className="text-xs text-blue-600 dark:text-blue-400 cursor-pointer hover:text-blue-700 dark:hover:text-blue-300">
+                                                                        className="text-xs text-primary cursor-pointer hover:text-primary/80">
                                                                         View raw parameters
                                                                     </summary>
                                                                     <pre
-                                                                        className="mt-2 text-xs bg-blue-100 dark:bg-blue-800/30 p-2 rounded overflow-x-auto text-blue-900 dark:text-blue-100">
+                                                                        className="mt-2 text-xs bg-primary/10 p-2 rounded overflow-x-auto text-primary-foreground">
                                     { message.toolInput }
                                   </pre>
                                                                 </details>
@@ -498,7 +498,7 @@ const MessageComponent = memo(({
                                             return (
                                                 <details className="mt-2" open={ autoExpandTools }>
                                                     <summary
-                                                        className="text-sm text-blue-700 dark:text-blue-300 cursor-pointer hover:text-blue-800 dark:hover:text-blue-200 flex items-center gap-2">
+                                                        className="text-sm text-primary cursor-pointer hover:text-primary/80 flex items-center gap-2">
                                                         <svg className="w-4 h-4 transition-transform details-chevron"
                                                              fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path strokeLinecap="round" strokeLinejoin="round"
@@ -532,11 +532,11 @@ const MessageComponent = memo(({
                                                         { showRawParameters && (
                                                             <details className="mt-2">
                                                                 <summary
-                                                                    className="text-xs text-blue-600 dark:text-blue-400 cursor-pointer hover:text-blue-700 dark:hover:text-blue-300">
+                                                                    className="text-xs text-primary cursor-pointer hover:text-primary/80">
                                                                     View raw parameters
                                                                 </summary>
                                                                 <pre
-                                                                    className="mt-2 text-xs bg-blue-100 dark:bg-blue-800/30 p-2 rounded whitespace-pre-wrap break-words overflow-hidden text-blue-900 dark:text-blue-100">
+                                                                    className="mt-2 text-xs bg-primary/10 p-2 rounded whitespace-pre-wrap break-words overflow-hidden text-primary-foreground">
                                   { message.toolInput }
                                 </pre>
                                                             </details>
@@ -557,11 +557,11 @@ const MessageComponent = memo(({
                                                 const filename = input.file_path.split('/').pop();
 
                                                 return (
-                                                    <div className="mt-2 text-sm text-blue-700 dark:text-blue-300">
+                                                    <div className="mt-2 text-sm text-primary">
                                                         Read{ ' ' }
                                                         <button
                                                             onClick={ () => onFileOpen && onFileOpen(input.file_path) }
-                                                            className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 underline font-mono"
+                                                            className="text-primary hover:text-primary/80 underline font-mono"
                                                         >
                                                             { filename }
                                                         </button>
@@ -583,7 +583,7 @@ const MessageComponent = memo(({
                                                 return (
                                                     <details className="mt-2" open={ autoExpandTools }>
                                                         <summary
-                                                            className="text-sm text-blue-700 dark:text-blue-300 cursor-pointer hover:text-blue-800 dark:hover:text-blue-200 flex items-center gap-2">
+                                                            className="text-sm text-primary cursor-pointer hover:text-primary/80 flex items-center gap-2">
                                                             <svg
                                                                 className="w-4 h-4 transition-transform details-chevron"
                                                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -608,7 +608,7 @@ const MessageComponent = memo(({
                                     return (
                                         <details className="mt-2" open={ autoExpandTools }>
                                             <summary
-                                                className="text-sm text-blue-700 dark:text-blue-300 cursor-pointer hover:text-blue-800 dark:hover:text-blue-200 flex items-center gap-2">
+                                                className="text-sm text-primary cursor-pointer hover:text-primary/80 flex items-center gap-2">
                                                 <svg className="w-4 h-4 transition-transform details-chevron"
                                                      fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={ 2 }
@@ -617,7 +617,7 @@ const MessageComponent = memo(({
                                                 View input parameters
                                             </summary>
                                             <pre
-                                                className="mt-2 text-xs bg-blue-100 dark:bg-blue-800/30 p-2 rounded whitespace-pre-wrap break-words overflow-hidden text-blue-900 dark:text-blue-100">
+                                                className="mt-2 text-xs bg-primary/10 p-2 rounded whitespace-pre-wrap break-words overflow-hidden text-primary-foreground">
                         { message.toolInput }
                       </pre>
                                         </details>
@@ -854,7 +854,7 @@ const MessageComponent = memo(({
                                                             </div>
                                                             <button
                                                                 onClick={ () => onFileOpen && onFileOpen(fileEditMatch[1]) }
-                                                                className="text-xs font-mono bg-green-100 dark:bg-green-800/30 px-2 py-1 rounded text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 underline cursor-pointer"
+                                                                className="text-xs font-mono bg-green-100 dark:bg-green-800/30 px-2 py-1 rounded text-primary hover:text-primary/80 underline cursor-pointer"
                                                             >
                                                                 { fileEditMatch[1] }
                                                             </button>
@@ -873,7 +873,7 @@ const MessageComponent = memo(({
                                                             </div>
                                                             <button
                                                                 onClick={ () => onFileOpen && onFileOpen(fileCreateMatch[1]) }
-                                                                className="text-xs font-mono bg-green-100 dark:bg-green-800/30 px-2 py-1 rounded text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 underline cursor-pointer"
+                                                                className="text-xs font-mono bg-green-100 dark:bg-green-800/30 px-2 py-1 rounded text-primary hover:text-primary/80 underline cursor-pointer"
                                                             >
                                                                 { fileCreateMatch[1] }
                                                             </button>
@@ -1060,11 +1060,11 @@ const MessageComponent = memo(({
                                         const filename = input.file_path.split('/').pop();
                                         return (
                                             <div
-                                                className="bg-blue-50 dark:bg-blue-900/20 border-l-2 border-blue-300 dark:border-blue-600 pl-3 py-1 mb-2 text-sm text-blue-700 dark:text-blue-300">
+                                                className="bg-primary/5 border-l-2 border-primary/30 pl-3 py-1 mb-2 text-sm text-primary">
                                                 📖 读取{ ' ' }
                                                 <button
                                                     onClick={ () => onFileOpen && onFileOpen(input.file_path) }
-                                                    className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 underline font-mono"
+                                                    className="text-primary hover:text-primary/80 underline font-mono"
                                                 >
                                                     { filename }
                                                 </button>
@@ -1074,7 +1074,7 @@ const MessageComponent = memo(({
                                 } catch (e) {
                                     return (
                                         <div
-                                            className="bg-blue-50 dark:bg-blue-900/20 border-l-2 border-blue-300 dark:border-blue-600 pl-3 py-1 mb-2 text-sm text-blue-700 dark:text-blue-300">
+                                            className="bg-primary/5 border-l-2 border-primary/30 pl-3 py-1 mb-2 text-sm text-primary">
                                             📖 读取文件
                                         </div>
                                     );
@@ -1088,8 +1088,8 @@ const MessageComponent = memo(({
                                     if (input.todos && Array.isArray(input.todos)) {
                                         return (
                                             <div
-                                                className="bg-blue-50 dark:bg-blue-900/20 border-l-2 border-blue-300 dark:border-blue-600 pl-3 py-1 mb-2">
-                                                <div className="text-sm text-blue-700 dark:text-blue-300 mb-2">
+                                                className="bg-primary/5 border-l-2 border-primary/30 pl-3 py-1 mb-2">
+                                                <div className="text-sm text-primary mb-2">
                                                     📝 更新待办事项列表
                                                 </div>
                                                 <TodoList todos={ input.todos }/>
@@ -1099,7 +1099,7 @@ const MessageComponent = memo(({
                                 } catch (e) {
                                     return (
                                         <div
-                                            className="bg-blue-50 dark:bg-blue-900/20 border-l-2 border-blue-300 dark:border-blue-600 pl-3 py-1 mb-2 text-sm text-blue-700 dark:text-blue-300">
+                                            className="bg-primary/5 border-l-2 border-primary/30 pl-3 py-1 mb-2 text-sm text-primary">
                                             📝 更新待办事项列表
                                         </div>
                                     );
@@ -1108,7 +1108,7 @@ const MessageComponent = memo(({
                         ) : message.isToolUse && message.toolName === 'TodoRead' ? (
                             // Simple TodoRead tool indicator
                             <div
-                                className="bg-blue-50 dark:bg-blue-900/20 border-l-2 border-blue-300 dark:border-blue-600 pl-3 py-1 mb-2 text-sm text-blue-700 dark:text-blue-300">
+                                className="bg-primary/5 border-l-2 border-primary/30 pl-3 py-1 mb-2 text-sm text-primary">
                                 📋 读取待办事项列表
                             </div>
                         ) : (
@@ -1152,7 +1152,7 @@ const MessageComponent = memo(({
                                                 code: ({ node, inline, className, children, ...props }) => {
                                                     return inline ? (
                                                         <strong
-                                                            className="text-blue-600 dark:text-blue-400 font-semibold not-prose bg-blue-50 dark:bg-blue-900/20 px-1 py-0.5 rounded" { ...props }>
+                                                            className="text-primary font-semibold not-prose bg-primary/5 px-1 py-0.5 rounded" { ...props }>
                                                             { children }
                                                         </strong>
                                                     ) : (
@@ -1173,7 +1173,7 @@ const MessageComponent = memo(({
                                                 ),
                                                 a: ({ href, children }) => (
                                                     <a href={ href }
-                                                       className="text-blue-600 dark:text-blue-400 hover:underline"
+                                                       className="text-primary hover:underline"
                                                        target="_blank" rel="noopener noreferrer">
                                                         { children }
                                                     </a>
@@ -2703,7 +2703,7 @@ function ChatInterface({
                                     className="text-center text-gray-500 dark:text-gray-400 text-sm py-2 border-b border-gray-200 dark:border-gray-700">
                                     显示最后 { visibleMessageCount } 条消息（共 { chatMessages.length } 条）•
                                     <button
-                                        className="ml-1 text-blue-600 hover:text-blue-700 underline"
+                                        className="ml-1 text-primary hover:text-primary/80 underline"
                                         onClick={ loadEarlierMessages }
                                     >
                                         加载更早的消息
@@ -2787,7 +2787,7 @@ function ChatInterface({
                                                 ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 border-green-300 dark:border-green-600 hover:bg-green-100 dark:hover:bg-green-900/30'
                                                 : permissionMode === 'bypassPermissions'
                                                     ? 'bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300 border-orange-300 dark:border-orange-600 hover:bg-orange-100 dark:hover:bg-orange-900/30'
-                                                    : 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900/30'
+                                                    : 'bg-primary/5 text-primary border-primary/30 hover:bg-primary/10'
                                 }` }
                                 title="点击更改权限模式（或在输入框中按 Tab）"
                                 disabled={ skipPermissions }
@@ -2802,7 +2802,7 @@ function ChatInterface({
                                                     ? 'bg-green-500'
                                                     : permissionMode === 'bypassPermissions'
                                                         ? 'bg-orange-500'
-                                                        : 'bg-blue-500'
+                                                        : 'bg-primary'
                                     }` }/>
                                     <span>
                   { skipPermissions && '危险模式（跳过权限）' }
@@ -2818,7 +2818,7 @@ function ChatInterface({
                             { isUserScrolledUp && chatMessages.length > 0 && (
                                 <button
                                     onClick={ scrollToBottom }
-                                    className="w-8 h-8 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg flex items-center justify-center transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:ring-offset-gray-800"
+                                    className="w-8 h-8 bg-primary hover:bg-primary/90 text-white rounded-full shadow-lg flex items-center justify-center transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:ring-offset-gray-800"
                                     title="滚动到底部"
                                 >
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2877,7 +2877,7 @@ function ChatInterface({
                                         key={ file.path }
                                         className={ `px-4 py-3 cursor-pointer border-b border-gray-100 dark:border-gray-700 last:border-b-0 touch-manipulation ${
                                             index === selectedFileIndex
-                                                ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
+                                                ? 'bg-primary/5 text-primary'
                                                 : 'hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'
                                         }` }
                                         onMouseDown={ (e) => {
@@ -2993,7 +2993,7 @@ function ChatInterface({
                                     handleSubmit(e);
                                 } }
 
-                                className="absolute right-2 top-1/2 transform -translate-y-1/2 w-12 h-12 sm:w-12 sm:h-12 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed rounded-full flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:ring-offset-gray-800"
+                                className="absolute right-2 top-1/2 transform -translate-y-1/2 w-12 h-12 sm:w-12 sm:h-12 bg-primary hover:bg-primary/90 disabled:bg-gray-400 disabled:cursor-not-allowed rounded-full flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:ring-offset-gray-800"
                             >
                                 <svg
                                     className="w-4 h-4 sm:w-5 sm:h-5 text-white transform rotate-90"

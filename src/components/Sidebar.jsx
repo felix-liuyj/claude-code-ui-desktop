@@ -580,7 +580,7 @@ function Sidebar({
                             {/* Desktop Project Item */ }
                             <Button
                                 variant="ghost"
-                                className={ cn("flex w-full justify-between p-2 h-auto font-normal hover:bg-accent/50", isSelected && "bg-accent text-accent-foreground", isStarred && !isSelected && "bg-yellow-50/50 dark:bg-yellow-900/10 hover:bg-yellow-100/50 dark:hover:bg-yellow-900/20") }
+                                className={ cn("flex w-full justify-between p-2 h-auto font-normal hover:bg-accent/30", isSelected && "bg-accent/50 text-accent-foreground", isStarred && !isSelected && "bg-yellow-50/50 dark:bg-yellow-900/10 hover:bg-yellow-100/50 dark:hover:bg-yellow-900/20") }
                                 onClick={ () => {
                                     // Desktop behavior: select project and toggle
                                     if (selectedProject?.name !== project.name) {
@@ -728,7 +728,7 @@ function Sidebar({
                                         <div className="group/session relative">
                                             <Button
                                                 variant="ghost"
-                                                className={ cn("w-full justify-start p-2 h-auto font-normal text-left hover:bg-accent/50 transition-colors duration-200 pr-20 relative", selectedSession?.id === session.id && "bg-accent text-accent-foreground") }
+                                                className={ cn("w-full justify-start p-2 h-auto font-normal text-left hover:bg-accent/30 transition-colors duration-200 pr-20 relative", selectedSession?.id === session.id && "bg-accent/50 text-accent-foreground") }
                                                 onClick={ () => onSessionSelect(session) }
                                             >
                                                 {/* Active session indicator dot - positioned between project border and session item for desktop */ }
@@ -808,7 +808,7 @@ function Sidebar({
                                                 </>) : (<>
                                                     {/* Generate summary button */ }
                                                     {/* <button
-                                      className="w-6 h-6 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 dark:hover:bg-blue-900/40 rounded flex items-center justify-center"
+                                      className="w-6 h-6 bg-primary/5 hover:bg-primary/10 rounded flex items-center justify-center"
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         generateSessionSummary(project.name, session.id);
@@ -819,7 +819,7 @@ function Sidebar({
                                       {generatingSummary[`${project.name}-${session.id}`] ? (
                                         <div className="w-3 h-3 animate-spin rounded-full border border-blue-600 dark:border-blue-400 border-t-transparent" />
                                       ) : (
-                                        <Sparkles className="w-3 h-3 text-blue-600 dark:text-blue-400" />
+                                        <Sparkles className="w-3 h-3 text-primary" />
                                       )}
                                     </button> */ }
                                                     {/* Edit button */ }
@@ -894,22 +894,22 @@ function Sidebar({
             <div className="block">
                 <Button
                     variant="ghost"
-                    className="w-full justify-start gap-3 p-3 h-auto font-normal text-left hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors duration-200 border border-blue-200 dark:border-blue-700 rounded-lg mb-2"
+                    className="w-full justify-start gap-3 p-3 h-auto font-normal text-left hover:bg-primary/5 transition-colors duration-200 border border-primary/20 rounded-lg mb-2"
                     onClick={ onShowVersionModal }
                 >
                     <div className="relative">
-                        <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none"
+                        <svg className="w-4 h-4 text-primary" fill="none"
                              stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={ 2 }
                                   d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"/>
                         </svg>
                         <div
-                            className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full animate-pulse"/>
+                            className="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full animate-pulse"/>
                     </div>
                     <div className="min-w-0 flex-1">
-                        <div className="text-sm font-medium text-blue-700 dark:text-blue-300">有可用更新</div>
+                        <div className="text-sm font-medium text-primary">有可用更新</div>
                         <div
-                            className="text-xs text-blue-600 dark:text-blue-400">版本 { latestVersion } 已准备就绪
+                            className="text-xs text-primary">版本 { latestVersion } 已准备就绪
                         </div>
                     </div>
                 </Button>

@@ -66,4 +66,6 @@ export const api = {
         }),
     claudeDoctor: () =>
         apiFetch('/api/claude/doctor'),
+    getAppInfo: () =>
+        apiFetch('/api/app/info'),
 };

@@ -273,7 +273,7 @@ function CodeEditor({ file, onClose, projectPath }) {
                 {/* Header */ }
                 <div className="flex items-center justify-between p-4 border-b border-gray-200 flex-shrink-0 min-w-0">
                     <div className="flex items-center gap-3 min-w-0 flex-1">
-                        <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center flex-shrink-0">
+                        <div className="w-8 h-8 bg-primary rounded flex items-center justify-center flex-shrink-0">
               <span className="text-white text-sm font-mono">
                 { file.name.split('.').pop()?.toUpperCase() || 'FILE' }
               </span>
@@ -283,7 +283,7 @@ function CodeEditor({ file, onClose, projectPath }) {
                                 <h3 className="font-medium text-gray-900 truncate">{ file.name }</h3>
                                 { file.diffInfo && (
                                     <span
-                                        className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded whitespace-nowrap">
+                                        className="text-xs bg-primary/10 text-primary px-2 py-1 rounded whitespace-nowrap">
                     📝 Has changes
                   </span>
                                 ) }
@@ -308,7 +308,7 @@ function CodeEditor({ file, onClose, projectPath }) {
                             onClick={ () => setWordWrap(!wordWrap) }
                             className={ `p-2 md:p-2 rounded-md hover:bg-gray-100 min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 flex items-center justify-center ${
                                 wordWrap
-                                    ? 'text-blue-600 bg-blue-50'
+                                    ? 'text-primary bg-primary/5'
                                     : 'text-gray-600 hover:text-gray-900'
                             }` }
                             title={ wordWrap ? 'Disable word wrap' : 'Enable word wrap' }
@@ -338,7 +338,7 @@ function CodeEditor({ file, onClose, projectPath }) {
                             className={ `px-3 py-2 text-white rounded-md disabled:opacity-50 flex items-center gap-2 transition-colors min-h-[44px] md:min-h-0 ${
                                 saveSuccess
                                     ? 'bg-green-600 hover:bg-green-700'
-                                    : 'bg-blue-600 hover:bg-blue-700'
+                                    : 'bg-primary hover:bg-primary/90'
                             }` }
                         >
                             { saveSuccess ? (

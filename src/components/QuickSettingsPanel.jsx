@@ -104,44 +104,44 @@ const QuickSettingsPanel = ({
             >
                 <button
                     onClick={ handleToggle }
-                    className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-l-md p-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors shadow-lg"
+                    className="bg-card border border-border rounded-l-md p-2 hover:bg-accent transition-colors shadow-lg"
                     aria-label={ localIsOpen ? 'Close settings panel' : 'Open settings panel' }
                 >
                     { localIsOpen ? (
-                        <ChevronRight className="h-5 w-5 text-gray-600 dark:text-gray-400"/>
+                        <ChevronRight className="h-5 w-5 text-muted-foreground"/>
                     ) : (
-                        <ChevronLeft className="h-5 w-5 text-gray-600 dark:text-gray-400"/>
+                        <ChevronLeft className="h-5 w-5 text-muted-foreground"/>
                     ) }
                 </button>
             </div>
 
             {/* Panel */ }
             <div
-                className={ `fixed top-0 right-0 h-full w-64 bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-700 shadow-xl transform transition-transform duration-150 ease-out z-40 ${
+                className={ `fixed top-0 right-0 h-full w-64 bg-background border-l border-border shadow-xl transform transition-transform duration-150 ease-out z-40 ${
                     localIsOpen ? 'translate-x-0' : 'translate-x-full'
                 } ${ isMobile ? 'h-screen' : '' }` }
             >
                 <div className="h-full flex flex-col">
                     {/* Header */ }
-                    <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-                            <Settings2 className="h-5 w-5 text-gray-600 dark:text-gray-400"/>
+                    <div className="p-4 border-b border-border bg-muted">
+                        <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                            <Settings2 className="h-5 w-5 text-muted-foreground"/>
                             快速设置
                         </h3>
                     </div>
 
                     {/* Settings Content */ }
                     <div
-                        className={ `flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-6 bg-white dark:bg-gray-900 ${ isMobile ? 'pb-20' : '' }` }>
+                        className={ `flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-6 bg-background ${ isMobile ? 'pb-20' : '' }` }>
                         {/* Appearance Settings */ }
                         <div className="space-y-2">
-                            <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">外观设置</h4>
+                            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">外观设置</h4>
 
                             <div
-                                className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors border border-transparent hover:border-gray-300 dark:hover:border-gray-600">
-                <span className="flex items-center gap-2 text-sm text-gray-900 dark:text-white">
-                  { isDarkMode ? <Moon className="h-4 w-4 text-gray-600 dark:text-gray-400"/> :
-                      <Sun className="h-4 w-4 text-gray-600 dark:text-gray-400"/> }
+                                className="flex items-center justify-between p-3 rounded-lg bg-muted hover:bg-accent transition-colors border border-transparent hover:border-border">
+                <span className="flex items-center gap-2 text-sm text-foreground">
+                  { isDarkMode ? <Moon className="h-4 w-4 text-muted-foreground"/> :
+                      <Sun className="h-4 w-4 text-muted-foreground"/> }
                     深色模式
                 </span>
                                 <DarkModeToggle/>
@@ -152,57 +152,57 @@ const QuickSettingsPanel = ({
 
                         {/* Tool Display Settings */ }
                         <div className="space-y-2">
-                            <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">工具显示</h4>
+                            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">工具显示</h4>
 
                             <label
-                                className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors border border-transparent hover:border-gray-300 dark:hover:border-gray-600">
-                <span className="flex items-center gap-2 text-sm text-gray-900 dark:text-white">
-                  <Maximize2 className="h-4 w-4 text-gray-600 dark:text-gray-400"/>
+                                className="flex items-center justify-between p-3 rounded-lg bg-muted hover:bg-accent cursor-pointer transition-colors border border-transparent hover:border-border">
+                <span className="flex items-center gap-2 text-sm text-foreground">
+                  <Maximize2 className="h-4 w-4 text-muted-foreground"/>
                   自动展开工具
                 </span>
                                 <input
                                     type="checkbox"
                                     checked={ autoExpandTools }
                                     onChange={ (e) => onAutoExpandChange(e.target.checked) }
-                                    className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 dark:text-blue-500 focus:ring-blue-500 dark:focus:ring-blue-400 dark:bg-gray-800 dark:checked:bg-blue-600"
+                                    className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
                                 />
                             </label>
 
                             <label
-                                className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors border border-transparent hover:border-gray-300 dark:hover:border-gray-600">
-                <span className="flex items-center gap-2 text-sm text-gray-900 dark:text-white">
-                  <Eye className="h-4 w-4 text-gray-600 dark:text-gray-400"/>
+                                className="flex items-center justify-between p-3 rounded-lg bg-muted hover:bg-accent cursor-pointer transition-colors border border-transparent hover:border-border">
+                <span className="flex items-center gap-2 text-sm text-foreground">
+                  <Eye className="h-4 w-4 text-muted-foreground"/>
                   显示原始参数
                 </span>
                                 <input
                                     type="checkbox"
                                     checked={ showRawParameters }
                                     onChange={ (e) => onShowRawParametersChange(e.target.checked) }
-                                    className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 dark:text-blue-500 focus:ring-blue-500 dark:focus:ring-blue-400 dark:bg-gray-800 dark:checked:bg-blue-600"
+                                    className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
                                 />
                             </label>
                         </div>
                         {/* View Options */ }
                         <div className="space-y-2">
-                            <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">显示选项</h4>
+                            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">显示选项</h4>
 
                             <label
-                                className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors border border-transparent hover:border-gray-300 dark:hover:border-gray-600">
-                <span className="flex items-center gap-2 text-sm text-gray-900 dark:text-white">
-                  <ArrowDown className="h-4 w-4 text-gray-600 dark:text-gray-400"/>
+                                className="flex items-center justify-between p-3 rounded-lg bg-muted hover:bg-accent cursor-pointer transition-colors border border-transparent hover:border-border">
+                <span className="flex items-center gap-2 text-sm text-foreground">
+                  <ArrowDown className="h-4 w-4 text-muted-foreground"/>
                   自动滚动到底部
                 </span>
                                 <input
                                     type="checkbox"
                                     checked={ autoScrollToBottom }
                                     onChange={ (e) => onAutoScrollChange(e.target.checked) }
-                                    className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 dark:text-blue-500 focus:ring-blue-500 dark:focus:ring-blue-400 dark:bg-gray-800 dark:checked:bg-blue-600"
+                                    className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
                                 />
                             </label>
                             <label
-                                className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors border border-transparent hover:border-gray-300 dark:hover:border-gray-600">
-                                <span className="flex items-center gap-2 text-sm text-gray-900 dark:text-white">
-                                    <svg className="h-4 w-4 text-gray-600 dark:text-gray-400" viewBox="0 0 24 24"
+                                className="flex items-center justify-between p-3 rounded-lg bg-muted hover:bg-accent cursor-pointer transition-colors border border-transparent hover:border-border">
+                                <span className="flex items-center gap-2 text-sm text-foreground">
+                                    <svg className="h-4 w-4 text-muted-foreground" viewBox="0 0 24 24"
                                          fill="none" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
                                               d="M4 6h16M4 12h16M4 18h7"/>
@@ -213,29 +213,29 @@ const QuickSettingsPanel = ({
                                     type="checkbox"
                                     checked={ !!chatBgEnabled }
                                     onChange={ (e) => onChatBgEnabledChange?.(e.target.checked) }
-                                    className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 dark:text-blue-500 focus:ring-blue-500 dark:focus:ring-blue-400 dark:bg-gray-800 dark:checked:bg-blue-600"
+                                    className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
                                 />
                             </label>
                         </div>
 
                         {/* Input Settings */ }
                         <div className="space-y-2">
-                            <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">输入设置</h4>
+                            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">输入设置</h4>
 
                             <label
-                                className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors border border-transparent hover:border-gray-300 dark:hover:border-gray-600">
-                <span className="flex items-center gap-2 text-sm text-gray-900 dark:text-white">
-                  <Languages className="h-4 w-4 text-gray-600 dark:text-gray-400"/>
+                                className="flex items-center justify-between p-3 rounded-lg bg-muted hover:bg-accent cursor-pointer transition-colors border border-transparent hover:border-border">
+                <span className="flex items-center gap-2 text-sm text-foreground">
+                  <Languages className="h-4 w-4 text-muted-foreground"/>
                     { electron.getShortcutKey() }+Enter 发送
                 </span>
                                 <input
                                     type="checkbox"
                                     checked={ sendByCtrlEnter }
                                     onChange={ (e) => onSendByCtrlEnterChange(e.target.checked) }
-                                    className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 dark:text-blue-500 focus:ring-blue-500 dark:focus:ring-blue-400 dark:bg-gray-800 dark:checked:bg-blue-600"
+                                    className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
                                 />
                             </label>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 ml-3">
+                            <p className="text-xs text-muted-foreground ml-3">
                                 启用后，使用 { electron.getShortcutKey() }+Enter 发送消息而不是单独的 Enter
                                 键。这对输入法用户有用，可避免意外发送。
                             </p>
@@ -243,12 +243,12 @@ const QuickSettingsPanel = ({
 
                         {/* Whisper Dictation Settings - HIDDEN */ }
                         <div className="space-y-2" style={ { display: 'none' } }>
-                            <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">Whisper
+                            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Whisper
                                 Dictation</h4>
 
                             <div className="space-y-2">
                                 <label
-                                    className="flex items-start p-3 rounded-lg bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors border border-transparent hover:border-gray-300 dark:hover:border-gray-600">
+                                    className="flex items-start p-3 rounded-lg bg-muted hover:bg-accent cursor-pointer transition-colors border border-transparent hover:border-border">
                                     <input
                                         type="radio"
                                         name="whisperMode"
@@ -259,21 +259,21 @@ const QuickSettingsPanel = ({
                                             localStorage.setItem('whisperMode', 'default');
                                             window.dispatchEvent(new Event('whisperModeChanged'));
                                         } }
-                                        className="mt-0.5 h-4 w-4 border-gray-300 dark:border-gray-600 text-blue-600 dark:text-blue-500 focus:ring-blue-500 dark:focus:ring-blue-400 dark:bg-gray-800 dark:checked:bg-blue-600"
+                                        className="mt-0.5 h-4 w-4 border-border text-primary focus:ring-primary"
                                     />
                                     <div className="ml-3 flex-1">
-                    <span className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-white">
-                      <Mic className="h-4 w-4 text-gray-600 dark:text-gray-400"/>
+                    <span className="flex items-center gap-2 text-sm font-medium text-foreground">
+                      <Mic className="h-4 w-4 text-muted-foreground"/>
                       Default Mode
                     </span>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                        <p className="text-xs text-muted-foreground mt-1">
                                             Direct transcription of your speech
                                         </p>
                                     </div>
                                 </label>
 
                                 <label
-                                    className="flex items-start p-3 rounded-lg bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors border border-transparent hover:border-gray-300 dark:hover:border-gray-600">
+                                    className="flex items-start p-3 rounded-lg bg-muted hover:bg-accent cursor-pointer transition-colors border border-transparent hover:border-border">
                                     <input
                                         type="radio"
                                         name="whisperMode"
@@ -284,21 +284,21 @@ const QuickSettingsPanel = ({
                                             localStorage.setItem('whisperMode', 'prompt');
                                             window.dispatchEvent(new Event('whisperModeChanged'));
                                         } }
-                                        className="mt-0.5 h-4 w-4 border-gray-300 dark:border-gray-600 text-blue-600 dark:text-blue-500 focus:ring-blue-500 dark:focus:ring-blue-400 dark:bg-gray-800 dark:checked:bg-blue-600"
+                                        className="mt-0.5 h-4 w-4 border-border text-primary focus:ring-primary"
                                     />
                                     <div className="ml-3 flex-1">
-                    <span className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-white">
-                      <Sparkles className="h-4 w-4 text-gray-600 dark:text-gray-400"/>
+                    <span className="flex items-center gap-2 text-sm font-medium text-foreground">
+                      <Sparkles className="h-4 w-4 text-muted-foreground"/>
                       Prompt Enhancement
                     </span>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                        <p className="text-xs text-muted-foreground mt-1">
                                             Transform rough ideas into clear, detailed AI prompts
                                         </p>
                                     </div>
                                 </label>
 
                                 <label
-                                    className="flex items-start p-3 rounded-lg bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors border border-transparent hover:border-gray-300 dark:hover:border-gray-600">
+                                    className="flex items-start p-3 rounded-lg bg-muted hover:bg-accent cursor-pointer transition-colors border border-transparent hover:border-border">
                                     <input
                                         type="radio"
                                         name="whisperMode"
@@ -309,14 +309,14 @@ const QuickSettingsPanel = ({
                                             localStorage.setItem('whisperMode', 'vibe');
                                             window.dispatchEvent(new Event('whisperModeChanged'));
                                         } }
-                                        className="mt-0.5 h-4 w-4 border-gray-300 dark:border-gray-600 text-blue-600 dark:text-blue-500 focus:ring-blue-500 dark:focus:ring-blue-400 dark:bg-gray-800 dark:checked:bg-blue-600"
+                                        className="mt-0.5 h-4 w-4 border-border text-primary focus:ring-primary"
                                     />
                                     <div className="ml-3 flex-1">
-                    <span className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-white">
-                      <FileText className="h-4 w-4 text-gray-600 dark:text-gray-400"/>
+                    <span className="flex items-center gap-2 text-sm font-medium text-foreground">
+                      <FileText className="h-4 w-4 text-muted-foreground"/>
                       Vibe Mode
                     </span>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                        <p className="text-xs text-muted-foreground mt-1">
                                             Format ideas as clear agent instructions with details
                                         </p>
                                     </div>
@@ -327,12 +327,12 @@ const QuickSettingsPanel = ({
                         {/* Developer Tools - Only show in development mode */ }
                         { isDevelopmentMode && (
                             <div className="space-y-2">
-                                <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">
+                                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
                                     开发者工具
                                 </h4>
 
                                 <div
-                                    className="rounded-lg bg-gray-50 dark:bg-gray-800 border border-transparent hover:border-gray-300 dark:hover:border-gray-600">
+                                    className="rounded-lg bg-gray-50 dark:bg-background border border-transparent hover:border-border">
                                     <DevTools/>
                                 </div>
                             </div>

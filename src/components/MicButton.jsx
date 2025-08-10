@@ -204,7 +204,7 @@ export function MicButton({ onTranscript, className = '' }) {
             case 'transcribing':
                 return {
                     icon: <Loader2 className="w-5 h-5 animate-spin"/>,
-                    className: 'bg-blue-500 hover:bg-blue-600',
+                    className: 'bg-primary hover:bg-primary/90',
                     disabled: true
                 };
             case 'processing':

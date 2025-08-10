@@ -125,6 +125,20 @@ function clearProjectDirectoryCache() {
     cacheTimestamp = Date.now();
 }
 
+// Clear corrupted cache entries (paths with ' / ' pattern)
+function clearCorruptedCacheEntries() {
+    let cleared = 0;
+    for (const [key, value] of projectDirectoryCache.entries()) {
+        if (value.includes(' / ')) {
+            projectDirectoryCache.delete(key);
+            cleared++;
+            console.log(`Cleared corrupted cache entry: ${key} -> ${value}`);
+        }
+    }
+    console.log(`Cleared ${cleared} corrupted cache entries`);
+    return cleared;
+}
+
 // Check if a directory is already a Claude project
 async function isClaudeProject(projectPath) {
     try {
@@ -179,7 +193,7 @@ async function saveProjectConfig(config) {
 // Generate better display name from path
 async function generateDisplayName(projectName, actualProjectDir = null) {
     // Use actual project directory if provided, otherwise decode from project name
-    let projectPath = actualProjectDir || projectName.replace(/-/g, '/');
+    let projectPath = actualProjectDir || decodeProjectPath(projectName);
 
     // Try to read package.json from the project path
     try {
@@ -205,13 +219,65 @@ async function generateDisplayName(projectName, actualProjectDir = null) {
     return projectPath;
 }
 
+// Better project path decoding function
+function decodeProjectPath(projectName) {
+    console.log(`Decoding project name: ${projectName}`);
+    
+    // Check if the path contains spaces followed by forward slashes - this indicates it's already been incorrectly decoded
+    if (projectName.includes(' / ')) {
+        // This path has been corrupted by previous dash-to-slash replacement
+        // Try to reconstruct the original path by replacing ' / ' back to ' - '
+        const reconstructed = projectName.replace(/ \/ /g, ' - ');
+        console.log(`Reconstructed path from corrupted: ${reconstructed}`);
+        return reconstructed;
+    }
+    
+    // Check if it's the new URL encoding format (with underscores instead of %)
+    if (projectName.includes('_') && !projectName.includes('/') && !projectName.includes('-')) {
+        try {
+            // Convert underscores back to % and decode
+            const withPercents = projectName.replace(/_/g, '%');
+            const decoded = decodeURIComponent(withPercents);
+            console.log(`URL decoded (new format) to: ${decoded}`);
+            return decoded;
+        } catch (error) {
+            console.log('New format URL decode failed:', error.message);
+        }
+    }
+    
+    // First try URL decoding (for old URL encoded names)
+    try {
+        const decoded = decodeURIComponent(projectName);
+        if (decoded !== projectName && !decoded.includes('%')) {
+            console.log(`URL decoded to: ${decoded}`);
+            return decoded;
+        }
+    } catch (error) {
+        console.log('URL decode failed for project name:', projectName, error.message);
+    }
+
+    // Fallback to simple dash replacement, but be more careful
+    // Only replace dashes that are likely path separators (not within filenames)
+    const fallback = projectName.replace(/-/g, '/');
+    console.log(`Fallback decoded to: ${fallback}`);
+    return fallback;
+}
+
 // Extract the actual project directory from JSONL sessions (with caching)
 async function extractProjectDirectory(projectName) {
     // Check cache first
     if (projectDirectoryCache.has(projectName)) {
-        return projectDirectoryCache.get(projectName);
+        const cachedPath = projectDirectoryCache.get(projectName);
+        console.log(`Found cached path for ${projectName}: ${cachedPath}`);
+        
+        // If cached path is corrupted, remove it and re-extract
+        if (cachedPath.includes(' / ')) {
+            console.log(`Cached path is corrupted, removing from cache: ${cachedPath}`);
+            projectDirectoryCache.delete(projectName);
+        } else {
+            return cachedPath;
+        }
     }
-
 
     const claudeProjectsDir = process.env.CLAUDE_PROJECTS_DIR || '.claude/projects';
     const projectDir = path.join(process.env.HOME, claudeProjectsDir, projectName);
@@ -221,12 +287,23 @@ async function extractProjectDirectory(projectName) {
     let extractedPath;
 
     try {
+        // Check if project directory exists
+        try {
+            await fs.access(projectDir);
+        } catch (error) {
+            console.log(`Project directory does not exist: ${projectDir}`);
+            // Use better decoding fallback
+            extractedPath = decodeProjectPath(projectName);
+            projectDirectoryCache.set(projectName, extractedPath);
+            return extractedPath;
+        }
+
         const files = await fs.readdir(projectDir);
         const jsonlFiles = files.filter(file => file.endsWith('.jsonl'));
 
         if (jsonlFiles.length === 0) {
             // Fall back to decoded project name if no sessions
-            extractedPath = projectName.replace(/-/g, '/');
+            extractedPath = decodeProjectPath(projectName);
         } else {
             // Process all JSONL files to collect cwd values
             for (const file of jsonlFiles) {
@@ -263,7 +340,7 @@ async function extractProjectDirectory(projectName) {
             // Determine the best cwd to use
             if (cwdCounts.size === 0) {
                 // No cwd found, fall back to decoded project name
-                extractedPath = projectName.replace(/-/g, '/');
+                extractedPath = decodeProjectPath(projectName);
             } else if (cwdCounts.size === 1) {
                 // Only one cwd, use it
                 extractedPath = Array.from(cwdCounts.keys())[0];
@@ -287,7 +364,7 @@ async function extractProjectDirectory(projectName) {
 
                 // Fallback (shouldn't reach here)
                 if (!extractedPath) {
-                    extractedPath = latestCwd || projectName.replace(/-/g, '/');
+                    extractedPath = latestCwd || decodeProjectPath(projectName);
                 }
             }
         }
@@ -372,8 +449,15 @@ async function getProjects() {
                     actualProjectDir = await extractProjectDirectory(projectName);
                 } catch (error) {
                     // Fall back to decoded project name
-                    actualProjectDir = projectName.replace(/-/g, '/');
+                    actualProjectDir = decodeProjectPath(projectName);
                 }
+            }
+
+            // Check if we already have a project pointing to this path
+            const existingProject = projects.find(p => p.path === actualProjectDir);
+            if (existingProject) {
+                console.log(`⚠️  Skipping duplicate project "${projectName}" - path already covered by "${existingProject.name}"`);
+                continue;
             }
 
             const project = {
@@ -390,7 +474,36 @@ async function getProjects() {
         }
     }
 
-    return projects;
+    // Remove duplicates by path - prefer projects with sessions over empty ones
+    const uniqueProjects = [];
+    const pathMap = new Map();
+    
+    for (const project of projects) {
+        const existing = pathMap.get(project.path);
+        if (!existing) {
+            pathMap.set(project.path, project);
+            uniqueProjects.push(project);
+        } else {
+            // Prefer the project with more sessions, or the one that's not manually added
+            const projectSessionCount = project.sessionMeta?.total || project.sessions?.length || 0;
+            const existingSessionCount = existing.sessionMeta?.total || existing.sessions?.length || 0;
+            
+            if (projectSessionCount > existingSessionCount || 
+                (projectSessionCount === existingSessionCount && !project.isManuallyAdded && existing.isManuallyAdded)) {
+                // Replace the existing project with this one
+                const index = uniqueProjects.indexOf(existing);
+                if (index !== -1) {
+                    uniqueProjects[index] = project;
+                    pathMap.set(project.path, project);
+                }
+                console.log(`🔄 Replaced duplicate project "${existing.name}" with "${project.name}" (${projectSessionCount} vs ${existingSessionCount} sessions)`);
+            } else {
+                console.log(`⚠️  Skipping duplicate project "${project.name}" - keeping "${existing.name}" (${existingSessionCount} vs ${projectSessionCount} sessions)`);
+            }
+        }
+    }
+
+    return uniqueProjects;
 }
 
 async function getSessions(projectName, limit = 5, offset = 0) {
@@ -702,23 +815,64 @@ async function addProjectManually(projectPath, displayName = null) {
     }
 
     // Generate project name (encode path for use as directory name)
-    const projectName = absolutePath.replace(/\//g, '-');
+    // Use URL encoding for better handling of special characters
+    const newProjectName = encodeURIComponent(absolutePath).replace(/%/g, '_');
 
     // Check if project already exists in config or as a folder
     const config = await loadProjectConfig();
     const claudeProjectsDir = process.env.CLAUDE_PROJECTS_DIR || '.claude/projects';
-    const projectDir = path.join(process.env.HOME, claudeProjectsDir, projectName);
+    
+    // Check if any existing project already points to the same path (in config)
+    for (const [existingProjectName, projectConfig] of Object.entries(config)) {
+        if (projectConfig.originalPath === absolutePath) {
+            throw new Error(`Project already exists with name "${existingProjectName}" for path: ${ absolutePath }`);
+        }
+    }
+    
+    // Check if any existing project folder points to the same path by checking actual directories
+    try {
+        const claudeDir = path.join(process.env.HOME, claudeProjectsDir);
+        const entries = await fs.readdir(claudeDir, { withFileTypes: true });
+        
+        for (const entry of entries) {
+            if (entry.isDirectory()) {
+                // Check if this existing project folder corresponds to our target path
+                const extractedPath = await extractProjectDirectory(entry.name);
+                if (extractedPath === absolutePath) {
+                    // Found an existing project folder for this path
+                    console.log(`🔍 Found existing project folder "${entry.name}" for path: ${absolutePath}`);
+                    
+                    // Return the existing project instead of creating a new one
+                    const actualProjectDir = extractedPath;
+                    const autoDisplayName = await generateDisplayName(entry.name, actualProjectDir);
+                    
+                    return {
+                        name: entry.name,
+                        path: actualProjectDir,
+                        fullPath: actualProjectDir,
+                        displayName: displayName || autoDisplayName,
+                        isManuallyAdded: false, // It's actually an existing project
+                        sessions: []
+                    };
+                }
+            }
+        }
+    } catch (error) {
+        console.warn('Could not check existing project folders:', error.message);
+    }
+
+    const projectDir = path.join(process.env.HOME, claudeProjectsDir, newProjectName);
 
     try {
         await fs.access(projectDir);
-        throw new Error(`Project already exists for path: ${ absolutePath }`);
+        throw new Error(`Project directory already exists for path: ${ absolutePath }`);
     } catch (error) {
         if (error.code !== 'ENOENT') {
             throw error;
         }
     }
 
-    if (config[projectName]) {
+    if (config[newProjectName]) {
         throw new Error(`Project already configured for path: ${ absolutePath }`);
     }
 
@@ -781,5 +935,7 @@ export {
     saveProjectConfig,
     extractProjectDirectory,
     clearProjectDirectoryCache,
-    isClaudeProject
+    clearCorruptedCacheEntries,
+    isClaudeProject,
+    decodeProjectPath
 };
