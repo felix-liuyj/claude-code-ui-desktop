@@ -25,9 +25,9 @@
     "release:full": "npm run release && npm run release:gh",
     "release:info": "echo '请手动创建GitHub Release:' && echo 'https://github.com/felix-liuyj/claude-code-ui-desktop/releases/new?tag=v'$(node -p \"require('./package.json').version\") && echo '标题: v'$(node -p \"require('./package.json').version\")",
     "prerelease": "npm run build && npm run dist",
-    "changelog": "conventional-changelog -p conventionalcommits -i CHANGELOG.md -s",
-    "changelog:all": "conventional-changelog -p conventionalcommits -i CHANGELOG.md -s -r 0",
-    "changelog:preview": "conventional-changelog -p conventionalcommits -u"
+    "changelog": "conventional-changelog -p conventionalcommits -i CHANGELOG.md -s --config .changelogrc.cjs",
+    "changelog:all": "conventional-changelog -p conventionalcommits -i CHANGELOG.md -s -r 0 --config .changelogrc.cjs",
+    "changelog:preview": "conventional-changelog -p conventionalcommits -u --config .changelogrc.cjs"
   },
   "keywords": [
     "claude",

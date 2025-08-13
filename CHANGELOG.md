@@ -1,63 +1,63 @@
-# Changelog
+# 更新日志
 
-All notable changes to this project will be documented in this file.
+此项目的所有重要变更都将记录在这个文件中。
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.0.0/)，
+本项目遵循 [语义化版本](https://semver.org/lang/zh-CN/) 规范。
 
-## [Unreleased]
+## [未发布]
 
-### Added
-- Version check functionality for automatic update notifications
-- GitHub release scripts for automated version management
-- Desktop-only UI optimized for Electron environment
+### ✨ 新增功能
+- 自动更新通知的版本检查功能
+- 自动化版本管理的GitHub发布脚本
+- 针对Electron环境优化的桌面专用UI
 
-### Changed
-- Improved error handling for version check API calls
-- Updated project structure for desktop-first approach
+### 🔄 变更
+- 改进版本检查API调用的错误处理
+- 更新项目结构以优先支持桌面端
 
-### Fixed
-- ENOENT error when reading package.json in compiled app
-- GitHub API 404 error handling for repositories without releases
+### 🐛 修复
+- 修复编译后应用读取package.json时的ENOENT错误
+- 修复没有releases的仓库的GitHub API 404错误处理
 
-## [1.0.1] - 2024-01-XX
+## [1.0.1] - 2025-01-XX
 
-### Added
-- Version check functionality
-- Update notification in sidebar
+### ✨ 新增功能
+- 版本检查功能
+- 侧边栏更新通知
 
-### Fixed
-- Package.json path resolution in Electron environment
+### 🐛 修复
+- 修复Electron环境下的Package.json路径解析问题
 
-## [1.0.0] - 2024-01-XX
+## [1.0.0] - 2025-01-XX
 
-### Added
-- Initial desktop release
-- Electron-based Claude Code UI
-- Project management and session handling
-- WebSocket communication with Claude CLI
-- File browser and editor integration
-- Terminal integration for direct Claude CLI access
-- MCP (Model Context Protocol) support
-- Image upload functionality
-- Theme management (light/dark mode)
-- Settings management
-- Session protection system
+### ✨ 新增功能
+- 初始桌面版本发布
+- 基于Electron的Claude Code UI
+- 项目管理和会话处理
+- 与Claude CLI的WebSocket通信
+- 文件浏览器和编辑器集成
+- 直接访问Claude CLI的终端集成
+- MCP (模型上下文协议) 支持
+- 图片上传功能
+- 主题管理 (亮色/暗色模式)
+- 设置管理
+- 会话保护系统
 
-### Features
-- **Desktop App**: Pure Electron application with embedded Node.js server
-- **Project Discovery**: Automatic detection from `~/.claude/projects/`
-- **Session Management**: Create, rename, delete, and organize conversations
-- **File Operations**: Full CRUD support with backup creation
-- **Real-time Updates**: Chokidar file watcher with WebSocket communication
-- **Permission System**: Multiple modes including plan mode and bypass permissions
-- **Multi-language Support**: Chinese language interface
-- **Responsive Design**: Optimized for desktop use
+### 🎯 主要特性
+- **桌面应用**: 纯Electron应用，内嵌Node.js服务器
+- **项目发现**: 从 `~/.claude/projects/` 自动检测
+- **会话管理**: 创建、重命名、删除和组织对话
+- **文件操作**: 完整的CRUD支持，带备份创建功能
+- **实时更新**: Chokidar文件监视器与WebSocket通信
+- **权限系统**: 多种模式，包括计划模式和绕过权限
+- **多语言支持**: 中文界面
+- **响应式设计**: 针对桌面使用优化
 
-### Technical
-- Built with Electron, React, and Express
-- Uses Vite for fast development builds
-- Tailwind CSS for styling
-- WebSocket for real-time communication
-- SQLite integration via better-sqlite3
-- PTY support for terminal integration
+### 🔧 技术实现
+- 使用Electron、React和Express构建
+- 使用Vite进行快速开发构建
+- 使用Tailwind CSS进行样式设计
+- 使用WebSocket进行实时通信
+- 通过better-sqlite3集成SQLite
+- 支持PTY终端集成
