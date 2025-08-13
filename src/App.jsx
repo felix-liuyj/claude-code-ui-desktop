@@ -30,7 +30,6 @@ import { ThemeProvider } from './contexts/ThemeContext';
 import { useVersionCheck } from './hooks/useVersionCheck';
 import { api } from './utils/api';
 import { electronBridge, ElectronContext } from './utils/electron';
-import claudeDoctorService from './utils/claudeDoctor';
 
 
 // Main App component with routing
@@ -317,13 +316,6 @@ function AppContent() {
         }
     }, [messages, selectedProject, selectedSession, activeSessions]);
 
-    // Initialize Claude doctor on app startup
-    useEffect(() => {
-        console.log('🚀 [AppContent] Initializing Claude doctor on startup...');
-        claudeDoctorService.initializeOnStartup().catch(error => {
-            console.warn('⚠️ Failed to initialize Claude doctor on startup:', error);
-        });
-    }, []); // Run only once on app startup
 
     // Expose fetchProjects globally for component access
     window.refreshProjects = async () => {

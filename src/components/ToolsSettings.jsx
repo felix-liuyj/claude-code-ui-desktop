@@ -3,7 +3,6 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Badge } from './ui/badge';
 import { apiFetch, api } from '../utils/api';
-import claudeDoctorService from '../utils/claudeDoctor';
 import {
     AlertTriangle,
     Bug,
@@ -69,19 +68,10 @@ function ToolsSettings({ isOpen, onClose }) {
     // New: user avatar (data URL)
     const [userAvatar, setUserAvatar] = useState('');
     
-    // About tab state - using global Claude doctor service
-    const [claudeDoctorState, setClaudeDoctorState] = useState(() => claudeDoctorService.getData());
-    
     // App info state
     const [appInfo, setAppInfo] = useState(null);
     const [appInfoLoading, setAppInfoLoading] = useState(false);
     const [appInfoError, setAppInfoError] = useState(null);
-    
-    // Function to refresh Claude doctor data manually
-    const refreshClaudeDoctor = async () => {
-        await claudeDoctorService.refresh();
-        setClaudeDoctorState(claudeDoctorService.getData());
-    };
 
     // Function to fetch app information
     const fetchAppInfo = async () => {
@@ -1203,69 +1193,6 @@ function ToolsSettings({ isOpen, onClose }) {
                         {/* About Tab */ }
                         { activeTab === 'about' && (
                             <div className="space-y-6 md:space-y-8">
-                                {/* Claude Doctor Information */ }
-                                <div className="space-y-4">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-3">
-                                            <Terminal className="w-5 h-5 text-primary"/>
-                                            <h3 className="text-lg font-medium text-foreground">
-                                                Claude 状态诊断
-                                            </h3>
-                                        </div>
-                                        <Button
-                                            onClick={refreshClaudeDoctor}
-                                            disabled={claudeDoctorState.loading}
-                                            variant="outline"
-                                            size="sm"
-                                        >
-                                            {claudeDoctorState.loading ? '检查中...' : '重新检查'}
-                                        </Button>
-                                    </div>
-                                    
-                                    <div className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-                                        {claudeDoctorState.loading && (
-                                            <div className="text-center py-4">
-                                                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500 mx-auto mb-2"></div>
-                                                <p className="text-sm text-gray-600 dark:text-gray-400">正在检查 Claude 状态...</p>
-                                            </div>
-                                        )}
-                                        
-                                        {claudeDoctorState.error && !claudeDoctorState.loading && (
-                                            <div className="text-center py-4">
-                                                <AlertTriangle className="w-8 h-8 text-red-500 mx-auto mb-2"/>
-                                                <p className="text-sm text-red-600 dark:text-red-400 mb-2">获取 Claude 状态失败</p>
-                                                <p className="text-xs text-gray-600 dark:text-gray-400">{claudeDoctorState.error}</p>
-                                            </div>
-                                        )}
-                                        
-                                        {claudeDoctorState.data && !claudeDoctorState.loading && (
-                                            <div className="space-y-3">
-                                                <div className="flex items-center justify-between text-sm">
-                                                    <span className="text-gray-600 dark:text-gray-400">检查时间:</span>
-                                                    <span className="font-mono text-xs">
-                                                        {new Date(claudeDoctorState.data.timestamp).toLocaleString()}
-                                                    </span>
-                                                </div>
-                                                <div className="border-t border-gray-200 dark:border-gray-600 pt-3">
-                                                    <pre className="text-xs font-mono text-gray-800 dark:text-gray-200 whitespace-pre-wrap overflow-x-auto">
-                                                        {claudeDoctorState.data.output}
-                                                    </pre>
-                                                </div>
-                                            </div>
-                                        )}
-                                        
-                                        {!claudeDoctorState.data && !claudeDoctorState.loading && !claudeDoctorState.error && (
-                                            <div className="text-center py-4">
-                                                <Terminal className="w-8 h-8 text-gray-400 mx-auto mb-2"/>
-                                                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Claude 状态信息将在应用启动时自动获取</p>
-                                                <p className="text-xs text-gray-500 dark:text-gray-500">
-                                                    或点击"重新检查"手动刷新 <code className="bg-gray-200 dark:bg-gray-700 px-1 rounded">claude doctor</code> 信息
-                                                </p>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                                
                                 {/* Application Information */ }
                                 <div className="space-y-4">
                                     <div className="flex items-center gap-3">
