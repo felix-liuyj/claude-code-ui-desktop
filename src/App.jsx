@@ -40,7 +40,7 @@ function AppContent() {
     const electron = React.useContext(ElectronContext);
     console.log('🔍 [AppContent] Electron context:', !!electron?.isElectronApp());
 
-    const { updateAvailable, latestVersion, currentVersion } = useVersionCheck('siteboon', 'claudecodeui');
+    const { updateAvailable, latestVersion, currentVersion } = useVersionCheck('felix-liuyj', 'claude-code-ui-desktop');
     const [showVersionModal, setShowVersionModal] = useState(false);
 
     const [projects, setProjects] = useState([]);

@@ -1,6 +1,6 @@
 {
   "name": "claude-code-ui-desktop",
-  "version": "1.5.0",
+  "version": "1.0.0",
   "description": "A desktop UI for Claude Code CLI",
   "type": "module",
   "main": "electron/main.js",
@@ -12,7 +12,18 @@
     "electron-pack": "npm run build && electron-builder",
     "dev": "npm run build && npm run electron-dev",
     "dist": "npm run build && electron-builder --publish=never",
-    "start": "npm run electron-dev"
+    "start": "npm run electron-dev",
+    "version:patch": "npm version patch --no-git-tag-version",
+    "version:minor": "npm version minor --no-git-tag-version",
+    "version:major": "npm version major --no-git-tag-version",
+    "release:patch": "npm run version:patch && npm run release",
+    "release:minor": "npm run version:minor && npm run release",
+    "release:major": "npm run version:major && npm run release",
+    "release": "npm run build && git add . && git commit -m \"chore: release v$(node -p \"require('./package.json').version\")\" && git tag -a v$(node -p \"require('./package.json').version\") -m \"Release v$(node -p \"require('./package.json').version\")\" && git push origin main && git push origin --tags",
+    "release:gh": "gh release create v$(node -p \"require('./package.json').version\") --title \"v$(node -p \"require('./package.json').version\")\" --generate-notes",
+    "release:gh-draft": "gh release create v$(node -p \"require('./package.json').version\") --title \"v$(node -p \"require('./package.json').version\")\" --generate-notes --draft",
+    "release:full": "npm run release && npm run release:gh",
+    "prerelease": "npm run build && npm run dist"
   },
   "keywords": [
     "claude",
