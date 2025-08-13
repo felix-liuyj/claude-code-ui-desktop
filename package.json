@@ -19,7 +19,7 @@
     "release:patch": "npm run version:patch && npm run release",
     "release:minor": "npm run version:minor && npm run release",
     "release:major": "npm run version:major && npm run release",
-    "release": "npm run build && git add . && git commit -m \"chore: release v$(node -p \"require('./package.json').version\")\" && git tag -a v$(node -p \"require('./package.json').version\") -m \"Release v$(node -p \"require('./package.json').version\")\" && git push origin main && git push origin --tags",
+    "release": "npm run build && git add . && git commit -m \"chore: release v$(node -p \"require('./package.json').version\")\" && git tag -a v$(node -p \"require('./package.json').version\") -m \"Release v$(node -p \"require('./package.json').version\")\" && git push origin master && git push origin --tags",
     "release:gh": "gh release create v$(node -p \"require('./package.json').version\") --title \"v$(node -p \"require('./package.json').version\")\" --generate-notes",
     "release:gh-draft": "gh release create v$(node -p \"require('./package.json').version\") --title \"v$(node -p \"require('./package.json').version\")\" --generate-notes --draft",
     "release:full": "npm run release && npm run release:gh",
