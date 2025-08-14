@@ -2355,9 +2355,102 @@ function ChatInterface({
         noKeyboard: true
     });
 
+    const handleMemoryCommand = async (command) => {
+        const parts = command.split(' ');
+        const subcommand = parts[1];
+        
+        try {
+            if (subcommand === 'show' || subcommand === 'view' || !subcommand) {
+                // Show current project memory
+                const scope = parts[2];
+                if (scope === 'global' || scope === '--global') {
+                    const response = await api.getGlobalMemory();
+                    const data = await response.json();
+                    
+                    const memoryMessage = {
+                        type: 'system',
+                        content: data.content ? `**Global Memory (CLAUDE.md):**\n\n\`\`\`markdown\n${data.content}\n\`\`\`` : '**Global Memory (CLAUDE.md):** Empty',
+                        timestamp: new Date(),
+                        _localId: `mem-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+                    };
+                    setChatMessages(prev => [...prev, memoryMessage]);
+                } else {
+                    const response = await api.getProjectMemory(selectedProject.name);
+                    const data = await response.json();
+                    
+                    const memoryMessage = {
+                        type: 'system',
+                        content: data.content ? `**Project Memory (CLAUDE.md):**\n\n\`\`\`markdown\n${data.content}\n\`\`\`` : '**Project Memory (CLAUDE.md):** Empty',
+                        timestamp: new Date(),
+                        _localId: `mem-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+                    };
+                    setChatMessages(prev => [...prev, memoryMessage]);
+                }
+            } else if (subcommand === 'edit') {
+                // Open memory editor
+                const scope = parts[2];
+                const isGlobal = scope === 'global' || scope === '--global';
+                
+                // Add message showing memory editor is opening
+                const editorMessage = {
+                    type: 'system',
+                    content: `Opening ${isGlobal ? 'global' : 'project'} memory editor...`,
+                    timestamp: new Date(),
+                    _localId: `mem-edit-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+                };
+                setChatMessages(prev => [...prev, editorMessage]);
+                
+                // Here we would open the memory editor modal/interface
+                // For now, just show instructions
+                setTimeout(() => {
+                    const instructionMessage = {
+                        type: 'system',
+                        content: `**Memory Editor:** Use the project file browser to edit ${isGlobal ? '~/.claude/CLAUDE.md' : 'CLAUDE.md in your project directory'}.`,
+                        timestamp: new Date(),
+                        _localId: `mem-inst-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+                    };
+                    setChatMessages(prev => [...prev, instructionMessage]);
+                }, 100);
+            } else {
+                // Unknown subcommand
+                const helpMessage = {
+                    type: 'system',
+                    content: `**Memory Command Help:**
+- \`/memory\` or \`/memory show\` - Show project memory
+- \`/memory show global\` - Show global memory  
+- \`/memory edit\` - Edit project memory
+- \`/memory edit global\` - Edit global memory`,
+                    timestamp: new Date(),
+                    _localId: `mem-help-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+                };
+                setChatMessages(prev => [...prev, helpMessage]);
+            }
+        } catch (error) {
+            console.error('Memory command error:', error);
+            const errorMessage = {
+                type: 'error',
+                content: `Memory command failed: ${error.message}`,
+                timestamp: new Date(),
+                _localId: `mem-err-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+            };
+            setChatMessages(prev => [...prev, errorMessage]);
+        }
+        
+        // Clear input after processing memory command
+        setInput('');
+        setAttachedImages([]);
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!input.trim() || isLoading || !selectedProject) return;
+
+        // Handle memory commands before processing
+        const trimmedInput = input.trim();
+        if (trimmedInput.startsWith('/memory')) {
+            await handleMemoryCommand(trimmedInput);
+            return;
+        }
 
         // Upload images first if any
         let uploadedImages = [];

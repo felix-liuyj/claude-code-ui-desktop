@@ -66,4 +66,24 @@ export const api = {
         }),
     getAppInfo: () =>
         apiFetch('/api/app/info'),
+    uploadImages: (projectName, formData) =>
+        apiFetch(`/api/projects/${ projectName }/upload-images`, {
+            method: 'POST',
+            body: formData,
+            headers: {}, // Let browser set Content-Type for FormData
+        }),
+    getProjectMemory: (projectName) =>
+        apiFetch(`/api/projects/${ projectName }/memory`),
+    saveProjectMemory: (projectName, content) =>
+        apiFetch(`/api/projects/${ projectName }/memory`, {
+            method: 'POST',
+            body: JSON.stringify({ content }),
+        }),
+    getGlobalMemory: () =>
+        apiFetch('/api/memory/global'),
+    saveGlobalMemory: (content) =>
+        apiFetch('/api/memory/global', {
+            method: 'POST',
+            body: JSON.stringify({ content }),
+        }),
 };

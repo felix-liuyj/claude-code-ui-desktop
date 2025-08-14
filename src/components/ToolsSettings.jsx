@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import DevTools from './DevTools';
+import MemoryEditor from './MemoryEditor';
 
 function ToolsSettings({ isOpen, onClose }) {
     const { themeMode, setTheme } = useTheme();
@@ -73,6 +74,10 @@ function ToolsSettings({ isOpen, onClose }) {
     const [appInfoLoading, setAppInfoLoading] = useState(false);
     const [appInfoError, setAppInfoError] = useState(null);
 
+    // Memory state
+    const [showGlobalMemoryEditor, setShowGlobalMemoryEditor] = useState(false);
+    const [globalMemoryPreview, setGlobalMemoryPreview] = useState('');
+
     // Function to fetch app information
     const fetchAppInfo = async () => {
         if (appInfoLoading) return;
@@ -94,6 +99,18 @@ function ToolsSettings({ isOpen, onClose }) {
             setAppInfoError(error.message);
         } finally {
             setAppInfoLoading(false);
+        }
+    };
+
+    // Function to load global memory preview
+    const loadGlobalMemoryPreview = async () => {
+        try {
+            const response = await api.getGlobalMemory();
+            const data = await response.json();
+            setGlobalMemoryPreview(data.content || '');
+        } catch (error) {
+            console.error('Failed to load global memory preview:', error);
+            setGlobalMemoryPreview('Error loading global memory');
         }
     };
 
@@ -731,6 +748,16 @@ function ToolsSettings({ isOpen, onClose }) {
                                 安全项
                             </button>
                             <button
+                                onClick={ () => setActiveTab('memory') }
+                                className={ `flex-shrink-0 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+                                    activeTab === 'memory'
+                                        ? 'border-primary text-primary'
+                                        : 'border-transparent text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
+                                }` }
+                            >
+                                记忆
+                            </button>
+                            <button
                                 onClick={ () => setActiveTab('mcp') }
                                 className={ `flex-shrink-0 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
                                     activeTab === 'mcp'
@@ -768,6 +795,103 @@ function ToolsSettings({ isOpen, onClose }) {
                     </div>
 
                     <div className="p-4 md:p-6 space-y-6 md:space-y-8 pb-safe-area-inset-bottom">
+                        {/* Memory Tab */}
+                        { activeTab === 'memory' && (
+                            <div className="space-y-6 md:space-y-8">
+                                {/* Global Memory */}
+                                <div className="space-y-4">
+                                    <div className="flex items-center gap-3">
+                                        <Globe className="w-5 h-5 text-blue-500"/>
+                                        <h3 className="text-lg font-medium text-foreground">
+                                            全局 Memory
+                                        </h3>
+                                    </div>
+                                    <p className="text-sm text-muted-foreground">
+                                        全局 Memory 文件适用于所有项目，包含通用的指令和偏好设置。文件位置：~/.claude/CLAUDE.md
+                                    </p>
+                                    <div className="flex gap-3">
+                                        <Button
+                                            variant="outline"
+                                            onClick={() => setShowGlobalMemoryEditor(true)}
+                                            className="flex items-center gap-2"
+                                        >
+                                            <Edit3 className="w-4 h-4" />
+                                            编辑全局 Memory
+                                        </Button>
+                                        <Button
+                                            variant="ghost"
+                                            onClick={loadGlobalMemoryPreview}
+                                            className="flex items-center gap-2"
+                                        >
+                                            <FileText className="w-4 h-4" />
+                                            查看内容
+                                        </Button>
+                                    </div>
+                                    {globalMemoryPreview && (
+                                        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                    全局 Memory 预览
+                                                </span>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => setGlobalMemoryPreview('')}
+                                                >
+                                                    <X className="w-4 h-4" />
+                                                </Button>
+                                            </div>
+                                            <div className="max-h-40 overflow-auto">
+                                                <pre className="text-xs text-gray-600 dark:text-gray-400 whitespace-pre-wrap">
+                                                    {globalMemoryPreview || '全局 Memory 文件为空'}
+                                                </pre>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Memory Management */}
+                                <div className="space-y-4">
+                                    <div className="flex items-center gap-3">
+                                        <Settings className="w-5 h-5 text-primary"/>
+                                        <h3 className="text-lg font-medium text-foreground">
+                                            Memory 管理
+                                        </h3>
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                                            <h4 className="font-medium text-gray-900 dark:text-white mb-2">
+                                                快速访问
+                                            </h4>
+                                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                                                在聊天中使用 /memory 命令快速查看和管理 Memory 文件
+                                            </p>
+                                            <div className="space-y-2 text-xs text-gray-500 dark:text-gray-400">
+                                                <div>• /memory - 查看项目 Memory</div>
+                                                <div>• /memory show global - 查看全局 Memory</div>
+                                                <div>• /memory edit - 编辑项目 Memory</div>
+                                                <div>• /memory edit global - 编辑全局 Memory</div>
+                                            </div>
+                                        </div>
+                                        <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                                            <h4 className="font-medium text-gray-900 dark:text-white mb-2">
+                                                Memory 提示
+                                            </h4>
+                                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                                                有效使用 Memory 文件的建议
+                                            </p>
+                                            <div className="space-y-2 text-xs text-gray-500 dark:text-gray-400">
+                                                <div>• 使用 Markdown 格式组织内容</div>
+                                                <div>• 包含项目背景和偏好设置</div>
+                                                <div>• 添加代码风格和约定</div>
+                                                <div>• 记录特殊需求和限制</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
                         {/* Security Tab */ }
                         { activeTab === 'security' && (
                             <div className="space-y-6 md:space-y-8">
@@ -1932,6 +2056,16 @@ function ToolsSettings({ isOpen, onClose }) {
                     </div>
                 </div>
             </div>
+            
+            {/* Global Memory Editor */}
+            <MemoryEditor
+                type="global"
+                isOpen={showGlobalMemoryEditor}
+                onClose={() => setShowGlobalMemoryEditor(false)}
+                onSave={() => {
+                    setGlobalMemoryPreview(''); // Clear preview to force reload
+                }}
+            />
         </div>
     );
 }

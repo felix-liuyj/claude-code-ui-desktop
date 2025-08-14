@@ -1,7 +1,7 @@
 {
   "name": "claude-code-ui-desktop",
   "version": "1.0.0",
-  "description": "A desktop UI for Claude Code CLI",
+  "description": "A Desktop UI for Claude Code CLI",
   "type": "module",
   "main": "electron/main.js",
   "homepage": "./",

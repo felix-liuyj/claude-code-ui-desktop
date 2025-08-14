@@ -6,6 +6,7 @@ import { Input } from './ui/input';
 import { useElectron } from '../utils/electron';
 
 import {
+    Brain,
     Check,
     ChevronDown,
     ChevronRight,
@@ -26,6 +27,7 @@ import {
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { api } from '../utils/api';
+import MemoryEditor from './MemoryEditor';
 
 // Move formatTimeAgo outside component to avoid recreation on every render
 const formatTimeAgo = (dateString, currentTime) => {
@@ -85,6 +87,10 @@ function Sidebar({
     const [editingSession, setEditingSession] = useState(null);
     const [editingSessionName, setEditingSessionName] = useState('');
     const [searchFilter, setSearchFilter] = useState('');
+    
+    // Memory editor state
+    const [showMemoryEditor, setShowMemoryEditor] = useState(false);
+    const [memoryEditingProject, setMemoryEditingProject] = useState(null);
 
 
     // Starred projects state - persisted in localStorage
@@ -289,6 +295,11 @@ function Sidebar({
 
         setEditingProject(null);
         setEditingName('');
+    };
+
+    const openMemoryEditor = (project) => {
+        setMemoryEditingProject(project);
+        setShowMemoryEditor(true);
     };
 
     const deleteSession = async (projectName, sessionId) => {
@@ -676,6 +687,16 @@ function Sidebar({
                                         >
                                             <Edit3 className="w-3 h-3"/>
                                         </div>
+                                        <div
+                                            className="w-6 h-6 opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-blue-50 dark:hover:bg-blue-900/20 flex items-center justify-center rounded cursor-pointer touch:opacity-100"
+                                            onClick={ (e) => {
+                                                e.stopPropagation();
+                                                openMemoryEditor(project);
+                                            } }
+                                            title="编辑项目 Memory"
+                                        >
+                                            <Brain className="w-3 h-3 text-blue-600 dark:text-blue-400"/>
+                                        </div>
                                         { getAllSessions(project).length === 0 && (<div
                                             className="w-6 h-6 opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center justify-center rounded cursor-pointer touch:opacity-100"
                                             onClick={ (e) => {
@@ -930,6 +951,20 @@ function Sidebar({
                 <span className="text-xs">设置</span>
             </Button>
         </div>
+        
+        {/* Project Memory Editor */}
+        <MemoryEditor
+            type="project"
+            projectName={memoryEditingProject?.name}
+            isOpen={showMemoryEditor}
+            onClose={() => {
+                setShowMemoryEditor(false);
+                setMemoryEditingProject(null);
+            }}
+            onSave={() => {
+                // Memory saved successfully
+            }}
+        />
     </div>);
 }
 

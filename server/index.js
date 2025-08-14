@@ -946,6 +946,108 @@ app.post('/api/projects/:projectName/upload-images', async (req, res) => {
     }
 });
 
+// Memory management endpoints
+app.get('/api/projects/:projectName/memory', async (req, res) => {
+    try {
+        const { projectName } = req.params;
+        
+        // Use extractProjectDirectory to get the actual project path
+        let projectPath;
+        try {
+            projectPath = await extractProjectDirectory(projectName);
+        } catch (error) {
+            console.error('Error extracting project directory:', error);
+            return res.status(404).json({ error: 'Project not found' });
+        }
+
+        const memoryPath = path.join(projectPath, 'CLAUDE.md');
+        
+        try {
+            const content = await fsPromises.readFile(memoryPath, 'utf8');
+            res.json({ content });
+        } catch (error) {
+            if (error.code === 'ENOENT') {
+                res.json({ content: '' });
+            } else {
+                throw error;
+            }
+        }
+    } catch (error) {
+        console.error('Error reading project memory:', error);
+        res.status(500).json({ error: 'Failed to read project memory' });
+    }
+});
+
+app.post('/api/projects/:projectName/memory', async (req, res) => {
+    try {
+        const { projectName } = req.params;
+        const { content } = req.body;
+        
+        if (typeof content !== 'string') {
+            return res.status(400).json({ error: 'Content must be a string' });
+        }
+
+        // Use extractProjectDirectory to get the actual project path
+        let projectPath;
+        try {
+            projectPath = await extractProjectDirectory(projectName);
+        } catch (error) {
+            console.error('Error extracting project directory:', error);
+            return res.status(404).json({ error: 'Project not found' });
+        }
+
+        const memoryPath = path.join(projectPath, 'CLAUDE.md');
+        await fsPromises.writeFile(memoryPath, content, 'utf8');
+        
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error writing project memory:', error);
+        res.status(500).json({ error: 'Failed to write project memory' });
+    }
+});
+
+app.get('/api/memory/global', async (req, res) => {
+    try {
+        const globalMemoryPath = path.join(os.homedir(), '.claude', 'CLAUDE.md');
+        
+        try {
+            const content = await fsPromises.readFile(globalMemoryPath, 'utf8');
+            res.json({ content });
+        } catch (error) {
+            if (error.code === 'ENOENT') {
+                res.json({ content: '' });
+            } else {
+                throw error;
+            }
+        }
+    } catch (error) {
+        console.error('Error reading global memory:', error);
+        res.status(500).json({ error: 'Failed to read global memory' });
+    }
+});
+
+app.post('/api/memory/global', async (req, res) => {
+    try {
+        const { content } = req.body;
+        
+        if (typeof content !== 'string') {
+            return res.status(400).json({ error: 'Content must be a string' });
+        }
+
+        const claudeDir = path.join(os.homedir(), '.claude');
+        const globalMemoryPath = path.join(claudeDir, 'CLAUDE.md');
+        
+        // Ensure .claude directory exists
+        await fsPromises.mkdir(claudeDir, { recursive: true });
+        await fsPromises.writeFile(globalMemoryPath, content, 'utf8');
+        
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error writing global memory:', error);
+        res.status(500).json({ error: 'Failed to write global memory' });
+    }
+});
+
 // Serve React app for all other routes
 app.get('*', (req, res) => {
     // Electron desktop app - always serve the built React app
