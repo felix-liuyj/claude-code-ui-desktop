@@ -62,7 +62,7 @@ export function useWebSocket() {
     };
 
     const sendMessage = (message) => {
-        if (ws && isConnected) {
+        if (ws && ws.readyState === WebSocket.OPEN) {
             ws.send(JSON.stringify(message));
         } else {
             console.warn('WebSocket not connected');

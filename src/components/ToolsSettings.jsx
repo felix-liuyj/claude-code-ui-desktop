@@ -25,6 +25,7 @@ import {
 import { useTheme } from '../contexts/ThemeContext';
 import DevTools from './DevTools';
 import MemoryEditor from './MemoryEditor';
+import { LazyUsageMonitor } from './UsageMonitor/LazyUsageMonitor';
 
 function ToolsSettings({ isOpen, onClose }) {
     const { themeMode, setTheme } = useTheme();
@@ -767,6 +768,16 @@ function ToolsSettings({ isOpen, onClose }) {
                             >
                                 MCP
                             </button>
+                            <button
+                                onClick={ () => setActiveTab('usage') }
+                                className={ `flex-shrink-0 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+                                    activeTab === 'usage'
+                                        ? 'border-primary text-primary'
+                                        : 'border-transparent text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
+                                }` }
+                            >
+                                使用量
+                            </button>
                             {/* Only show developer tab in development mode */ }
                             { isDevelopmentMode && (
                                 <button
@@ -1314,6 +1325,12 @@ function ToolsSettings({ isOpen, onClose }) {
                             </div>
                         ) }
 
+                        {/* Usage Tab */ }
+                        { activeTab === 'usage' && (
+                            <div className="space-y-6 md:space-y-8">
+                                <LazyUsageMonitor />
+                            </div>
+                        ) }
                         {/* About Tab */ }
                         { activeTab === 'about' && (
                             <div className="space-y-6 md:space-y-8">

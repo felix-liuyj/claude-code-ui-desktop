@@ -22,6 +22,15 @@ npm start                  # Start Electron app (alias for electron-dev)
 # Dependencies & Setup
 npm install                # Install all dependencies (includes Electron)
 npm rebuild                # Rebuild native dependencies if needed (especially for Electron)
+
+# Version & Release Management
+npm run version:patch       # Bump patch version (1.0.0 -> 1.0.1)
+npm run version:minor       # Bump minor version (1.0.0 -> 1.1.0)  
+npm run version:major       # Bump major version (1.0.0 -> 2.0.0)
+npm run release:patch       # Auto-version, changelog, commit, tag, and push
+npm run release:gh          # Create GitHub release with auto-generated notes
+npm run changelog           # Update CHANGELOG.md with new commits
+npm run changelog:preview   # Preview changelog changes without writing
 ```
 
 ### Testing and Validation
@@ -30,6 +39,15 @@ There are no automated tests in this project. Testing is done manually through:
 - Running `npm run electron-dev` for development testing
 - Building and packaging with `npm run dist` for distribution testing
 - Manual verification of core features: file browsing, Claude CLI integration, WebSocket communication
+
+### Release Process
+
+The project uses Conventional Commits with Chinese changelog generation:
+
+- **Commit Types**: feat, fix, perf, docs, style, chore, refactor, test, build, ci, revert
+- **Changelog**: Automatically generated using `.changelogrc.cjs` with Chinese section headers
+- **Versioning**: Semantic versioning with automated release workflow
+- **GitHub Integration**: Automated release creation with `gh` CLI tool
 
 ## Architecture
 
@@ -106,6 +124,12 @@ No environment configuration required - all settings are automatic:
 3. **Development**: `npm run electron-dev` builds and launches desktop app
 4. **Building**: `npm run dist` creates distributable packages for your platform
 5. **Start Script**: `scripts/start-electron.js` handles build detection and port cleanup
+
+**Important Development Notes**:
+- The app uses ES modules (`"type": "module"` in package.json) throughout
+- Server runs embedded in Electron main process, not as separate service
+- All paths should be absolute when interfacing between Electron processes
+- Use `apiFetch()` wrapper instead of direct `fetch()` calls in renderer process
 
 ## Key Files
 
@@ -263,6 +287,16 @@ The application supports image uploads through a sophisticated temporary file sy
 4. **File Path Resolution**: Use absolute paths in API calls, relative paths may fail in Electron
 5. **Build Issues**: Run `npm run build` before `npm run electron` if dist/ doesn't exist
 6. **Port Conflicts**: `scripts/start-electron.js` automatically kills processes on port 3001
+
+### Critical Dependencies
+
+- **better-sqlite3**: Native database for potential data storage (requires native rebuild)
+- **node-pty**: Terminal integration with PTY support (platform-specific native module)
+- **sharp**: Image processing library (optional, used in build process)
+- **multer**: File upload handling for image attachments
+- **chokidar**: File system watching with cross-platform support
+
+**Native Modules**: If facing installation issues, run `npm rebuild` to recompile native dependencies for your platform.
 
 ### Electron-Specific Considerations
 

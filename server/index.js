@@ -26,6 +26,7 @@ import {
 import { abortClaudeSession, spawnClaude } from './claude-cli.js';
 import gitRoutes from './routes/git.js';
 import mcpRoutes from './routes/mcp.js';
+import usageRoutes from './routes/usage.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -139,6 +140,9 @@ app.use('/api/git', gitRoutes);
 
 // MCP API Routes  
 app.use('/api/mcp', mcpRoutes);
+
+// Usage Monitoring API Routes
+app.use('/api/usage', usageRoutes);
 
 // Static files served after API routes
 app.use(express.static(path.join(__dirname, '../dist')));
@@ -515,6 +519,29 @@ function handleChatConnection(ws) {
                     sessionId: data.sessionId,
                     success
                 }));
+            } else if (data.type === 'usage-subscribe') {
+                console.log('📊 Usage monitoring subscription request');
+                ws.isUsageSubscribed = true;
+                // Send initial data
+                try {
+                    const { DataAggregator } = await import('./usage-monitor/data-aggregator.js');
+                    const aggregator = new DataAggregator();
+                    const realTimeData = await aggregator.getRealTimeData();
+                    ws.send(JSON.stringify({
+                        type: 'usage-data',
+                        data: realTimeData,
+                        timestamp: new Date()
+                    }));
+                } catch (error) {
+                    console.error('Error sending initial usage data:', error);
+                    ws.send(JSON.stringify({
+                        type: 'usage-error',
+                        error: error.message
+                    }));
+                }
+            } else if (data.type === 'usage-unsubscribe') {
+                console.log('📊 Usage monitoring unsubscription request');
+                ws.isUsageSubscribed = false;
             }
         } catch (error) {
             console.error('❌ Chat WebSocket error:', error.message);
@@ -1152,11 +1179,80 @@ async function startServer() {
 
             // Start watching the projects folder for changes
             await setupProjectsWatcher(); // Re-enabled with better-sqlite3
+
+            // Start usage monitoring data broadcasting
+            startUsageMonitoringBroadcast();
         });
     } catch (error) {
         console.error('❌ Failed to start server:', error);
         process.exit(1);
     }
+}
+
+// Usage monitoring broadcast functionality
+async function startUsageMonitoringBroadcast() {
+    console.log('📊 Starting usage monitoring broadcast...');
+    
+    let dataAggregator = null;
+    
+    // Initialize aggregator
+    const getDataAggregator = async () => {
+        if (!dataAggregator) {
+            try {
+                const { DataAggregator } = await import('./usage-monitor/data-aggregator.js');
+                dataAggregator = new DataAggregator();
+            } catch (error) {
+                console.error('Error initializing usage data aggregator:', error);
+                return null;
+            }
+        }
+        return dataAggregator;
+    };
+
+    // Broadcast usage data to subscribed clients
+    const broadcastUsageData = async () => {
+        const aggregator = await getDataAggregator();
+        if (!aggregator) return;
+
+        try {
+            // Get subscribed clients
+            const subscribedClients = Array.from(connectedClients).filter(ws => 
+                ws.readyState === 1 && ws.isUsageSubscribed
+            );
+
+            if (subscribedClients.length === 0) return;
+
+            // Get real-time data
+            const realTimeData = await aggregator.getRealTimeData();
+            const message = JSON.stringify({
+                type: 'usage-data-update',
+                data: realTimeData,
+                timestamp: new Date()
+            });
+
+            // Send to all subscribed clients
+            subscribedClients.forEach(ws => {
+                try {
+                    ws.send(message);
+                } catch (error) {
+                    console.error('Error sending usage data to client:', error);
+                    // Remove failed client
+                    connectedClients.delete(ws);
+                }
+            });
+
+            if (subscribedClients.length > 0) {
+                console.log(`📊 Broadcasted usage data to ${subscribedClients.length} clients`);
+            }
+        } catch (error) {
+            console.error('Error broadcasting usage data:', error);
+        }
+    };
+
+    // Start periodic broadcast (every 30 seconds)
+    setInterval(broadcastUsageData, 30000);
+    
+    console.log('📊 Usage monitoring broadcast started (30s interval)');
 }
 
 startServer();

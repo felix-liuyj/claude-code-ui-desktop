@@ -3,19 +3,8 @@
 <head>
     <meta charset="UTF-8"/>
 
-    <!-- Content Security Policy for Electron -->
-    <meta content="
-      default-src 'self';
-      script-src 'self' 'unsafe-inline';
-      style-src 'self' 'unsafe-inline';
-      img-src 'self' data: blob: https:;
-      font-src 'self' data:;
-      connect-src 'self' ws://localhost:* wss://localhost:* http://localhost:* https://localhost:* https://api.openai.com https://api.github.com;
-      media-src 'self' blob:;
-      object-src 'none';
-      base-uri 'self';
-      form-action 'self';
-    " http-equiv="Content-Security-Policy">
+    <!-- CSP for Electron desktop app -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: ws://localhost:* wss://localhost:* http://localhost:* https://localhost:* https:; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: file:; font-src 'self' data:; connect-src 'self' ws://localhost:* wss://localhost:* http://localhost:* https://localhost:* https://api.github.com; media-src 'self' data: blob:;">
 
     <link href="/public/logo.svg" rel="icon" type="image/svg+xml"/>
     <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
@@ -26,9 +15,19 @@
     <!-- Theme Color -->
     <meta content="#ffffff" name="theme-color"/>
 
+    <script>
+        // AsyncMode 错误抑制器
+        window.addEventListener('error', function(e) {
+            if (e.message && e.message.includes('AsyncMode')) {
+                e.preventDefault();
+                console.warn('Suppressed Recharts AsyncMode compatibility error');
+            }
+        });
+    </script>
 </head>
 <body>
 <div id="root"></div>
+<!-- 保留原有的模块导入 -->
 <script src="/src/main.jsx" type="module"></script>
 
 </body>

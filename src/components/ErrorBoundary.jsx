@@ -46,8 +46,8 @@ class ErrorBoundary extends React.Component {
                                 <details className="mt-4">
                                     <summary className="cursor-pointer text-xs font-mono">错误详情</summary>
                                     <pre className="mt-2 text-xs bg-red-100 p-2 rounded overflow-auto max-h-40">
-                    { this.state.error.toString() }
-                                        { this.state.errorInfo && this.state.errorInfo.componentStack }
+                    { this.state.error?.toString() || 'Unknown error' }
+                                        { this.state.errorInfo?.componentStack || '' }
                   </pre>
                                 </details>
                             ) }
