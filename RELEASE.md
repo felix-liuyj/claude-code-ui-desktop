@@ -479,4 +479,55 @@ npm run release:info
 
 ---
 
+## 📋 版本发布记录
+
+### v1.0.0 (2025-01-18) - Usage Monitor & Memory Editor Enhancement
+
+#### ⚠ BREAKING CHANGES
+
+* 移除了独立的 MemoryEditor 弹窗，改为内嵌式编辑
+
+#### ✨ 新增功能
+
+* **Usage Monitor 使用量监控模块**
+  - 实时监控 5 小时窗口的令牌使用情况
+  - 每日统计分析与成本计算
+  - 月度趋势分析与长期使用追踪
+  - 模型策略配置按钮 (Default/Opus/Sonnet/Opus Plan)
+  - 多层缓存系统优化性能
+
+* **优化全局 Memory 编辑体验**
+  - 移除多余的弹窗，复用查看内容区域
+  - 集成 Markdown 实时预览渲染
+  - 默认显示预览内容
+  - 统一预览和编辑模式的交互
+
+#### 🔧 改进
+
+* **JSONL 解析优化**
+  - 修复 50% 解析失败率问题
+  - 添加智能错误恢复机制
+  - 支持不完整 JSON 行修复
+  - 跳过 summary 类型行
+
+* **日志系统优化**
+  - 环境变量控制的调试日志 (VITE_DEBUG=true)
+  - 统一的 Logger 工具类
+  - 减少生产环境日志噪音
+
+#### 🐛 修复
+
+* 修复 Model API 404 错误 - 统一前后端参数命名 (strategy -> model)
+* 修复 Memory 编辑器高度过低问题 - 调整为 40vh
+* 修复预览显示原始 Markdown 代码 - 集成 ReactMarkdown 渲染
+* 修复重复的全局 Memory 预览区域
+
+#### 📦 依赖更新
+
+* 添加 react-markdown 和 remark 插件支持
+* 添加 recharts 图表库
+* 添加 multer 文件上传支持
+
+---
+
 *本文档会随着项目发展持续更新，请定期查看最新版本。*
