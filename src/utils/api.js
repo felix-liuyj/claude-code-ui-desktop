@@ -86,4 +86,19 @@ export const api = {
             method: 'POST',
             body: JSON.stringify({ content }),
         }),
+
+    // Model configuration API
+    model: {
+        // Get current model configuration
+        getCurrent: () => apiFetch('/api/model'),
+        
+        // Set model
+        set: (model) => apiFetch('/api/model', {
+            method: 'POST',
+            body: JSON.stringify({ model })
+        }),
+        
+        // List available models
+        list: () => apiFetch('/api/model/list')
+    },
 };

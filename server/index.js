@@ -27,6 +27,7 @@ import { abortClaudeSession, spawnClaude } from './claude-cli.js';
 import gitRoutes from './routes/git.js';
 import mcpRoutes from './routes/mcp.js';
 import usageRoutes from './routes/usage.js';
+import modelRoutes from './routes/model.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -143,6 +144,9 @@ app.use('/api/mcp', mcpRoutes);
 
 // Usage Monitoring API Routes
 app.use('/api/usage', usageRoutes);
+
+// Model Configuration API Routes
+app.use('/api/model', modelRoutes);
 
 // Static files served after API routes
 app.use(express.static(path.join(__dirname, '../dist')));

@@ -7,12 +7,15 @@ import {
     AlertTriangle,
     Bug,
     Edit3,
+    Eye,
+    EyeOff,
     FileText,
     Globe,
     Monitor,
     Moon,
     Play,
     Plus,
+    Save,
     Server,
     Settings,
     Shield,
@@ -24,8 +27,10 @@ import {
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import DevTools from './DevTools';
-import MemoryEditor from './MemoryEditor';
 import { LazyUsageMonitor } from './UsageMonitor/LazyUsageMonitor';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import remarkBreaks from 'remark-breaks';
 
 function ToolsSettings({ isOpen, onClose }) {
     const { themeMode, setTheme } = useTheme();
@@ -35,10 +40,12 @@ function ToolsSettings({ isOpen, onClose }) {
     const [newDisallowedTool, setNewDisallowedTool] = useState('');
     const [skipPermissions, setSkipPermissions] = useState(false);
     const [permissionMode, setPermissionMode] = useState('default');
-    const [isSaving, setIsSaving] = useState(false);
-    const [saveStatus, setSaveStatus] = useState(null);
     const [projectSortOrder, setProjectSortOrder] = useState('name');
     const [isDevelopmentMode, setIsDevelopmentMode] = useState(false);
+    
+    // Track changes for individual sections
+    const [toolsChanged, setToolsChanged] = useState(false);
+    const [mcpChanged, setMcpChanged] = useState(false);
 
     // MCP server management state
     const [mcpServers, setMcpServers] = useState([]);
@@ -76,8 +83,11 @@ function ToolsSettings({ isOpen, onClose }) {
     const [appInfoError, setAppInfoError] = useState(null);
 
     // Memory state
-    const [showGlobalMemoryEditor, setShowGlobalMemoryEditor] = useState(false);
     const [globalMemoryPreview, setGlobalMemoryPreview] = useState('');
+    const [globalMemoryEditMode, setGlobalMemoryEditMode] = useState(false);
+    const [globalMemoryContent, setGlobalMemoryContent] = useState('');
+    const [globalMemoryOriginal, setGlobalMemoryOriginal] = useState('');
+    const [globalMemorySaving, setGlobalMemorySaving] = useState(false);
 
     // Function to fetch app information
     const fetchAppInfo = async () => {
@@ -108,32 +118,44 @@ function ToolsSettings({ isOpen, onClose }) {
         try {
             const response = await api.getGlobalMemory();
             const data = await response.json();
-            setGlobalMemoryPreview(data.content || '');
+            const content = data.content || '';
+            setGlobalMemoryPreview(content || '全局 Memory 文件为空');
+            setGlobalMemoryContent(content);
+            setGlobalMemoryOriginal(content);
         } catch (error) {
             console.error('Failed to load global memory preview:', error);
             setGlobalMemoryPreview('Error loading global memory');
         }
     };
 
-    // Persist permission mode immediately and notify listeners
-    const persistPermissionMode = (newMode) => {
+    const saveGlobalMemory = async () => {
+        setGlobalMemorySaving(true);
         try {
-            setPermissionMode(newMode);
-            const saved = localStorage.getItem('claude-tools-settings');
-            let settings = saved ? JSON.parse(saved) : {};
-            settings.permissionMode = newMode;
-            settings.allowedTools = settings.allowedTools || allowedTools;
-            settings.disallowedTools = settings.disallowedTools || disallowedTools;
-            settings.skipPermissions = typeof settings.skipPermissions === 'boolean' ? settings.skipPermissions : skipPermissions;
-            settings.projectSortOrder = settings.projectSortOrder || projectSortOrder;
-            settings.lastUpdated = new Date().toISOString();
-            localStorage.setItem('claude-tools-settings', JSON.stringify(settings));
-            // Broadcast both granular and generic events
-            window.dispatchEvent(new CustomEvent('permissionModeChanged', { detail: { mode: newMode } }));
-            window.dispatchEvent(new Event('toolsSettingsChanged'));
-        } catch (e) {
-            console.error('Failed to persist permission mode:', e);
+            const response = await api.saveGlobalMemory(globalMemoryContent);
+            if (response.ok) {
+                setGlobalMemoryOriginal(globalMemoryContent);
+                setGlobalMemoryPreview(globalMemoryContent || '全局 Memory 文件为空');
+                setGlobalMemoryEditMode(false);
+            } else {
+                throw new Error('保存失败');
+            }
+        } catch (error) {
+            console.error('Failed to save global memory:', error);
+            alert('保存失败: ' + error.message);
+        } finally {
+            setGlobalMemorySaving(false);
         }
+    };
+
+    const cancelGlobalMemoryEdit = () => {
+        setGlobalMemoryContent(globalMemoryOriginal);
+        setGlobalMemoryEditMode(false);
+    };
+
+    // Update permission mode (but don't persist immediately)
+    const updatePermissionMode = (newMode) => {
+        setPermissionMode(newMode);
+        setToolsChanged(true);
     };
 
     // Common tool patterns
@@ -345,6 +367,8 @@ function ToolsSettings({ isOpen, onClose }) {
             if (!appInfo && !appInfoLoading) {
                 fetchAppInfo();
             }
+            // Load global memory preview by default
+            loadGlobalMemoryPreview();
         }
     }, [isOpen]);
 
@@ -430,40 +454,6 @@ function ToolsSettings({ isOpen, onClose }) {
         }
     };
 
-    const saveSettings = () => {
-        setIsSaving(true);
-        setSaveStatus(null);
-
-        try {
-            const settings = {
-                allowedTools,
-                disallowedTools,
-                skipPermissions,
-                permissionMode,
-                projectSortOrder,
-                chatBgImage,
-                userAvatar,
-                lastUpdated: new Date().toISOString()
-            };
-
-
-            // Save to localStorage
-            localStorage.setItem('claude-tools-settings', JSON.stringify(settings));
-            // Notify other components
-            window.dispatchEvent(new Event('toolsSettingsChanged'));
-
-            setSaveStatus('success');
-
-            setTimeout(() => {
-                onClose();
-            }, 1000);
-        } catch (error) {
-            console.error('Error saving tool settings:', error);
-            setSaveStatus('error');
-        } finally {
-            setIsSaving(false);
-        }
-    };
 
     // Persist partial settings update (helper)
     const persistPartialSettings = (patch) => {
@@ -476,6 +466,25 @@ function ToolsSettings({ isOpen, onClose }) {
         } catch (e) {
             console.error('Failed to persist settings patch:', e);
         }
+    };
+
+    // Save tools settings
+    const saveToolsSettings = () => {
+        const settings = {
+            allowedTools,
+            disallowedTools,
+            skipPermissions,
+            permissionMode,
+        };
+        persistPartialSettings(settings);
+        setToolsChanged(false);
+    };
+
+    // Save MCP settings (placeholder - MCP has its own save mechanism)
+    const saveMcpSettings = () => {
+        // MCP servers are saved individually when added/removed
+        // This function is for any future MCP-related settings
+        setMcpChanged(false);
     };
 
     const handleChatBgFileChange = (file) => {
@@ -525,22 +534,26 @@ function ToolsSettings({ isOpen, onClose }) {
         if (tool && !allowedTools.includes(tool)) {
             setAllowedTools([...allowedTools, tool]);
             setNewAllowedTool('');
+            setToolsChanged(true);
         }
     };
 
     const removeAllowedTool = (tool) => {
         setAllowedTools(allowedTools.filter(t => t !== tool));
+        setToolsChanged(true);
     };
 
     const addDisallowedTool = (tool) => {
         if (tool && !disallowedTools.includes(tool)) {
             setDisallowedTools([...disallowedTools, tool]);
             setNewDisallowedTool('');
+            setToolsChanged(true);
         }
     };
 
     const removeDisallowedTool = (tool) => {
         setDisallowedTools(disallowedTools.filter(t => t !== tool));
+        setToolsChanged(true);
     };
 
     // MCP form handling functions
@@ -588,10 +601,8 @@ function ToolsSettings({ isOpen, onClose }) {
         try {
             await saveMcpServer(mcpFormData);
             resetMcpForm();
-            setSaveStatus('success');
         } catch (error) {
             alert(`Error: ${ error.message }`);
-            setSaveStatus('error');
         } finally {
             setMcpLoading(false);
         }
@@ -601,11 +612,9 @@ function ToolsSettings({ isOpen, onClose }) {
         if (confirm('确定要删除这个 MCP 服务器吗？')) {
             try {
                 await deleteMcpServer(serverId, scope);
-                setSaveStatus('success');
-            } catch (error) {
+                } catch (error) {
                 alert(`Error: ${ error.message }`);
-                setSaveStatus('error');
-            }
+                }
         }
     };
 
@@ -821,41 +830,126 @@ function ToolsSettings({ isOpen, onClose }) {
                                         全局 Memory 文件适用于所有项目，包含通用的指令和偏好设置。文件位置：~/.claude/CLAUDE.md
                                     </p>
                                     <div className="flex gap-3">
-                                        <Button
-                                            variant="outline"
-                                            onClick={() => setShowGlobalMemoryEditor(true)}
-                                            className="flex items-center gap-2"
-                                        >
-                                            <Edit3 className="w-4 h-4" />
-                                            编辑全局 Memory
-                                        </Button>
-                                        <Button
-                                            variant="ghost"
-                                            onClick={loadGlobalMemoryPreview}
-                                            className="flex items-center gap-2"
-                                        >
-                                            <FileText className="w-4 h-4" />
-                                            查看内容
-                                        </Button>
-                                    </div>
-                                    {globalMemoryPreview && (
-                                        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-                                            <div className="flex items-center justify-between mb-2">
-                                                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                                    全局 Memory 预览
-                                                </span>
+                                        {!globalMemoryEditMode ? (
+                                            <>
+                                                <Button
+                                                    variant="outline"
+                                                    onClick={() => setGlobalMemoryEditMode(true)}
+                                                    className="flex items-center gap-2"
+                                                >
+                                                    <Edit3 className="w-4 h-4" />
+                                                    编辑全局 Memory
+                                                </Button>
                                                 <Button
                                                     variant="ghost"
-                                                    size="sm"
-                                                    onClick={() => setGlobalMemoryPreview('')}
+                                                    onClick={loadGlobalMemoryPreview}
+                                                    className="flex items-center gap-2"
+                                                >
+                                                    <FileText className="w-4 h-4" />
+                                                    刷新
+                                                </Button>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Button
+                                                    variant="default"
+                                                    onClick={saveGlobalMemory}
+                                                    disabled={globalMemorySaving || globalMemoryContent === globalMemoryOriginal}
+                                                    className="flex items-center gap-2"
+                                                >
+                                                    <Save className="w-4 h-4" />
+                                                    {globalMemorySaving ? '保存中...' : '保存'}
+                                                </Button>
+                                                <Button
+                                                    variant="outline"
+                                                    onClick={cancelGlobalMemoryEdit}
+                                                    disabled={globalMemorySaving}
+                                                    className="flex items-center gap-2"
                                                 >
                                                     <X className="w-4 h-4" />
+                                                    取消
                                                 </Button>
-                                            </div>
-                                            <div className="max-h-40 overflow-auto">
-                                                <pre className="text-xs text-gray-600 dark:text-gray-400 whitespace-pre-wrap">
-                                                    {globalMemoryPreview || '全局 Memory 文件为空'}
-                                                </pre>
+                                            </>
+                                        )}
+                                    </div>
+                                    {(globalMemoryPreview || globalMemoryPreview === '') && (
+                                        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 mt-3">
+                                            <div className="h-[40vh] overflow-auto">
+                                                {globalMemoryEditMode ? (
+                                                    <textarea
+                                                        value={globalMemoryContent}
+                                                        onChange={(e) => setGlobalMemoryContent(e.target.value)}
+                                                        placeholder="输入全局 Memory 内容...
+
+示例内容：
+# 全局 Memory
+
+## 偏好设置
+- 使用简洁的代码风格
+- 优先考虑性能和可读性
+
+## 上下文信息
+- 我是一个全栈开发者
+- 偏好使用 TypeScript 和 React
+
+## 特殊指令
+- 总是包含适当的错误处理
+- 代码应该有良好的注释"
+                                                        className="w-full h-full p-3 border border-gray-200 dark:border-gray-600 rounded-lg font-mono text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                        spellCheck={false}
+                                                    />
+                                                ) : (
+                                                    <div className="prose prose-sm max-w-none dark:prose-invert
+                                                        prose-headings:text-gray-900 dark:prose-headings:text-gray-100
+                                                        prose-p:text-gray-700 dark:prose-p:text-gray-300
+                                                        prose-strong:text-gray-900 dark:prose-strong:text-gray-100
+                                                        prose-code:text-pink-600 dark:prose-code:text-pink-400
+                                                        prose-code:bg-gray-100 dark:prose-code:bg-gray-800
+                                                        prose-code:px-1 prose-code:py-0.5 prose-code:rounded
+                                                        prose-pre:bg-gray-100 dark:prose-pre:bg-gray-800
+                                                        prose-pre:border prose-pre:border-gray-200 dark:prose-pre:border-gray-700
+                                                        prose-blockquote:border-l-4 prose-blockquote:border-blue-500
+                                                        prose-blockquote:bg-blue-50 dark:prose-blockquote:bg-blue-900/20
+                                                        prose-blockquote:text-gray-700 dark:prose-blockquote:text-gray-300
+                                                        prose-ul:list-disc prose-ol:list-decimal
+                                                        prose-li:text-gray-700 dark:prose-li:text-gray-300
+                                                        prose-a:text-blue-600 dark:prose-a:text-blue-400
+                                                        prose-a:no-underline hover:prose-a:underline
+                                                        prose-hr:border-gray-300 dark:prose-hr:border-gray-700">
+                                                        {globalMemoryContent ? (
+                                                            <ReactMarkdown 
+                                                                remarkPlugins={[remarkGfm, remarkBreaks]}
+                                                                components={{
+                                                                    code: ({ node, inline, className, children, ...props }) => {
+                                                                        const match = /language-(\w+)/.exec(className || '');
+                                                                        return !inline && match ? (
+                                                                            <pre className="overflow-x-auto">
+                                                                                <code className={className} {...props}>
+                                                                                    {children}
+                                                                                </code>
+                                                                            </pre>
+                                                                        ) : (
+                                                                            <code className={className} {...props}>
+                                                                                {children}
+                                                                            </code>
+                                                                        );
+                                                                    },
+                                                                    a: ({ node, ...props }) => (
+                                                                        <a {...props} target="_blank" rel="noopener noreferrer" />
+                                                                    )
+                                                                }}
+                                                            >
+                                                                {globalMemoryContent}
+                                                            </ReactMarkdown>
+                                                        ) : (
+                                                            <div className="text-gray-500 dark:text-gray-400 text-center py-8">
+                                                                <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                                                                <p>Memory 文件为空</p>
+                                                                <p className="text-sm">点击编辑按钮开始添加内容</p>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     )}
@@ -934,7 +1028,7 @@ function ToolsSettings({ isOpen, onClose }) {
                                                     <label className="flex items-center space-x-3 cursor-pointer">
                                                         <input type="radio" name="permissionMode" value="default"
                                                                checked={ permissionMode === 'default' }
-                                                               onChange={ (e) => e.target.checked && persistPermissionMode('default') }
+                                                               onChange={ (e) => e.target.checked && updatePermissionMode('default') }
                                                                disabled={ skipPermissions }
                                                                className="h-4 w-4 text-primary focus:ring-primary border-gray-300 dark:border-gray-600"/>
                                                         <div className="flex items-center space-x-2">
@@ -949,7 +1043,7 @@ function ToolsSettings({ isOpen, onClose }) {
                                                     <label className="flex items-center space-x-3 cursor-pointer">
                                                         <input type="radio" name="permissionMode" value="acceptEdits"
                                                                checked={ permissionMode === 'acceptEdits' }
-                                                               onChange={ (e) => e.target.checked && persistPermissionMode('acceptEdits') }
+                                                               onChange={ (e) => e.target.checked && updatePermissionMode('acceptEdits') }
                                                                disabled={ skipPermissions }
                                                                className="h-4 w-4 text-primary focus:ring-primary border-gray-300 dark:border-gray-600"/>
                                                         <div className="flex items-center space-x-2">
@@ -964,7 +1058,7 @@ function ToolsSettings({ isOpen, onClose }) {
                                                         <input type="radio" name="permissionMode"
                                                                value="bypassPermissions"
                                                                checked={ permissionMode === 'bypassPermissions' }
-                                                               onChange={ (e) => e.target.checked && persistPermissionMode('bypassPermissions') }
+                                                               onChange={ (e) => e.target.checked && updatePermissionMode('bypassPermissions') }
                                                                disabled={ skipPermissions }
                                                                className="h-4 w-4 text-primary focus:ring-primary border-gray-300 dark:border-gray-600"/>
                                                         <div className="flex items-center space-x-2">
@@ -980,7 +1074,7 @@ function ToolsSettings({ isOpen, onClose }) {
                                                     <label className="flex items-center space-x-3 cursor-pointer">
                                                         <input type="radio" name="permissionMode" value="plan"
                                                                checked={ permissionMode === 'plan' }
-                                                               onChange={ (e) => e.target.checked && persistPermissionMode('plan') }
+                                                               onChange={ (e) => e.target.checked && updatePermissionMode('plan') }
                                                                disabled={ skipPermissions }
                                                                className="h-4 w-4 text-primary focus:ring-primary border-gray-300 dark:border-gray-600"/>
                                                         <div className="flex items-center space-x-2">
@@ -1024,20 +1118,7 @@ function ToolsSettings({ isOpen, onClose }) {
                                                     }
                                                     const newValue = !!checked;
                                                     setSkipPermissions(newValue);
-                                                    try {
-                                                        const saved = localStorage.getItem('claude-tools-settings');
-                                                        let settings = saved ? JSON.parse(saved) : {};
-                                                        settings.skipPermissions = newValue;
-                                                        settings.permissionMode = settings.permissionMode || permissionMode;
-                                                        settings.allowedTools = settings.allowedTools || allowedTools;
-                                                        settings.disallowedTools = settings.disallowedTools || disallowedTools;
-                                                        settings.projectSortOrder = settings.projectSortOrder || projectSortOrder;
-                                                        settings.lastUpdated = new Date().toISOString();
-                                                        localStorage.setItem('claude-tools-settings', JSON.stringify(settings));
-                                                        window.dispatchEvent(new Event('toolsSettingsChanged'));
-                                                    } catch (err) {
-                                                        console.error('Failed to persist skipPermissions:', err);
-                                                    }
+                                                    setToolsChanged(true);
                                                 } }
                                                        className="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded focus:ring-primary"/>
                                                 <div>
@@ -1652,6 +1733,24 @@ function ToolsSettings({ isOpen, onClose }) {
                                     </ul>
                                 </div>
 
+                                {/* Save Tools Settings Button */}
+                                {toolsChanged && (
+                                    <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                                        <div className="flex items-center justify-between">
+                                            <div className="text-sm text-blue-800 dark:text-blue-200">
+                                                工具权限设置已修改，需要保存以生效。
+                                            </div>
+                                            <Button
+                                                onClick={saveToolsSettings}
+                                                className="bg-blue-600 hover:bg-blue-700 text-white"
+                                                size="sm"
+                                            >
+                                                保存工具设置
+                                            </Button>
+                                        </div>
+                                    </div>
+                                )}
+
                             </div>
                         ) }
 
@@ -2022,67 +2121,16 @@ function ToolsSettings({ isOpen, onClose }) {
                     </div>
                 </div>
 
-                <div
-                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 md:p-6 border-t border-gray-200 dark:border-gray-700 flex-shrink-0 gap-3 pb-safe-area-inset-bottom">
-                    <div className="flex items-center justify-center sm:justify-start gap-2 order-2 sm:order-1">
-                        { saveStatus === 'success' && (
-                            <div className="text-green-600 dark:text-green-400 text-sm flex items-center gap-1">
-                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd"
-                                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                          clipRule="evenodd"/>
-                                </svg>
-                                已保存
-                            </div>
-                        ) }
-                        { saveStatus === 'error' && (
-                            <div className="text-red-600 dark:text-red-400 text-sm flex items-center gap-1">
-                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd"
-                                          d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                                          clipRule="evenodd"/>
-                                </svg>
-                                保存失败
-                            </div>
-                        ) }
-                    </div>
-                    <div className="flex items-center gap-3 order-1 sm:order-2">
-                        <Button
-                            variant="outline"
-                            onClick={ onClose }
-                            disabled={ isSaving }
-                            className="flex-1 sm:flex-none h-10"
-                        >
-                            取消
-                        </Button>
-                        <Button
-                            onClick={ saveSettings }
-                            disabled={ isSaving }
-                            className="flex-1 sm:flex-none h-10 bg-primary hover:bg-primary/90 disabled:opacity-50"
-                        >
-                            { isSaving ? (
-                                <div className="flex items-center gap-2">
-                                    <div
-                                        className="w-4 h-4 animate-spin rounded-full border-2 border-white border-t-transparent"/>
-                                    保存中...
-                                </div>
-                            ) : (
-                                '保存设置'
-                            ) }
-                        </Button>
-                    </div>
+                <div className="flex justify-end p-4 md:p-6 border-t border-gray-200 dark:border-gray-700">
+                    <Button
+                        variant="outline"
+                        onClick={ onClose }
+                        className="h-10"
+                    >
+                        关闭
+                    </Button>
                 </div>
             </div>
-            
-            {/* Global Memory Editor */}
-            <MemoryEditor
-                type="global"
-                isOpen={showGlobalMemoryEditor}
-                onClose={() => setShowGlobalMemoryEditor(false)}
-                onSave={() => {
-                    setGlobalMemoryPreview(''); // Clear preview to force reload
-                }}
-            />
         </div>
     );
 }

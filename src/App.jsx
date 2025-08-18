@@ -32,13 +32,21 @@ import { api } from './utils/api';
 import { electronBridge, ElectronContext } from './utils/electron';
 
 
+// Debug logging controlled by environment variable
+const DEBUG_MODE = process.env.NODE_ENV === 'development' && process.env.VITE_DEBUG === 'true';
+const debugLog = (...args) => {
+    if (DEBUG_MODE) {
+        console.log(...args);
+    }
+};
+
 // Main App component with routing
 function AppContent() {
-    console.log('🔍 [AppContent] Component rendering...');
+    debugLog('🔍 [AppContent] Component rendering...');
     const navigate = useNavigate();
     const { sessionId } = useParams();
     const electron = React.useContext(ElectronContext);
-    console.log('🔍 [AppContent] Electron context:', !!electron?.isElectronApp());
+    debugLog('🔍 [AppContent] Electron context:', !!electron?.isElectronApp());
 
     const { updateAvailable, latestVersion, currentVersion } = useVersionCheck('felix-liuyj', 'claude-code-ui-desktop');
     const [showVersionModal, setShowVersionModal] = useState(false);
@@ -94,15 +102,15 @@ function AppContent() {
 
     useEffect(() => {
         // Fetch projects on component mount
-        console.log('🔍 [AppContent] useEffect: Fetching projects...');
+        debugLog('🔍 [AppContent] useEffect: Fetching projects...');
         (async () => {
             try {
-                console.log('🔍 [AppContent] fetchProjects: Starting...');
+                debugLog('🔍 [AppContent] fetchProjects: Starting...');
                 setIsLoadingProjects(true);
                 const response = await api.projects();
-                console.log('🔍 [AppContent] fetchProjects: API response status:', response.status);
+                debugLog('🔍 [AppContent] fetchProjects: API response status:', response.status);
                 const data = await response.json();
-                console.log('🔍 [AppContent] fetchProjects: Projects data:', data?.length, 'projects');
+                debugLog('🔍 [AppContent] fetchProjects: Projects data:', data?.length, 'projects');
 
                 // Optimize to preserve object references when data hasn't changed
                 setProjects(prevProjects => {
@@ -645,13 +653,15 @@ function AppContent() {
     // Check if we're running on macOS in Electron and need top padding for menu bar
     const needsMacOSMenuBarOffset = electron?.isElectronApp() && electron?.isMac();
     const containerClasses = needsMacOSMenuBarOffset
-        ? 'fixed left-0 right-0 bottom-0 top-7 flex bg-gray-50 dark:bg-gray-900' // 28px offset for macOS menu bar
-        : 'fixed inset-0 flex bg-gray-50 dark:bg-gray-900';
+        ? 'fixed left-0 right-0 bottom-0 top-7 flex flex-col bg-gray-50 dark:bg-gray-900' // 28px offset for macOS menu bar
+        : 'fixed inset-0 flex flex-col bg-gray-50 dark:bg-gray-900';
 
     return (
         <div className={ containerClasses }>
-            {/* Fixed Desktop Sidebar */ }
-            { !isMobile && (
+            {/* 主内容区域 */}
+            <div className="flex flex-1 min-h-0">
+                {/* Fixed Desktop Sidebar */ }
+                { !isMobile && (
                 <div
                     className="w-80 flex-shrink-0 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
                     <div className="h-full overflow-hidden">
@@ -790,6 +800,7 @@ function AppContent() {
 
             {/* Version Upgrade Modal */ }
             <VersionUpgradeModal/>
+            </div>
         </div>
     );
 }
