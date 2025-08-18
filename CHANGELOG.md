@@ -1,23 +1,49 @@
-## [1.0.0](https://github.com/felix-liuyj/claude-code-ui-desktop/compare/v1.0.0) (2025-08-18)
+## [1.1.0](https://github.com/felix-liuyj/claude-code-ui-desktop/compare/v1.0.0...v1.1.0) (2025-01-18)
 
 ### ⚠ BREAKING CHANGES
 
 * 移除了独立的 MemoryEditor 弹窗，改为内嵌式编辑
 
-🤖 Generated with [Claude Code](https://claude.ai/code)
+### ✨ 新增功能
 
-Co-Authored-By: Claude <noreply@anthropic.com>
+* **Usage Monitor 使用量监控模块**
+  - 实时监控 5 小时窗口的令牌使用情况
+  - 每日统计分析与成本计算
+  - 月度趋势分析与长期使用追踪
+  - 模型策略配置按钮 (Default/Opus/Sonnet/Opus Plan)
+  - 多层缓存系统优化性能
 
-### Features
+* **优化全局 Memory 编辑体验**
+  - 移除多余的弹窗，复用查看内容区域
+  - 集成 Markdown 实时预览渲染
+  - 默认显示预览内容
+  - 统一预览和编辑模式的交互
 
-* add automatic changelog generation for version releases ([67bdb0d](https://github.com/felix-liuyj/claude-code-ui-desktop/commit/67bdb0d4298aecb58da0a8f2b8cd099f5f2b18a3))
-* 添加 Usage Monitor 使用量监控功能与优化 Memory 编辑体验 ([49e6a73](https://github.com/felix-liuyj/claude-code-ui-desktop/commit/49e6a7365b618777a40c5b1e9e53db140ab0e876))
+### 🔧 改进
 
-### Bug Fixes
+* **JSONL 解析优化**
+  - 修复 50% 解析失败率问题
+  - 添加智能错误恢复机制
+  - 支持不完整 JSON 行修复
+  - 跳过 summary 类型行
 
-* update version check logic and change package version to 1.0.0 ([252ec8a](https://github.com/felix-liuyj/claude-code-ui-desktop/commit/252ec8a56892b79b846e666de52ee300ddf2672c))
-* update version check logic and change package version to 1.0.0 ([37c25fd](https://github.com/felix-liuyj/claude-code-ui-desktop/commit/37c25fd7a5c1a662f94e14c39bde33c89aff8de9))
-* update version check logic and change package version to 1.0.0 ([376b52f](https://github.com/felix-liuyj/claude-code-ui-desktop/commit/376b52f07023939f9b62c58359373af338a5643a))
+* **日志系统优化**
+  - 环境变量控制的调试日志 (VITE_DEBUG=true)
+  - 统一的 Logger 工具类
+  - 减少生产环境日志噪音
+
+### 🐛 修复
+
+* 修复 Model API 404 错误 - 统一前后端参数命名 (strategy -> model)
+* 修复 Memory 编辑器高度过低问题 - 调整为 40vh
+* 修复预览显示原始 Markdown 代码 - 集成 ReactMarkdown 渲染
+* 修复重复的全局 Memory 预览区域
+
+### 📦 依赖更新
+
+* 添加 react-markdown 和 remark 插件支持
+* 添加 recharts 图表库
+* 添加 multer 文件上传支持
 # 更新日志
 
 此项目的所有重要变更都将记录在这个文件中。
