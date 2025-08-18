@@ -1,3 +1,23 @@
+## [1.1.0](https://github.com/felix-liuyj/claude-code-ui-desktop/compare/v1.0.0...v1.1.0) (2025-08-18)
+
+### ⚠ BREAKING CHANGES
+
+* 移除了独立的 MemoryEditor 弹窗，改为内嵌式编辑
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+
+### Features
+
+* add automatic changelog generation for version releases ([67bdb0d](https://github.com/felix-liuyj/claude-code-ui-desktop/commit/67bdb0d4298aecb58da0a8f2b8cd099f5f2b18a3))
+* 添加 Usage Monitor 使用量监控功能与优化 Memory 编辑体验 ([49e6a73](https://github.com/felix-liuyj/claude-code-ui-desktop/commit/49e6a7365b618777a40c5b1e9e53db140ab0e876))
+
+### Bug Fixes
+
+* update version check logic and change package version to 1.0.0 ([252ec8a](https://github.com/felix-liuyj/claude-code-ui-desktop/commit/252ec8a56892b79b846e666de52ee300ddf2672c))
+* update version check logic and change package version to 1.0.0 ([37c25fd](https://github.com/felix-liuyj/claude-code-ui-desktop/commit/37c25fd7a5c1a662f94e14c39bde33c89aff8de9))
+* update version check logic and change package version to 1.0.0 ([376b52f](https://github.com/felix-liuyj/claude-code-ui-desktop/commit/376b52f07023939f9b62c58359373af338a5643a))
 # 更新日志
 
 此项目的所有重要变更都将记录在这个文件中。
