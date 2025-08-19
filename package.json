@@ -96,6 +96,7 @@
   "build": {
     "appId": "com.claude-code-ui-desktop.app",
     "productName": "Claude Code UI Desktop",
+    "artifactName": "${name}-${version}-${os}-${arch}.${ext}",
     "directories": {
       "output": "dist-electron"
     },
