@@ -1,49 +1,3 @@
-## [1.0.0](https://github.com/felix-liuyj/claude-code-ui-desktop/releases/tag/v1.0.0) (2025-01-18)
-
-### ⚠ BREAKING CHANGES
-
-* 移除了独立的 MemoryEditor 弹窗，改为内嵌式编辑
-
-### ✨ 新增功能
-
-* **Usage Monitor 使用量监控模块**
-  - 实时监控 5 小时窗口的令牌使用情况
-  - 每日统计分析与成本计算
-  - 月度趋势分析与长期使用追踪
-  - 模型策略配置按钮 (Default/Opus/Sonnet/Opus Plan)
-  - 多层缓存系统优化性能
-
-* **优化全局 Memory 编辑体验**
-  - 移除多余的弹窗，复用查看内容区域
-  - 集成 Markdown 实时预览渲染
-  - 默认显示预览内容
-  - 统一预览和编辑模式的交互
-
-### 🔧 改进
-
-* **JSONL 解析优化**
-  - 修复 50% 解析失败率问题
-  - 添加智能错误恢复机制
-  - 支持不完整 JSON 行修复
-  - 跳过 summary 类型行
-
-* **日志系统优化**
-  - 环境变量控制的调试日志 (VITE_DEBUG=true)
-  - 统一的 Logger 工具类
-  - 减少生产环境日志噪音
-
-### 🐛 修复
-
-* 修复 Model API 404 错误 - 统一前后端参数命名 (strategy -> model)
-* 修复 Memory 编辑器高度过低问题 - 调整为 40vh
-* 修复预览显示原始 Markdown 代码 - 集成 ReactMarkdown 渲染
-* 修复重复的全局 Memory 预览区域
-
-### 📦 依赖更新
-
-* 添加 react-markdown 和 remark 插件支持
-* 添加 recharts 图表库
-* 添加 multer 文件上传支持
 # 更新日志
 
 此项目的所有重要变更都将记录在这个文件中。
@@ -51,59 +5,64 @@
 格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.0.0/)，
 本项目遵循 [语义化版本](https://semver.org/lang/zh-CN/) 规范。
 
-## [未发布]
+## [1.0.0] - 2025-01-19
 
 ### ✨ 新增功能
-- 自动更新通知的版本检查功能
-- 自动化版本管理的GitHub发布脚本
-- 针对Electron环境优化的桌面专用UI
 
-### 🔄 变更
-- 改进版本检查API调用的错误处理
-- 更新项目结构以优先支持桌面端
+#### 核心功能
+- **桌面应用**: 基于 Electron 的纯桌面应用，内嵌 Node.js 服务器
+- **Claude CLI 集成**: 完整集成 Claude Code CLI，支持所有命令和功能
+- **项目管理**: 从 `~/.claude/projects/` 自动发现项目，支持手动添加
+- **会话管理**: 创建、重命名、删除和组织对话，带会话保护系统
+- **文件操作**: 完整的 CRUD 支持，自动创建备份
+- **实时同步**: 基于 Chokidar 的文件监视器，WebSocket 实时通信
 
-### 🐛 修复
-- 修复编译后应用读取package.json时的ENOENT错误
-- 修复没有releases的仓库的GitHub API 404错误处理
+#### 使用量监控
+- **实时监控**: 5 小时滑动窗口的令牌使用情况追踪
+- **每日统计**: 详细的日使用量分析与成本计算
+- **月度趋势**: 长期使用追踪与趋势分析
+- **模型策略**: 快速切换 Default/Opus/Sonnet/Opus Plan 策略
+- **多层缓存**: 优化性能的智能缓存系统
 
-## [1.0.1] - 2025-01-XX
+#### 编辑器功能
+- **代码编辑器**: 基于 CodeMirror 的语法高亮编辑器
+- **Markdown 预览**: 实时 Markdown 渲染和预览
+- **Memory 管理**: 全局和项目级 Memory 编辑器
+- **图片上传**: 支持拖拽和粘贴图片上传
 
-### ✨ 新增功能
-- 版本检查功能
-- 侧边栏更新通知
+#### 终端集成
+- **原生终端**: 集成 xterm.js 和 PTY 的完整终端体验
+- **Shell 会话**: 直接访问 Claude CLI 命令行界面
+- **命令历史**: 保存和恢复命令历史
 
-### 🐛 修复
-- 修复Electron环境下的Package.json路径解析问题
+#### 权限系统
+- **多种模式**: default、acceptEdits、bypassPermissions、plan
+- **视觉指示**: 不同权限级别的颜色编码
+- **工具管理**: 精细的工具允许/禁用控制
 
-## [1.0.0] - 2025-01-XX
+### 🔧 技术特性
 
-### ✨ 新增功能
-- 初始桌面版本发布
-- 基于Electron的Claude Code UI
-- 项目管理和会话处理
-- 与Claude CLI的WebSocket通信
-- 文件浏览器和编辑器集成
-- 直接访问Claude CLI的终端集成
-- MCP (模型上下文协议) 支持
-- 图片上传功能
-- 主题管理 (亮色/暗色模式)
-- 设置管理
-- 会话保护系统
+- **框架**: Electron + React + Express + Vite
+- **样式**: Tailwind CSS + 响应式设计
+- **通信**: WebSocket 双向实时通信
+- **数据库**: Better-SQLite3 本地数据存储
+- **构建**: Electron-builder 跨平台打包
+- **中文界面**: 完整的中文本地化支持
 
-### 🎯 主要特性
-- **桌面应用**: 纯Electron应用，内嵌Node.js服务器
-- **项目发现**: 从 `~/.claude/projects/` 自动检测
-- **会话管理**: 创建、重命名、删除和组织对话
-- **文件操作**: 完整的CRUD支持，带备份创建功能
-- **实时更新**: Chokidar文件监视器与WebSocket通信
-- **权限系统**: 多种模式，包括计划模式和绕过权限
-- **多语言支持**: 中文界面
-- **响应式设计**: 针对桌面使用优化
+### 📦 依赖
 
-### 🔧 技术实现
-- 使用Electron、React和Express构建
-- 使用Vite进行快速开发构建
-- 使用Tailwind CSS进行样式设计
-- 使用WebSocket进行实时通信
-- 通过better-sqlite3集成SQLite
-- 支持PTY终端集成
+- Electron v32.1.0
+- React v18.2.0
+- Express v4.18.2
+- Vite v7.0.4
+- 其他关键依赖见 package.json
+
+### 🎯 支持平台
+
+- macOS (Intel & Apple Silicon)
+- Windows (x64)
+- Linux (AppImage)
+
+---
+
+[1.0.0]: https://github.com/felix-liuyj/claude-code-ui-desktop/releases/tag/v1.0.0
