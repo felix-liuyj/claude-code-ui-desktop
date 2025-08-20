@@ -104,6 +104,7 @@
       "electron/**/*",
       "dist/**/*",
       "server/**/*",
+      "utils/**/*",
       "package.json"
     ],
     "extraResources": [
