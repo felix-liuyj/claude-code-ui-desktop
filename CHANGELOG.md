@@ -1,34 +1,48 @@
 ## [1.1.0](https://github.com/felix-liuyj/claude-code-ui-desktop/compare/v1.0.0...v1.1.0) (2025-08-20)
 
-### Features
+### ✨ 新增功能
 
-* add usage monitoring components and API endpoints for real-time, daily, and monthly usage statistics ([d33cd13](https://github.com/felix-liuyj/claude-code-ui-desktop/commit/d33cd1326515887890f3090d182154a913eff4a5))
-* **git:** enhance commit message generation with Claude CLI integration ([4757df6](https://github.com/felix-liuyj/claude-code-ui-desktop/commit/4757df6bab238ca3c13eaa9569c9ada9cb9a3e4d))
-* implement performance monitoring features and optimize message management ([bc202a7](https://github.com/felix-liuyj/claude-code-ui-desktop/commit/bc202a798b0c587adb420d988b2d0600802cf6c5))
-* implement performance monitoring features and optimize message management ([268b268](https://github.com/felix-liuyj/claude-code-ui-desktop/commit/268b268566d2ea56c638ba3dead2e4b3f7706ec1))
+#### Git 集成增强
+* **智能提交消息生成**: 集成 Claude Code CLI 自动分析代码变更并生成规范的提交消息 ([4757df6](https://github.com/felix-liuyj/claude-code-ui-desktop/commit/4757df6bab238ca3c13eaa9569c9ada9cb9a3e4d))
+* **CLAUDE.md 配置支持**: 支持从全局和项目级 CLAUDE.md 文件读取 Git 消息规范和提交规则
+* **多语言支持**: 提交消息支持中文和英文两种语言生成
+* **配置优先级系统**: 项目 CLAUDE.md > 全局 CLAUDE.md > 应用设置 > 默认值的四级配置体系
+* **Git 设置界面**: 在工具设置中新增 Git 标签，提供语言、规范和 CLI 集成的配置选项
 
-### Bug Fixes
+#### 性能优化与监控
+* **性能仪表板**: 新增可拖拽的性能监控面板，实时显示内存使用、缓存状态和性能指标 ([bc202a7](https://github.com/felix-liuyj/claude-code-ui-desktop/commit/bc202a798b0c587adb420d988b2d0600802cf6c5))
+* **内存优化系统**: 实现多层级内存清理策略，包含 DOM 清理、事件监听器清理和大对象清理
+* **渐进式缓存**: Memory → localStorage → IndexedDB 的三级缓存体系，优化数据访问性能
+* **组件优化**: 使用 React.memo、useMemo、useCallback 优化组件渲染性能
+* **代码分割**: 实现懒加载和动态导入，减少初始加载时间
 
-* update package.json path resolution for consistent access in development and production ([4733825](https://github.com/felix-liuyj/claude-code-ui-desktop/commit/4733825a47e1f33c174031af07d4d8207ee9e9dd))
-* update package.json path resolution for consistent access in development and production ([9b805ab](https://github.com/felix-liuyj/claude-code-ui-desktop/commit/9b805ab73769a146d98b7a6c76913ab1cea0d1ef))
-## [1.1.0](https://github.com/felix-liuyj/claude-code-ui-desktop/compare/v1.0.0...v1.1.0) (2025-08-20)
+#### 使用量监控增强
+* **实时数据广播**: 30秒间隔的 WebSocket 推送，实时更新使用量数据 ([d33cd13](https://github.com/felix-liuyj/claude-code-ui-desktop/commit/d33cd1326515887890f3090d182154a913eff4a5))
+* **日用量分析**: 详细的每日令牌使用统计和成本计算
+* **月度趋势**: 长期使用模式分析和预测
+* **模型策略快切**: 支持快速切换 Default/Opus/Sonnet/Opus Plan 等不同策略
 
-### Features
+### 🔧 技术改进
 
-* add usage monitoring components and API endpoints for real-time, daily, and monthly usage statistics ([d33cd13](https://github.com/felix-liuyj/claude-code-ui-desktop/commit/d33cd1326515887890f3090d182154a913eff4a5))
-* **git:** enhance commit message generation with Claude CLI integration ([4757df6](https://github.com/felix-liuyj/claude-code-ui-desktop/commit/4757df6bab238ca3c13eaa9569c9ada9cb9a3e4d))
-* implement performance monitoring features and optimize message management ([bc202a7](https://github.com/felix-liuyj/claude-code-ui-desktop/commit/bc202a798b0c587adb420d988b2d0600802cf6c5))
-* implement performance monitoring features and optimize message management ([268b268](https://github.com/felix-liuyj/claude-code-ui-desktop/commit/268b268566d2ea56c638ba3dead2e4b3f7706ec1))
+* **消息管理优化**: 改进会话保护系统，防止 WebSocket 更新中断活跃对话 ([268b268](https://github.com/felix-liuyj/claude-code-ui-desktop/commit/268b268566d2ea56c638ba3dead2e4b3f7706ec1))
+* **虚拟滚动**: 为长列表实现虚拟滚动，提升大数据量渲染性能
+* **防抖优化**: 文件系统监听器使用300ms防抖，减少频繁触发
+* **API 性能**: 优化项目发现和会话加载的 API 响应时间
 
-### Bug Fixes
+### 🐛 问题修复
 
-* update package.json path resolution for consistent access in development and production ([4733825](https://github.com/felix-liuyj/claude-code-ui-desktop/commit/4733825a47e1f33c174031af07d4d8207ee9e9dd))
-* update package.json path resolution for consistent access in development and production ([9b805ab](https://github.com/felix-liuyj/claude-code-ui-desktop/commit/9b805ab73769a146d98b7a6c76913ab1cea0d1ef))
-## [1.1.0](https://github.com/felix-liuyj/claude-code-ui-desktop/compare/v1.0.0...v1.1.0) (2025-08-20)
+* **路径解析**: 统一开发和生产环境下 package.json 路径解析逻辑 ([4733825](https://github.com/felix-liuyj/claude-code-ui-desktop/commit/4733825a47e1f33c174031af07d4d8207ee9e9dd))
+* **依赖循环**: 解决性能监控模块的循环依赖问题
+* **UI 样式统一**: 统一 Git 设置与其他设置标签的视觉风格和布局结构
 
-### Features
+### 🎯 界面优化
 
-* add usage monitoring components and API endpoints for real-time, daily, and monthly usage statistics ([d33cd13](https://github.com/felix-liuyj/claude-code-ui-desktop/commit/d33cd1326515887890f3090d182154a913eff4a5))
+* **设置界面重构**: 重新设计工具设置界面，使用统一的容器样式和布局模式  
+* **快速设置面板**: 在快速设置中独立添加性能监控开关，不与开发者工具区域混合
+* **响应式适配**: 优化移动端和桌面端的显示效果
+
+---
+
 # 更新日志
 
 此项目的所有重要变更都将记录在这个文件中。
