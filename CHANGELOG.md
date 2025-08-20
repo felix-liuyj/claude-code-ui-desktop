@@ -3,6 +3,19 @@
 ### Features
 
 * add usage monitoring components and API endpoints for real-time, daily, and monthly usage statistics ([d33cd13](https://github.com/felix-liuyj/claude-code-ui-desktop/commit/d33cd1326515887890f3090d182154a913eff4a5))
+* **git:** enhance commit message generation with Claude CLI integration ([4757df6](https://github.com/felix-liuyj/claude-code-ui-desktop/commit/4757df6bab238ca3c13eaa9569c9ada9cb9a3e4d))
+* implement performance monitoring features and optimize message management ([bc202a7](https://github.com/felix-liuyj/claude-code-ui-desktop/commit/bc202a798b0c587adb420d988b2d0600802cf6c5))
+* implement performance monitoring features and optimize message management ([268b268](https://github.com/felix-liuyj/claude-code-ui-desktop/commit/268b268566d2ea56c638ba3dead2e4b3f7706ec1))
+
+### Bug Fixes
+
+* update package.json path resolution for consistent access in development and production ([4733825](https://github.com/felix-liuyj/claude-code-ui-desktop/commit/4733825a47e1f33c174031af07d4d8207ee9e9dd))
+* update package.json path resolution for consistent access in development and production ([9b805ab](https://github.com/felix-liuyj/claude-code-ui-desktop/commit/9b805ab73769a146d98b7a6c76913ab1cea0d1ef))
+## [1.1.0](https://github.com/felix-liuyj/claude-code-ui-desktop/compare/v1.0.0...v1.1.0) (2025-08-20)
+
+### Features
+
+* add usage monitoring components and API endpoints for real-time, daily, and monthly usage statistics ([d33cd13](https://github.com/felix-liuyj/claude-code-ui-desktop/commit/d33cd1326515887890f3090d182154a913eff4a5))
 # 更新日志
 
 此项目的所有重要变更都将记录在这个文件中。
