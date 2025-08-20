@@ -2771,7 +2771,9 @@ function ChatInterface({
                 {/* Messages Area - Scrollable Middle Section */ }
                 <div
                     ref={ scrollContainerRef }
-                    className="flex-1 overflow-y-auto overflow-x-hidden px-0 py-3 sm:p-4 space-y-3 sm:space-y-4 relative z-10"
+                    className={`flex-1 overflow-x-hidden px-0 py-3 sm:p-4 space-y-3 sm:space-y-4 relative z-10 ${
+                        chatMessages.length > 0 ? 'overflow-y-auto' : 'overflow-y-hidden'
+                    }`}
                 >
                     { isLoadingSessionMessages && chatMessages.length === 0 ? (
                         <div className="relative z-10 text-center text-gray-500 dark:text-gray-400 mt-8">
