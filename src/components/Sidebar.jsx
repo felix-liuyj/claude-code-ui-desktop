@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo, useCallback, memo } from 'react';
 import { ScrollArea } from './ui/scroll-area';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Input } from './ui/input';
 import { useElectron } from '../utils/electron';
+import { AnimatedTransition, AnimatedListItem, useButtonAnimation, useHoverAnimation } from './AnimatedTransition';
 
 import {
     Brain,
@@ -55,7 +56,7 @@ const formatTimeAgo = (dateString, currentTime) => {
     return date.toLocaleDateString('zh-CN');
 };
 
-function Sidebar({
+const Sidebar = memo(function Sidebar({
                      projects,
                      selectedProject,
                      selectedSession,
@@ -191,37 +192,42 @@ function Sidebar({
         };
     }, []);
 
-    const toggleProject = (projectName) => {
-        const newExpanded = new Set(expandedProjects);
-        if (newExpanded.has(projectName)) {
-            newExpanded.delete(projectName);
-        } else {
-            newExpanded.add(projectName);
-        }
-        setExpandedProjects(newExpanded);
-    };
+    const toggleProject = useCallback((projectName) => {
+        setExpandedProjects(prev => {
+            const newExpanded = new Set(prev);
+            if (newExpanded.has(projectName)) {
+                newExpanded.delete(projectName);
+            } else {
+                newExpanded.add(projectName);
+            }
+            return newExpanded;
+        });
+    }, []);
 
     // Starred projects utility functions
-    const toggleStarProject = (projectName) => {
-        const newStarred = new Set(starredProjects);
-        if (newStarred.has(projectName)) {
-            newStarred.delete(projectName);
-        } else {
-            newStarred.add(projectName);
-        }
-        setStarredProjects(newStarred);
+    const toggleStarProject = useCallback((projectName) => {
+        setStarredProjects(prev => {
+            const newStarred = new Set(prev);
+            if (newStarred.has(projectName)) {
+                newStarred.delete(projectName);
+            } else {
+                newStarred.add(projectName);
+            }
 
-        // Persist to localStorage
-        try {
-            localStorage.setItem('starredProjects', JSON.stringify([...newStarred]));
-        } catch (error) {
-            console.error('Error saving starred projects:', error);
-        }
-    };
+            // Persist to localStorage
+            try {
+                localStorage.setItem('starredProjects', JSON.stringify([...newStarred]));
+            } catch (error) {
+                console.error('Error saving starred projects:', error);
+            }
 
-    const isProjectStarred = (projectName) => {
+            return newStarred;
+        });
+    }, []);
+
+    const isProjectStarred = useCallback((projectName) => {
         return starredProjects.has(projectName);
-    };
+    }, [starredProjects]);
 
     // Helper function to get all sessions for a project (initial + additional)
     const getAllSessions = (project) => {
@@ -245,25 +251,28 @@ function Sidebar({
     };
 
     // Combined sorting: starred projects first, then by selected order
-    const sortedProjects = [...projects].sort((a, b) => {
-        const aStarred = isProjectStarred(a.name);
-        const bStarred = isProjectStarred(b.name);
+    // 使用 useMemo 缓存排序结果，避免不必要的重新计算
+    const sortedProjects = useMemo(() => {
+        return [...projects].sort((a, b) => {
+            const aStarred = isProjectStarred(a.name);
+            const bStarred = isProjectStarred(b.name);
 
-        // First, sort by starred status
-        if (aStarred && !bStarred) return -1;
-        if (!aStarred && bStarred) return 1;
+            // First, sort by starred status
+            if (aStarred && !bStarred) return -1;
+            if (!aStarred && bStarred) return 1;
 
-        // For projects with same starred status, sort by selected order
-        if (projectSortOrder === 'date') {
-            // Sort by most recent activity (descending)
-            return getProjectLastActivity(b) - getProjectLastActivity(a);
-        } else {
-            // Sort by display name (user-defined) or fallback to name (ascending)
-            const nameA = a.displayName || a.name;
-            const nameB = b.displayName || b.name;
-            return nameA.localeCompare(nameB);
-        }
-    });
+            // For projects with same starred status, sort by selected order
+            if (projectSortOrder === 'date') {
+                // Sort by most recent activity (descending)
+                return getProjectLastActivity(b) - getProjectLastActivity(a);
+            } else {
+                // Sort by display name (user-defined) or fallback to name (ascending)
+                const nameA = a.displayName || a.name;
+                const nameB = b.displayName || b.name;
+                return nameA.localeCompare(nameB);
+            }
+        });
+    }, [projects, projectSortOrder, starredProjects]);
 
     const startEditing = (project) => {
         setEditingProject(project.name);
@@ -424,16 +433,19 @@ function Sidebar({
     };
 
     // Filter projects based on search input
-    const filteredProjects = sortedProjects.filter(project => {
-        if (!searchFilter.trim()) return true;
+    // 使用 useMemo 缓存过滤结果
+    const filteredProjects = useMemo(() => {
+        if (!searchFilter.trim()) return sortedProjects;
 
         const searchLower = searchFilter.toLowerCase();
-        const displayName = (project.displayName || project.name).toLowerCase();
-        const projectName = project.name.toLowerCase();
+        return sortedProjects.filter(project => {
+            const displayName = (project.displayName || project.name).toLowerCase();
+            const projectName = project.name.toLowerCase();
 
-        // Search in both display name and actual project name/path
-        return displayName.includes(searchLower) || projectName.includes(searchLower);
-    });
+            // Search in both display name and actual project name/path
+            return displayName.includes(searchLower) || projectName.includes(searchLower);
+        });
+    }, [sortedProjects, searchFilter]);
 
     return (<div className="h-full flex flex-col bg-card md:select-none">
         {/* Header */ }
@@ -578,12 +590,18 @@ function Sidebar({
                     <p className="text-sm text-muted-foreground">
                         请尝试调整搜索关键词
                     </p>
-                </div>) : (filteredProjects.map((project) => {
+                </div>) : (filteredProjects.map((project, index) => {
                     const isExpanded = expandedProjects.has(project.name);
                     const isSelected = selectedProject?.name === project.name;
                     const isStarred = isProjectStarred(project.name);
 
-                    return (<div key={ project.name } className="md:space-y-1">
+                    return (
+                        <AnimatedListItem 
+                            key={project.name} 
+                            show={true} 
+                            index={index}
+                            className="md:space-y-1"
+                        >
                         {/* Project Header */ }
                         <div className="group md:group">
                             {/* Mobile Project Item removed for desktop-only */ }
@@ -591,7 +609,7 @@ function Sidebar({
                             {/* Desktop Project Item */ }
                             <Button
                                 variant="ghost"
-                                className={ cn("flex w-full justify-between p-2 h-auto font-normal hover:bg-accent/30", isSelected && "bg-accent/50 text-accent-foreground", isStarred && !isSelected && "bg-yellow-50/50 dark:bg-yellow-900/10 hover:bg-yellow-100/50 dark:hover:bg-yellow-900/20") }
+                                className={ cn("flex w-full justify-between p-2 h-auto font-normal transition-all duration-200 hover:bg-accent/30 hover:scale-[1.02] active:scale-[0.98]", isSelected && "bg-accent/50 text-accent-foreground", isStarred && !isSelected && "bg-yellow-50/50 dark:bg-yellow-900/10 hover:bg-yellow-100/50 dark:hover:bg-yellow-900/20") }
                                 onClick={ () => {
                                     // Desktop behavior: select project and toggle
                                     if (selectedProject?.name !== project.name) {
@@ -897,14 +915,15 @@ function Sidebar({
                             <Button
                                 variant="default"
                                 size="sm"
-                                className="flex w-full justify-start gap-2 mt-1 h-8 text-xs font-medium bg-primary hover:bg-primary/90 text-primary-foreground transition-colors"
+                                className="flex w-full justify-start gap-2 mt-1 h-8 text-xs font-medium bg-primary hover:bg-primary/90 text-primary-foreground smooth-transition interactive-element"
                                 onClick={ () => onNewSession(project) }
                             >
                                 <Plus className="w-3 h-3"/>
                                 新建会话
                             </Button>
                         </div>) }
-                    </div>);
+                        </AnimatedListItem>
+                    );
                 })) }
             </div>
         </ScrollArea>
@@ -944,7 +963,7 @@ function Sidebar({
             {/* Desktop Settings */ }
             <Button
                 variant="ghost"
-                className="flex w-full justify-start gap-2 p-2 h-auto font-normal text-muted-foreground hover:text-foreground hover:bg-accent transition-colors duration-200"
+                className="flex w-full justify-start gap-2 p-2 h-auto font-normal text-muted-foreground hover:text-foreground hover:bg-accent smooth-transition interactive-element"
                 onClick={ onShowSettings }
             >
                 <Settings className="w-3 h-3"/>
@@ -966,6 +985,6 @@ function Sidebar({
             }}
         />
     </div>);
-}
+});
 
 export default Sidebar;

@@ -31,6 +31,11 @@ import { useVersionCheck } from './hooks/useVersionCheck';
 import { api } from './utils/api';
 import { electronBridge, ElectronContext } from './utils/electron';
 
+// 只在开发环境加载性能监控面板
+const PerformanceDashboard = process.env.NODE_ENV === 'development' 
+    ? React.lazy(() => import('./components/PerformanceDashboard'))
+    : null;
+
 
 // Debug logging controlled by environment variable
 const DEBUG_MODE = process.env.NODE_ENV === 'development' && process.env.VITE_DEBUG === 'true';
@@ -81,6 +86,7 @@ function AppContent() {
         const saved = localStorage.getItem('chatBgEnabled');
         return saved !== null ? JSON.parse(saved) : false;
     });
+    const [showPerformanceDashboard, setShowPerformanceDashboard] = useState(false);
     // Session Protection System: Track sessions with active conversations to prevent
     // automatic project updates from interrupting ongoing chats. When a user sends
     // a message, the session is marked as "active" and project updates are paused
@@ -789,6 +795,8 @@ function AppContent() {
                         localStorage.setItem('chatBgEnabled', JSON.stringify(value));
                     } }
                     isMobile={ isMobile }
+                    showPerformanceDashboard={ showPerformanceDashboard }
+                    onTogglePerformanceDashboard={ setShowPerformanceDashboard }
                 />
             ) }
 
@@ -800,6 +808,16 @@ function AppContent() {
 
             {/* Version Upgrade Modal */ }
             <VersionUpgradeModal/>
+
+            {/* Performance Dashboard - Development Only */}
+            {process.env.NODE_ENV === 'development' && PerformanceDashboard && (
+                <React.Suspense fallback={null}>
+                    <PerformanceDashboard 
+                        isVisible={showPerformanceDashboard} 
+                        onClose={() => setShowPerformanceDashboard(false)}
+                    />
+                </React.Suspense>
+            )}
             </div>
         </div>
     );

@@ -1,0 +1,273 @@
+/* 全局动效样式 */
+
+/* 页面切换动画 */
+@keyframes pageSlideIn {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes pageSlideOut {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+}
+
+.page-enter {
+    animation: pageSlideIn 0.3s ease-out;
+}
+
+.page-exit {
+    animation: pageSlideOut 0.3s ease-out;
+}
+
+/* 模态框动画 */
+@keyframes modalSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes modalSlideDown {
+    from {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(30px) scale(0.95);
+    }
+}
+
+.modal-enter {
+    animation: modalSlideUp 0.25s ease-out;
+}
+
+.modal-exit {
+    animation: modalSlideDown 0.25s ease-out;
+}
+
+/* 消息动画 */
+@keyframes messageSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.message-enter {
+    animation: messageSlideIn 0.3s ease-out;
+}
+
+/* 按钮点击效果 */
+@keyframes buttonPulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+    }
+    70% {
+        transform: scale(1.05);
+        box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+    }
+}
+
+.button-pulse {
+    animation: buttonPulse 0.6s ease-out;
+}
+
+/* 加载动画改进 */
+@keyframes loadingDots {
+    0%, 20% {
+        color: #94a3b8;
+        transform: scale(1);
+    }
+    50% {
+        color: #3b82f6;
+        transform: scale(1.2);
+    }
+    80%, 100% {
+        color: #94a3b8;
+        transform: scale(1);
+    }
+}
+
+.loading-dot:nth-child(1) {
+    animation: loadingDots 1.4s infinite ease-in-out;
+    animation-delay: 0s;
+}
+
+.loading-dot:nth-child(2) {
+    animation: loadingDots 1.4s infinite ease-in-out;
+    animation-delay: 0.16s;
+}
+
+.loading-dot:nth-child(3) {
+    animation: loadingDots 1.4s infinite ease-in-out;
+    animation-delay: 0.32s;
+}
+
+/* 悬浮效果 */
+@keyframes gentleFloat {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-2px);
+    }
+}
+
+.float-gentle {
+    animation: gentleFloat 3s ease-in-out infinite;
+}
+
+/* 渐显效果 */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in-up {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+/* 列表项交错动画 */
+.stagger-item {
+    opacity: 0;
+    animation: fadeInUp 0.5s ease-out forwards;
+}
+
+.stagger-item:nth-child(1) { animation-delay: 0.1s; }
+.stagger-item:nth-child(2) { animation-delay: 0.2s; }
+.stagger-item:nth-child(3) { animation-delay: 0.3s; }
+.stagger-item:nth-child(4) { animation-delay: 0.4s; }
+.stagger-item:nth-child(5) { animation-delay: 0.5s; }
+.stagger-item:nth-child(6) { animation-delay: 0.6s; }
+.stagger-item:nth-child(7) { animation-delay: 0.7s; }
+.stagger-item:nth-child(8) { animation-delay: 0.8s; }
+.stagger-item:nth-child(9) { animation-delay: 0.9s; }
+.stagger-item:nth-child(10) { animation-delay: 1.0s; }
+
+/* 侧边栏动画 */
+.sidebar-enter {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-out;
+}
+
+.sidebar-enter-active {
+    transform: translateX(0);
+}
+
+.sidebar-exit {
+    transform: translateX(0);
+    transition: transform 0.3s ease-out;
+}
+
+.sidebar-exit-active {
+    transform: translateX(-100%);
+}
+
+/* 通知动画 */
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(100px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideOutRight {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(100px);
+    }
+}
+
+.notification-enter {
+    animation: slideInRight 0.4s ease-out;
+}
+
+.notification-exit {
+    animation: slideOutRight 0.4s ease-out;
+}
+
+/* 微交互动效 */
+.interactive-element {
+    transition: all 0.2s ease-out;
+}
+
+.interactive-element:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.interactive-element:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+/* 焦点环动画 */
+.focus-ring {
+    transition: box-shadow 0.2s ease-out;
+}
+
+.focus-ring:focus {
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+}
+
+/* 禁用状态动画 */
+.disabled-fade {
+    transition: opacity 0.3s ease-out;
+}
+
+.disabled-fade:disabled {
+    opacity: 0.5;
+}
+
+/* 平滑过渡类 */
+.smooth-transition {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.smooth-transition-fast {
+    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.smooth-transition-slow {
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}

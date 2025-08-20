@@ -19,12 +19,28 @@ async function getActualProjectPath(projectName) {
     }
 }
 
+// Helper function to get git repository path and validate it
+async function getGitRepositoryPath(projectName) {
+    const projectPath = await getActualProjectPath(projectName);
+    console.log('Getting git repo path for project:', projectName, '-> project path:', projectPath);
+    
+    // Validate git repository and get the actual git root path
+    const gitRootPath = await validateGitRepository(projectPath);
+    console.log('Git repository validated, using path:', gitRootPath);
+    
+    return { projectPath, gitRootPath };
+}
+
 // Helper function to validate git repository
 async function validateGitRepository(projectPath) {
+    console.log(`[validateGitRepository] Validating path: ${projectPath}`);
+    
     try {
         // Check if directory exists
         await fs.access(projectPath);
-    } catch {
+        console.log(`[validateGitRepository] Directory exists: ${projectPath}`);
+    } catch (error) {
+        console.error(`[validateGitRepository] Directory not found: ${projectPath}`, error.message);
         throw new Error(`Project path not found: ${ projectPath }`);
     }
 
@@ -33,12 +49,22 @@ async function validateGitRepository(projectPath) {
         const { stdout: gitRoot } = await execAsync('git rev-parse --show-toplevel', { cwd: projectPath });
         const normalizedGitRoot = path.resolve(gitRoot.trim());
         const normalizedProjectPath = path.resolve(projectPath);
+        
+        console.log(`[validateGitRepository] Git root: ${normalizedGitRoot}`);
+        console.log(`[validateGitRepository] Project path: ${normalizedProjectPath}`);
 
         // Ensure the git root matches our project path (prevent using parent git repos)
         if (normalizedGitRoot !== normalizedProjectPath) {
-            throw new Error(`Project directory is not a git repository. This directory is inside a git repository at ${ normalizedGitRoot }, but git operations should be run from the repository root.`);
+            console.log(`[validateGitRepository] Path mismatch - using repository at: ${normalizedGitRoot} instead of requiring exact match`);
+            // Instead of throwing an error, let's allow using the git repository even if it's a parent directory
+            // This is more flexible for nested project structures
+            return normalizedGitRoot;
         }
+        
+        console.log(`[validateGitRepository] Validation successful for: ${projectPath}`);
+        return normalizedProjectPath;
     } catch (error) {
+        console.error(`[validateGitRepository] Git command failed:`, error.message);
         if (error.message.includes('Project directory is not a git repository')) {
             throw error;
         }
@@ -55,17 +81,13 @@ router.get('/status', async (req, res) => {
     }
 
     try {
-        const projectPath = await getActualProjectPath(project);
-        console.log('Git status for project:', project, '-> path:', projectPath);
-
-        // Validate git repository
-        await validateGitRepository(projectPath);
+        const { projectPath, gitRootPath } = await getGitRepositoryPath(project);
 
         // Get current branch
-        const { stdout: branch } = await execAsync('git rev-parse --abbrev-ref HEAD', { cwd: projectPath });
+        const { stdout: branch } = await execAsync('git rev-parse --abbrev-ref HEAD', { cwd: gitRootPath });
 
         // Get git status
-        const { stdout: statusOutput } = await execAsync('git status --porcelain', { cwd: projectPath });
+        const { stdout: statusOutput } = await execAsync('git status --porcelain', { cwd: gitRootPath });
 
         const modified = [];
         const added = [];

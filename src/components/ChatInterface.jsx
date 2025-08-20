@@ -21,6 +21,7 @@ import ReactMarkdown from 'react-markdown';
 import { useDropzone } from 'react-dropzone';
 import TodoList from './TodoList';
 import { useElectron } from '../utils/electron';
+import { AnimatedTransition, AnimatedMessage, useButtonAnimation } from './AnimatedTransition';
 
 import ClaudeStatus from './ClaudeStatus';
 import { MicButton } from './MicButton.jsx';
@@ -2810,47 +2811,56 @@ function ChatInterface({
                                 const prevMessage = index > 0 ? visibleMessages[index - 1] : null;
 
                                 return (
-                                    <MessageComponent
-                                        key={ index }
-                                        message={ message }
-                                        index={ index }
-                                        prevMessage={ prevMessage }
-                                        createDiff={ createDiff }
-                                        onFileOpen={ onFileOpen }
-                                        onShowSettings={ onShowSettings }
+                                    <AnimatedMessage 
+                                        key={index} 
+                                        show={true} 
+                                        index={index}
+                                        className="mb-4"
+                                    >
+                                        <MessageComponent
+                                            key={ index }
+                                            message={ message }
+                                            index={ index }
+                                            prevMessage={ prevMessage }
+                                            createDiff={ createDiff }
+                                            onFileOpen={ onFileOpen }
+                                            onShowSettings={ onShowSettings }
                                         autoExpandTools={ autoExpandTools }
                                         showRawParameters={ showRawParameters }
                                         userAvatarUrl={ userAvatarUrl }
                                     />
+                                    </AnimatedMessage>
                                 );
                             }) }
                         </div>
                     ) }
 
-                    { isLoading && (
+                    <AnimatedTransition show={isLoading} animation="slideUp" duration={200}>
                         <div className="chat-message assistant relative z-10">
                             <div className="w-full max-w-none">
                                 <div className="flex items-center space-x-3 mb-3">
                                     <img
                                         src="claude.svg"
                                         alt="Claude"
-                                        className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                                        className="w-8 h-8 rounded-full object-cover flex-shrink-0 animate-pulse"
                                     />
                                     <div className="text-sm font-semibold text-gray-900 dark:text-white">
                                         Claude
                                     </div>
                                 </div>
                                 <div className="w-full text-sm text-gray-500 dark:text-gray-400">
-                                    <div className="flex items-center space-x-1">
-                                        <div className="animate-pulse">●</div>
-                                        <div className="animate-pulse" style={ { animationDelay: '0.2s' } }>●</div>
-                                        <div className="animate-pulse" style={ { animationDelay: '0.4s' } }>●</div>
-                                        <span className="ml-2">正在思考...</span>
+                                    <div className="flex items-center space-x-2">
+                                        <div className="flex space-x-1">
+                                            <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
+                                            <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                                            <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                                        </div>
+                                        <span className="ml-2 animate-pulse">正在思考...</span>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    ) }
+                    </AnimatedTransition>
 
                     <div ref={ messagesEndRef }/>
                 </div>
@@ -3088,7 +3098,7 @@ function ChatInterface({
                                     handleSubmit(e);
                                 } }
 
-                                className="absolute right-2 top-1/2 transform -translate-y-1/2 w-12 h-12 sm:w-12 sm:h-12 bg-primary hover:bg-primary/90 disabled:bg-gray-400 disabled:cursor-not-allowed rounded-full flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:ring-offset-gray-800"
+                                className="absolute right-2 top-1/2 transform -translate-y-1/2 w-12 h-12 sm:w-12 sm:h-12 bg-primary hover:bg-primary/90 disabled:bg-gray-400 disabled:cursor-not-allowed rounded-full flex items-center justify-center transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:ring-offset-gray-800 hover:scale-105 active:scale-95 disabled:hover:scale-100"
                             >
                                 <svg
                                     className="w-4 h-4 sm:w-5 sm:h-5 text-white transform rotate-90"
