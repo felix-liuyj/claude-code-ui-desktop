@@ -1,3 +1,8 @@
+## [1.1.0](https://github.com/felix-liuyj/claude-code-ui-desktop/compare/v1.0.0...v1.1.0) (2025-08-20)
+
+### Features
+
+* add usage monitoring components and API endpoints for real-time, daily, and monthly usage statistics ([d33cd13](https://github.com/felix-liuyj/claude-code-ui-desktop/commit/d33cd1326515887890f3090d182154a913eff4a5))
 # 更新日志
 
 此项目的所有重要变更都将记录在这个文件中。
