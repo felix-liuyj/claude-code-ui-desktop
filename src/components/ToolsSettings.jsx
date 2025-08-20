@@ -10,7 +10,10 @@ import {
     Eye,
     EyeOff,
     FileText,
+    GitBranch,
     Globe,
+    Languages,
+    MessageCircle,
     Monitor,
     Moon,
     Play,
@@ -88,6 +91,11 @@ function ToolsSettings({ isOpen, onClose }) {
     const [globalMemoryContent, setGlobalMemoryContent] = useState('');
     const [globalMemoryOriginal, setGlobalMemoryOriginal] = useState('');
     const [globalMemorySaving, setGlobalMemorySaving] = useState(false);
+
+    // Git configuration state
+    const [gitCommitLanguage, setGitCommitLanguage] = useState('chinese');
+    const [gitCommitStandard, setGitCommitStandard] = useState('conventional');
+    const [gitClaudeIntegration, setGitClaudeIntegration] = useState(true);
 
     // Function to fetch app information
     const fetchAppInfo = async () => {
@@ -748,6 +756,16 @@ function ToolsSettings({ isOpen, onClose }) {
                                 外观
                             </button>
                             <button
+                                onClick={ () => setActiveTab('git') }
+                                className={ `flex-shrink-0 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+                                    activeTab === 'git'
+                                        ? 'border-primary text-primary'
+                                        : 'border-transparent text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
+                                }` }
+                            >
+                                Git
+                            </button>
+                            <button
                                 onClick={ () => setActiveTab('security') }
                                 className={ `flex-shrink-0 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
                                     activeTab === 'security'
@@ -990,6 +1008,268 @@ function ToolsSettings({ isOpen, onClose }) {
                                                 <div>• 包含项目背景和偏好设置</div>
                                                 <div>• 添加代码风格和约定</div>
                                                 <div>• 记录特殊需求和限制</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Git Tab */}
+                        { activeTab === 'git' && (
+                            <div className="space-y-6 md:space-y-8">
+                                {/* Git Commit Configuration */}
+                                <div className="space-y-4">
+                                    <div className="flex items-center gap-3">
+                                        <GitBranch className="w-5 h-5 text-primary"/>
+                                        <h3 className="text-lg font-medium text-foreground">
+                                            Git 提交消息配置
+                                        </h3>
+                                    </div>
+                                    <div className="space-y-4">
+                                        {/* Language Selection */}
+                                        <div className="space-y-3">
+                                            <div className="flex items-center gap-2">
+                                                <Languages className="w-4 h-4 text-gray-500"/>
+                                                <label className="text-sm font-medium text-foreground">
+                                                    提交消息语言
+                                                </label>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="flex items-center space-x-3 cursor-pointer">
+                                                    <input 
+                                                        type="radio" 
+                                                        name="gitLanguage" 
+                                                        value="chinese"
+                                                        checked={gitCommitLanguage === 'chinese'}
+                                                        onChange={(e) => setGitCommitLanguage(e.target.value)}
+                                                        className="h-4 w-4 text-primary focus:ring-primary border-gray-300 dark:border-gray-600"
+                                                    />
+                                                    <span className="text-sm text-gray-700 dark:text-gray-300">
+                                                        中文（推荐）
+                                                    </span>
+                                                </label>
+                                                <label className="flex items-center space-x-3 cursor-pointer">
+                                                    <input 
+                                                        type="radio" 
+                                                        name="gitLanguage" 
+                                                        value="english"
+                                                        checked={gitCommitLanguage === 'english'}
+                                                        onChange={(e) => setGitCommitLanguage(e.target.value)}
+                                                        className="h-4 w-4 text-primary focus:ring-primary border-gray-300 dark:border-gray-600"
+                                                    />
+                                                    <span className="text-sm text-gray-700 dark:text-gray-300">
+                                                        English
+                                                    </span>
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        {/* Commit Standard Selection */}
+                                        <div className="space-y-3">
+                                            <div className="flex items-center gap-2">
+                                                <MessageCircle className="w-4 h-4 text-gray-500"/>
+                                                <label className="text-sm font-medium text-foreground">
+                                                    提交规范
+                                                </label>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="flex items-center space-x-3 cursor-pointer">
+                                                    <input 
+                                                        type="radio" 
+                                                        name="gitStandard" 
+                                                        value="conventional"
+                                                        checked={gitCommitStandard === 'conventional'}
+                                                        onChange={(e) => setGitCommitStandard(e.target.value)}
+                                                        className="h-4 w-4 text-primary focus:ring-primary border-gray-300 dark:border-gray-600"
+                                                    />
+                                                    <div>
+                                                        <span className="text-sm text-gray-700 dark:text-gray-300">
+                                                            Conventional Commits（推荐）
+                                                        </span>
+                                                        <p className="text-xs text-gray-500 dark:text-gray-400 ml-0">
+                                                            feat:, fix:, docs:, style:, refactor:, test:, chore:
+                                                        </p>
+                                                    </div>
+                                                </label>
+                                                <label className="flex items-center space-x-3 cursor-pointer">
+                                                    <input 
+                                                        type="radio" 
+                                                        name="gitStandard" 
+                                                        value="angular"
+                                                        checked={gitCommitStandard === 'angular'}
+                                                        onChange={(e) => setGitCommitStandard(e.target.value)}
+                                                        className="h-4 w-4 text-primary focus:ring-primary border-gray-300 dark:border-gray-600"
+                                                    />
+                                                    <div>
+                                                        <span className="text-sm text-gray-700 dark:text-gray-300">
+                                                            Angular 规范
+                                                        </span>
+                                                        <p className="text-xs text-gray-500 dark:text-gray-400 ml-0">
+                                                            类似 Conventional，但更严格的范围要求
+                                                        </p>
+                                                    </div>
+                                                </label>
+                                                <label className="flex items-center space-x-3 cursor-pointer">
+                                                    <input 
+                                                        type="radio" 
+                                                        name="gitStandard" 
+                                                        value="simple"
+                                                        checked={gitCommitStandard === 'simple'}
+                                                        onChange={(e) => setGitCommitStandard(e.target.value)}
+                                                        className="h-4 w-4 text-primary focus:ring-primary border-gray-300 dark:border-gray-600"
+                                                    />
+                                                    <div>
+                                                        <span className="text-sm text-gray-700 dark:text-gray-300">
+                                                            简单格式
+                                                        </span>
+                                                        <p className="text-xs text-gray-500 dark:text-gray-400 ml-0">
+                                                            无固定格式要求，简洁明了
+                                                        </p>
+                                                    </div>
+                                                </label>
+                                                <label className="flex items-center space-x-3 cursor-pointer">
+                                                    <input 
+                                                        type="radio" 
+                                                        name="gitStandard" 
+                                                        value="chinese"
+                                                        checked={gitCommitStandard === 'chinese'}
+                                                        onChange={(e) => setGitCommitStandard(e.target.value)}
+                                                        className="h-4 w-4 text-primary focus:ring-primary border-gray-300 dark:border-gray-600"
+                                                    />
+                                                    <div>
+                                                        <span className="text-sm text-gray-700 dark:text-gray-300">
+                                                            中文标准格式
+                                                        </span>
+                                                        <p className="text-xs text-gray-500 dark:text-gray-400 ml-0">
+                                                            新增:, 修复:, 更新:, 重构:, 测试:, 文档:
+                                                        </p>
+                                                    </div>
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        {/* Claude CLI Integration */}
+                                        <div className="space-y-3">
+                                            <div className="flex items-center gap-2">
+                                                <Terminal className="w-4 h-4 text-gray-500"/>
+                                                <label className="text-sm font-medium text-foreground">
+                                                    Claude CLI 集成
+                                                </label>
+                                            </div>
+                                            <label className="flex items-center space-x-3 cursor-pointer">
+                                                <input 
+                                                    type="checkbox" 
+                                                    checked={gitClaudeIntegration}
+                                                    onChange={(e) => setGitClaudeIntegration(e.target.checked)}
+                                                    className="h-4 w-4 text-primary focus:ring-primary border-gray-300 dark:border-gray-600 rounded"
+                                                />
+                                                <div>
+                                                    <span className="text-sm text-gray-700 dark:text-gray-300">
+                                                        启用自动提交消息生成
+                                                    </span>
+                                                    <p className="text-xs text-gray-500 dark:text-gray-400 ml-0">
+                                                        Claude 在提交代码时自动生成规范的提交消息
+                                                    </p>
+                                                </div>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Configuration Priority */}
+                                <div className="space-y-4">
+                                    <div className="flex items-center gap-3">
+                                        <Settings className="w-5 h-5 text-orange-500"/>
+                                        <h3 className="text-lg font-medium text-foreground">
+                                            配置优先级说明
+                                        </h3>
+                                    </div>
+                                    <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-700 rounded-lg p-4">
+                                        <div className="space-y-3">
+                                            <h4 className="font-medium text-orange-800 dark:text-orange-200">
+                                                配置生效顺序
+                                            </h4>
+                                            <div className="space-y-2 text-sm text-orange-700 dark:text-orange-300">
+                                                <div className="flex items-start gap-2">
+                                                    <span className="font-medium">1.</span>
+                                                    <span>项目级 CLAUDE.md 文件中的 Git 配置（最高优先级）</span>
+                                                </div>
+                                                <div className="flex items-start gap-2">
+                                                    <span className="font-medium">2.</span>
+                                                    <span>全局 ~/.claude/CLAUDE.md 文件中的配置</span>
+                                                </div>
+                                                <div className="flex items-start gap-2">
+                                                    <span className="font-medium">3.</span>
+                                                    <span>此界面的设置（最低优先级）</span>
+                                                </div>
+                                            </div>
+                                            <p className="text-xs text-orange-600 dark:text-orange-400 mt-2">
+                                                💡 建议在 CLAUDE.md 文件中配置项目特定的 Git 规范，在此处设置全局默认行为
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* CLAUDE.md Configuration Example */}
+                                <div className="space-y-4">
+                                    <div className="flex items-center gap-3">
+                                        <FileText className="w-5 h-5 text-blue-500"/>
+                                        <h3 className="text-lg font-medium text-foreground">
+                                            CLAUDE.md 配置示例
+                                        </h3>
+                                    </div>
+                                    <div className="space-y-4">
+                                        <p className="text-sm text-muted-foreground">
+                                            在项目的 CLAUDE.md 或全局 ~/.claude/CLAUDE.md 文件中添加以下配置：
+                                        </p>
+                                        <div className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                                            <pre className="text-sm text-gray-800 dark:text-gray-200 overflow-x-auto">
+{`## Git 配置
+
+### 提交消息规范
+- **语言**: 中文
+- **格式**: Conventional Commits
+- **示例**: feat: 添加用户登录功能
+
+### 提交规则
+1. 使用规范的提交类型前缀
+2. 描述要简洁明了
+3. 包含必要的作者信息
+
+### Claude CLI 集成
+- 启用自动提交消息生成
+- 遵循项目代码规范
+- 包含 Co-Authored-By 信息`}
+                                            </pre>
+                                        </div>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                                            <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                                                <h4 className="font-medium text-gray-900 dark:text-white mb-2">
+                                                    常用提交类型
+                                                </h4>
+                                                <div className="space-y-1 text-xs text-gray-600 dark:text-gray-400">
+                                                    <div><code>feat:</code> 新功能</div>
+                                                    <div><code>fix:</code> 修复问题</div>
+                                                    <div><code>docs:</code> 文档更新</div>
+                                                    <div><code>style:</code> 代码格式调整</div>
+                                                    <div><code>refactor:</code> 代码重构</div>
+                                                    <div><code>test:</code> 测试相关</div>
+                                                    <div><code>chore:</code> 构建/工具更新</div>
+                                                </div>
+                                            </div>
+                                            <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                                                <h4 className="font-medium text-gray-900 dark:text-white mb-2">
+                                                    提交消息模板
+                                                </h4>
+                                                <div className="space-y-1 text-xs text-gray-600 dark:text-gray-400">
+                                                    <div>feat: 添加用户认证功能</div>
+                                                    <div>fix: 修复登录页面样式问题</div>
+                                                    <div>docs: 更新 API 文档</div>
+                                                    <div>refactor: 优化数据库查询</div>
+                                                    <div>test: 添加单元测试用例</div>
+                                                    <div>chore: 升级依赖版本</div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
