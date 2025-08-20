@@ -385,8 +385,8 @@ function Shell({ selectedProject, selectedSession, isActive }) {
             // 确保使用正确的Electron桌面应用设置
             let wsBaseUrl;
 
-            // 优先使用Electron配置
-            const port = window.electronAPI?.getConfig?.()?.PORT || '3001';
+            // 优先使用Electron配置，端口范围 30000-39999
+            const port = window.electronAPI?.getConfig?.()?.PORT || '30000';
             const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
             wsBaseUrl = `${ protocol }//localhost:${ port }`;
 

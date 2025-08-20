@@ -232,7 +232,8 @@ app.delete('/api/projects/:projectName', async (req, res) => {
 app.get('/api/app/info', async (req, res) => {
     try {
         // Read package.json to get app info
-        const packagePath = path.join(process.cwd(), 'package.json');
+        // Use __dirname to find package.json in both development and production
+        const packagePath = path.join(__dirname, '..', 'package.json');
         const packageData = JSON.parse(await fsPromises.readFile(packagePath, 'utf8'));
         
         // Get git info if available
@@ -242,7 +243,7 @@ app.get('/api/app/info', async (req, res) => {
             const gitRemote = await new Promise((resolve, reject) => {
                 const gitProcess = spawn('git', ['remote', 'get-url', 'origin'], {
                     stdio: ['pipe', 'pipe', 'pipe'],
-                    cwd: process.cwd()
+                    cwd: path.join(__dirname, '..')
                 });
                 
                 let stdout = '';
@@ -257,7 +258,7 @@ app.get('/api/app/info', async (req, res) => {
             const gitCommit = await new Promise((resolve, reject) => {
                 const gitCommitProcess = spawn('git', ['rev-parse', '--short', 'HEAD'], {
                     stdio: ['pipe', 'pipe', 'pipe'],
-                    cwd: process.cwd()
+                    cwd: path.join(__dirname, '..')
                 });
                 
                 let stdout = '';

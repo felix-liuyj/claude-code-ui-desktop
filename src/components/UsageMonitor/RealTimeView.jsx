@@ -69,8 +69,8 @@ export function RealTimeView() {
             let wsUrl;
             
             if (isElectron) {
-                // Electron环境，使用固定的localhost:3001
-                const port = window.electronAPI?.getConfig?.()?.PORT || '3001';
+                // Electron环境，使用动态端口 30000-39999
+                const port = window.electronAPI?.getConfig?.()?.PORT || '30000';
                 wsUrl = `ws://localhost:${port}/ws`;
             } else {
                 // Web环境，使用当前页面的host

@@ -3,6 +3,7 @@ import { exec } from 'child_process';
 import { promisify } from 'util';
 import path from 'path';
 import { promises as fs } from 'fs';
+import os from 'os';
 import { extractProjectDirectory, decodeProjectPath } from '../projects.js';
 
 const router = express.Router();
@@ -19,12 +20,28 @@ async function getActualProjectPath(projectName) {
     }
 }
 
+// Helper function to get git repository path and validate it
+async function getGitRepositoryPath(projectName) {
+    const projectPath = await getActualProjectPath(projectName);
+    console.log('Getting git repo path for project:', projectName, '-> project path:', projectPath);
+    
+    // Validate git repository and get the actual git root path
+    const gitRootPath = await validateGitRepository(projectPath);
+    console.log('Git repository validated, using path:', gitRootPath);
+    
+    return { projectPath, gitRootPath };
+}
+
 // Helper function to validate git repository
 async function validateGitRepository(projectPath) {
+    console.log(`[validateGitRepository] Validating path: ${projectPath}`);
+    
     try {
         // Check if directory exists
         await fs.access(projectPath);
-    } catch {
+        console.log(`[validateGitRepository] Directory exists: ${projectPath}`);
+    } catch (error) {
+        console.error(`[validateGitRepository] Directory not found: ${projectPath}`, error.message);
         throw new Error(`Project path not found: ${ projectPath }`);
     }
 
@@ -33,12 +50,22 @@ async function validateGitRepository(projectPath) {
         const { stdout: gitRoot } = await execAsync('git rev-parse --show-toplevel', { cwd: projectPath });
         const normalizedGitRoot = path.resolve(gitRoot.trim());
         const normalizedProjectPath = path.resolve(projectPath);
+        
+        console.log(`[validateGitRepository] Git root: ${normalizedGitRoot}`);
+        console.log(`[validateGitRepository] Project path: ${normalizedProjectPath}`);
 
         // Ensure the git root matches our project path (prevent using parent git repos)
         if (normalizedGitRoot !== normalizedProjectPath) {
-            throw new Error(`Project directory is not a git repository. This directory is inside a git repository at ${ normalizedGitRoot }, but git operations should be run from the repository root.`);
+            console.log(`[validateGitRepository] Path mismatch - using repository at: ${normalizedGitRoot} instead of requiring exact match`);
+            // Instead of throwing an error, let's allow using the git repository even if it's a parent directory
+            // This is more flexible for nested project structures
+            return normalizedGitRoot;
         }
+        
+        console.log(`[validateGitRepository] Validation successful for: ${projectPath}`);
+        return normalizedProjectPath;
     } catch (error) {
+        console.error(`[validateGitRepository] Git command failed:`, error.message);
         if (error.message.includes('Project directory is not a git repository')) {
             throw error;
         }
@@ -55,17 +82,13 @@ router.get('/status', async (req, res) => {
     }
 
     try {
-        const projectPath = await getActualProjectPath(project);
-        console.log('Git status for project:', project, '-> path:', projectPath);
-
-        // Validate git repository
-        await validateGitRepository(projectPath);
+        const { projectPath, gitRootPath } = await getGitRepositoryPath(project);
 
         // Get current branch
-        const { stdout: branch } = await execAsync('git rev-parse --abbrev-ref HEAD', { cwd: projectPath });
+        const { stdout: branch } = await execAsync('git rev-parse --abbrev-ref HEAD', { cwd: gitRootPath });
 
         // Get git status
-        const { stdout: statusOutput } = await execAsync('git status --porcelain', { cwd: projectPath });
+        const { stdout: statusOutput } = await execAsync('git status --porcelain', { cwd: gitRootPath });
 
         const modified = [];
         const added = [];
@@ -369,9 +392,8 @@ router.post('/generate-commit-message', async (req, res) => {
             }
         }
 
-        // Use AI to generate commit message (simple implementation)
-        // In a real implementation, you might want to use GPT or Claude API
-        const message = generateSimpleCommitMessage(files, combinedDiff);
+        // Enhanced commit message generation with Claude CLI and configuration support
+        const message = await generateEnhancedCommitMessage(projectPath, files, combinedDiff);
 
         res.json({ message });
     } catch (error) {
@@ -380,7 +402,307 @@ router.post('/generate-commit-message', async (req, res) => {
     }
 });
 
-// Simple commit message generator (can be replaced with AI)
+// Enhanced commit message generator with Claude CLI integration and configuration support
+async function generateEnhancedCommitMessage(projectPath, files, diff) {
+    try {
+        // 1. Try to get Git settings from application settings
+        const gitSettings = await getGitSettings();
+        const language = gitSettings?.messageLanguage || 'en';
+        const useClaudeCLI = gitSettings?.useClaudeCLI !== false; // Default to true
+        
+        // 2. Try to read global or project-specific CLAUDE.md for Git message conventions
+        const conventions = await getGitConventions(projectPath);
+        
+        // 3. Use Claude CLI if available and enabled
+        if (useClaudeCLI) {
+            const claudeMessage = await generateWithClaudeCLI(projectPath, files, diff, conventions, language);
+            if (claudeMessage) {
+                return claudeMessage;
+            }
+        }
+        
+        // 4. Fallback to enhanced rule-based generation
+        return generateRuleBasedMessage(files, diff, conventions, language);
+        
+    } catch (error) {
+        console.error('Enhanced commit message generation failed:', error);
+        // Ultimate fallback to simple generation
+        return generateSimpleCommitMessage(files, diff);
+    }
+}
+
+// Get Git settings from application configuration
+async function getGitSettings() {
+    try {
+        const settingsPath = path.join(os.homedir(), '.claude-code-ui', 'settings.json');
+        const settingsContent = await fs.readFile(settingsPath, 'utf-8');
+        const settings = JSON.parse(settingsContent);
+        return settings.git || {};
+    } catch (error) {
+        // No settings file or git section, use defaults
+        return {};
+    }
+}
+
+// Get Git conventions from CLAUDE.md files
+async function getGitConventions(projectPath) {
+    const conventions = {
+        format: null,
+        types: null,
+        scopes: null,
+        rules: null
+    };
+    
+    try {
+        // 1. Try project-specific CLAUDE.md
+        const projectClaudeFile = path.join(projectPath, 'CLAUDE.md');
+        try {
+            const projectContent = await fs.readFile(projectClaudeFile, 'utf-8');
+            const projectConventions = parseGitConventions(projectContent);
+            if (projectConventions) {
+                Object.assign(conventions, projectConventions);
+                console.log('Found project-specific Git conventions in CLAUDE.md');
+            }
+        } catch (error) {
+            // No project CLAUDE.md, continue
+        }
+        
+        // 2. Try global CLAUDE.md (only if project conventions not found)
+        if (!conventions.format) {
+            const globalClaudeFile = path.join(os.homedir(), '.claude', 'CLAUDE.md');
+            try {
+                const globalContent = await fs.readFile(globalClaudeFile, 'utf-8');
+                const globalConventions = parseGitConventions(globalContent);
+                if (globalConventions) {
+                    Object.assign(conventions, globalConventions);
+                    console.log('Found global Git conventions in ~/.claude/CLAUDE.md');
+                }
+            } catch (error) {
+                // No global CLAUDE.md, use defaults
+            }
+        }
+        
+    } catch (error) {
+        console.error('Error reading Git conventions:', error);
+    }
+    
+    return conventions;
+}
+
+// Parse Git conventions from CLAUDE.md content
+function parseGitConventions(content) {
+    try {
+        // Look for Git-related sections in CLAUDE.md
+        const gitSectionMatch = content.match(/##?\s*(?:Git|git|GIT|提交|commit).*?(?=##|$)/is);
+        if (!gitSectionMatch) return null;
+        
+        const gitSection = gitSectionMatch[0];
+        
+        const conventions = {};
+        
+        // Look for commit message format
+        const formatMatch = gitSection.match(/(?:format|格式|模板).*?([`"']([^`"']+)[`"']|:\s*(.+))/is);
+        if (formatMatch) {
+            conventions.format = formatMatch[2] || formatMatch[3];
+        }
+        
+        // Look for commit types
+        const typesMatch = gitSection.match(/(?:type|类型).*?\[(.*?)\]/is);
+        if (typesMatch) {
+            conventions.types = typesMatch[1].split(',').map(t => t.trim());
+        }
+        
+        // Look for scopes
+        const scopesMatch = gitSection.match(/(?:scope|范围).*?\[(.*?)\]/is);
+        if (scopesMatch) {
+            conventions.scopes = scopesMatch[1].split(',').map(s => s.trim());
+        }
+        
+        // Look for specific rules
+        const rulesMatch = gitSection.match(/(?:rule|规则|要求).*?([\s\S]*?)(?=##|$)/is);
+        if (rulesMatch) {
+            conventions.rules = rulesMatch[1].trim();
+        }
+        
+        return Object.keys(conventions).length > 0 ? conventions : null;
+    } catch (error) {
+        console.error('Error parsing Git conventions:', error);
+        return null;
+    }
+}
+
+// Generate commit message using Claude CLI
+async function generateWithClaudeCLI(projectPath, files, diff, conventions, language) {
+    try {
+        // Check if Claude CLI is available
+        try {
+            await execAsync('which claude', { cwd: projectPath, timeout: 5000 });
+        } catch (error) {
+            console.log('Claude CLI not available, skipping Claude generation');
+            return null;
+        }
+        
+        // Prepare the prompt for Claude CLI
+        const prompt = buildClaudePrompt(files, diff, conventions, language);
+        
+        // Use Claude CLI to generate commit message
+        const { stdout } = await execAsync(
+            `echo "${prompt.replace(/"/g, '\\"')}" | claude --no-stream`,
+            { 
+                cwd: projectPath,
+                timeout: 30000 // 30 second timeout
+            }
+        );
+        
+        const generatedMessage = stdout.trim();
+        if (generatedMessage && !generatedMessage.includes('Error') && !generatedMessage.includes('error')) {
+            console.log('Successfully generated commit message using Claude CLI');
+            return generatedMessage;
+        }
+        
+    } catch (error) {
+        console.log('Claude CLI generation failed, falling back to rule-based generation:', error.message);
+    }
+    
+    return null;
+}
+
+// Build prompt for Claude CLI
+function buildClaudePrompt(files, diff, conventions, language) {
+    const isChineseLang = language === 'zh' || language === 'zh-CN';
+    
+    let prompt = isChineseLang 
+        ? '请为以下Git变更生成一个规范的提交消息：\n\n'
+        : 'Please generate a standardized commit message for the following Git changes:\n\n';
+    
+    // Add file information
+    prompt += isChineseLang 
+        ? `变更文件 (${files.length}个):\n${files.map(f => `- ${f}`).join('\n')}\n\n`
+        : `Changed files (${files.length}):\n${files.map(f => `- ${f}`).join('\n')}\n\n`;
+    
+    // Add conventions if available
+    if (conventions.format) {
+        prompt += isChineseLang 
+            ? `提交消息格式要求: ${conventions.format}\n\n`
+            : `Commit message format: ${conventions.format}\n\n`;
+    }
+    
+    if (conventions.types) {
+        prompt += isChineseLang 
+            ? `允许的类型: ${conventions.types.join(', ')}\n\n`
+            : `Allowed types: ${conventions.types.join(', ')}\n\n`;
+    }
+    
+    if (conventions.rules) {
+        prompt += isChineseLang 
+            ? `特殊规则:\n${conventions.rules}\n\n`
+            : `Special rules:\n${conventions.rules}\n\n`;
+    }
+    
+    // Add diff sample (first 1000 chars to avoid token limits)
+    const diffSample = diff.length > 1000 ? diff.substring(0, 1000) + '...' : diff;
+    prompt += isChineseLang 
+        ? `代码变更内容:\n${diffSample}\n\n请生成一个简洁、准确的提交消息（仅返回消息本身，不要额外说明）：`
+        : `Code changes:\n${diffSample}\n\nPlease generate a concise, accurate commit message (return only the message, no additional explanation):`;
+    
+    return prompt;
+}
+
+// Enhanced rule-based message generation with conventions and language support
+function generateRuleBasedMessage(files, diff, conventions, language) {
+    const isChineseLang = language === 'zh' || language === 'zh-CN';
+    const fileCount = files.length;
+    
+    // Analyze the diff to determine the type of change
+    const additions = (diff.match(/^\+[^+]/gm) || []).length;
+    const deletions = (diff.match(/^-[^-]/gm) || []).length;
+    
+    // Determine the primary action based on conventions or defaults
+    let action;
+    if (conventions.types && conventions.types.length > 0) {
+        // Use convention types
+        if (additions > 0 && deletions === 0) {
+            action = conventions.types.includes('feat') ? 'feat' : conventions.types.includes('add') ? 'add' : conventions.types[0];
+        } else if (deletions > 0 && additions === 0) {
+            action = conventions.types.includes('remove') ? 'remove' : conventions.types.includes('delete') ? 'delete' : 'refactor';
+        } else if (additions > deletions * 2) {
+            action = conventions.types.includes('feat') ? 'feat' : conventions.types.includes('enhance') ? 'enhance' : 'update';
+        } else if (deletions > additions * 2) {
+            action = conventions.types.includes('refactor') ? 'refactor' : 'update';
+        } else {
+            action = conventions.types.includes('fix') ? 'fix' : conventions.types.includes('update') ? 'update' : conventions.types[0];
+        }
+    } else {
+        // Use language-specific default actions
+        if (isChineseLang) {
+            if (additions > 0 && deletions === 0) {
+                action = '新增';
+            } else if (deletions > 0 && additions === 0) {
+                action = '删除';
+            } else if (additions > deletions * 2) {
+                action = '增强';
+            } else if (deletions > additions * 2) {
+                action = '重构';
+            } else {
+                action = '更新';
+            }
+        } else {
+            if (additions > 0 && deletions === 0) {
+                action = 'Add';
+            } else if (deletions > 0 && additions === 0) {
+                action = 'Remove';
+            } else if (additions > deletions * 2) {
+                action = 'Enhance';
+            } else if (deletions > additions * 2) {
+                action = 'Refactor';
+            } else {
+                action = 'Update';
+            }
+        }
+    }
+    
+    // Generate description based on files
+    let description;
+    if (fileCount > 1) {
+        const components = new Set(files.map(f => {
+            const parts = f.split('/');
+            return parts[parts.length - 2] || parts[0];
+        }));
+        
+        if (components.size === 1) {
+            const componentName = [...components][0];
+            description = isChineseLang ? `${componentName}组件` : `${componentName} component`;
+        } else {
+            description = isChineseLang ? '多个组件' : 'multiple components';
+        }
+    } else {
+        const fileName = files[0].split('/').pop();
+        const componentName = fileName.replace(/\.(jsx?|tsx?|css|scss|py|js|ts)$/, '');
+        description = componentName;
+    }
+    
+    // Format according to conventions
+    if (conventions.format) {
+        // Try to match convention format (like "type(scope): description")
+        const formatTemplate = conventions.format;
+        if (formatTemplate.includes('type') && formatTemplate.includes('description')) {
+            const scope = conventions.scopes && conventions.scopes.length > 0 ? conventions.scopes[0] : '';
+            let message = formatTemplate
+                .replace(/type/gi, action)
+                .replace(/scope/gi, scope)
+                .replace(/description/gi, description);
+            
+            // Clean up formatting
+            message = message.replace(/\(\s*\)/, '').replace(/\s+/g, ' ').trim();
+            return message;
+        }
+    }
+    
+    // Default format
+    return `${action} ${description}`;
+}
+
+// Simple commit message generator (fallback)
 function generateSimpleCommitMessage(files, diff) {
     const fileCount = files.length;
     const isMultipleFiles = fileCount > 1;
@@ -815,6 +1137,62 @@ router.post('/delete-untracked', async (req, res) => {
         res.json({ success: true, message: `Untracked file ${ file } deleted successfully` });
     } catch (error) {
         console.error('Git delete untracked error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Get Git settings
+router.get('/settings', async (req, res) => {
+    try {
+        const gitSettings = await getGitSettings();
+        res.json(gitSettings);
+    } catch (error) {
+        console.error('Error getting Git settings:', error);
+        res.json({
+            messageLanguage: 'en',
+            useClaudeCLI: true,
+            conventionType: 'conventional'
+        });
+    }
+});
+
+// Update Git settings
+router.post('/settings', async (req, res) => {
+    try {
+        const { messageLanguage, useClaudeCLI, conventionType } = req.body;
+        
+        const settingsDir = path.join(os.homedir(), '.claude-code-ui');
+        const settingsPath = path.join(settingsDir, 'settings.json');
+        
+        // Ensure directory exists
+        try {
+            await fs.mkdir(settingsDir, { recursive: true });
+        } catch (error) {
+            // Directory already exists
+        }
+        
+        // Read existing settings
+        let settings = {};
+        try {
+            const settingsContent = await fs.readFile(settingsPath, 'utf-8');
+            settings = JSON.parse(settingsContent);
+        } catch (error) {
+            // No existing settings file
+        }
+        
+        // Update Git settings
+        settings.git = {
+            messageLanguage: messageLanguage || 'en',
+            useClaudeCLI: useClaudeCLI !== false,
+            conventionType: conventionType || 'conventional'
+        };
+        
+        // Write back to file
+        await fs.writeFile(settingsPath, JSON.stringify(settings, null, 2));
+        
+        res.json({ success: true, settings: settings.git });
+    } catch (error) {
+        console.error('Error updating Git settings:', error);
         res.status(500).json({ error: error.message });
     }
 });

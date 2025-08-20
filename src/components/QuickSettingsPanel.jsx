@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, memo } from 'react';
 import {
     ArrowDown,
     ChevronLeft,
@@ -18,7 +18,7 @@ import DevTools from './DevTools';
 import { useTheme } from '../contexts/ThemeContext';
 import { useElectron } from '../utils/electron';
 
-const QuickSettingsPanel = ({
+const QuickSettingsPanel = memo(({
                                 isOpen,
                                 onToggle,
                                 autoExpandTools,
@@ -31,7 +31,9 @@ const QuickSettingsPanel = ({
                                 onSendByCtrlEnterChange,
                                 chatBgEnabled,
                                 onChatBgEnabledChange,
-                                isMobile
+                                isMobile,
+                                showPerformanceDashboard,
+                                onTogglePerformanceDashboard
                             }) => {
     const electron = useElectron();
     const [localIsOpen, setLocalIsOpen] = useState(isOpen);
@@ -324,6 +326,39 @@ const QuickSettingsPanel = ({
                             </div>
                         </div>
 
+                        {/* Performance Monitor - Only show in development mode */}
+                        { isDevelopmentMode && (
+                            <div className="space-y-2">
+                                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+                                    性能监控
+                                </h4>
+
+                                <button
+                                    onClick={() => onTogglePerformanceDashboard && onTogglePerformanceDashboard(!showPerformanceDashboard)}
+                                    className={`w-full flex items-center justify-between p-3 rounded-lg transition-colors border ${
+                                        showPerformanceDashboard 
+                                            ? 'bg-green-50 border-green-200 text-green-800 dark:bg-green-900/20 dark:border-green-800 dark:text-green-200'
+                                            : 'bg-muted hover:bg-accent border-transparent hover:border-border text-foreground'
+                                    }`}
+                                    title="切换性能监控面板"
+                                >
+                                    <span className="flex items-center gap-2 text-sm">
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                        </svg>
+                                        性能面板
+                                    </span>
+                                    <div className={`w-2 h-2 rounded-full ${
+                                        showPerformanceDashboard ? 'bg-green-500 animate-pulse' : 'bg-gray-300'
+                                    }`} />
+                                </button>
+                                
+                                <p className="text-xs text-muted-foreground ml-3">
+                                    显示实时内存使用、缓存统计和性能指标
+                                </p>
+                            </div>
+                        ) }
+
                         {/* Developer Tools - Only show in development mode */ }
                         { isDevelopmentMode && (
                             <div className="space-y-2">
@@ -350,6 +385,6 @@ const QuickSettingsPanel = ({
             ) }
         </>
     );
-};
+});
 
 export default QuickSettingsPanel;
