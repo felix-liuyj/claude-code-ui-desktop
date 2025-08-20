@@ -35,7 +35,7 @@ npm run release:patch       # Auto-version, changelog, commit, tag, and push
 ### Embedded Server Architecture
 The Express server runs directly in Electron's main process, not as a separate process:
 - Server imports resolved at runtime: `await import(serverPath)` in `electron/main.js:213`
-- Fixed port 3001 for desktop (no dynamic allocation)
+- Dynamic port allocation in range 30000-39999 to avoid conflicts
 - Server lifecycle automatically managed with Electron app
 - No authentication layer - direct local communication only
 
@@ -67,7 +67,7 @@ const response = await fetch('/api/projects');
 The `apiFetch()` function (`src/utils/api.js`) automatically:
 - Detects Electron environment and constructs proper URLs
 - Sets appropriate headers (except for FormData)
-- Handles base URL construction (`http://localhost:3001`)
+- Handles base URL construction (`http://localhost:30xxx`)
 
 ### Permission Mode System
 Visual color-coded permission levels in chat interface:
@@ -140,7 +140,7 @@ Platform-specific modules requiring special attention:
 
 ## Common Development Issues
 
-1. **Port Conflicts**: `scripts/start-electron.js` auto-kills port 3001 processes
+1. **Port Conflicts**: Auto-allocates port in 30000-39999 range
 2. **Build Missing**: Run `npm run build` before `npm run electron` if dist/ missing
 3. **API Failures**: Ensure using `apiFetch()` not direct `fetch()`
 4. **Native Modules**: Run `npm rebuild` for platform-specific dependencies

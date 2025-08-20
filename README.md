@@ -157,7 +157,7 @@ Claude Code UI Desktop 是基于 [siteboon/claudecodeui](https://github.com/site
     ```
 
 4. **首次使用设置**
-    - 桌面应用会自动启动并连接到端口 3001
+    - 桌面应用会自动在 30000-39999 范围内找可用端口
     - 应用会自动检测并使用已安装的 Claude Code CLI
     - 无需认证配置，直接开始使用
     - 首次运行会自动发现现有 Claude 项目，也可手动添加新项目
@@ -245,8 +245,8 @@ npm install                  # 安装所有依赖
 ```
 
 **开发提示**:
-- 使用 `npm run electron-dev` 进行日常开发，会自动处理构建和端口清理
-- `scripts/start-electron.js` 会自动检测并杀死占用 3001 端口的进程
+- 使用 `npm run electron-dev` 进行日常开发，会自动处理构建
+- 应用会自动在 30000-39999 范围内查找可用端口，避免端口冲突
 - 如果 `dist/` 目录不存在，启动脚本会自动运行构建过程
 
 ## 架构设计
@@ -266,7 +266,7 @@ npm install                  # 安装所有依赖
 1. **嵌入式服务器架构**
     - Express 服务器直接运行在 Electron 主进程中
     - 运行时动态导入：`await import(serverPath)`
-    - 固定端口 3001，无需动态端口分配
+    - 动态端口分配（30000-39999 范围），避免端口冲突
     - 与 Electron 应用生命周期自动管理
 
 2. **会话保护系统** (`src/App.jsx`)
@@ -407,8 +407,8 @@ npm run dist
 
 - 检查 Node.js 版本是否为 v20+
 - 删除 `node_modules` 并重新安装依赖：`rm -rf node_modules && npm install`
-- 查看控制台错误信息，特别注意端口占用情况
-- 手动清理端口：`lsof -ti:3001 | xargs kill -9`
+- 查看控制台错误信息
+- 端口自动分配，无需手动清理
 - 确保有足够的磁盘空间用于临时文件
 
 #### 图像上传问题

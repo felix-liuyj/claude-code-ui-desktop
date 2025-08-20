@@ -1,6 +1,7 @@
 const { app, BrowserWindow, dialog, ipcMain, Menu, shell } = require('electron');
 const { join, dirname } = require('path');
 const fs = require('fs');
+const { findAvailablePort } = require('../utils/findAvailablePort.cjs');
 
 // 加载环境变量
 require('dotenv').config();
@@ -148,7 +149,7 @@ async function waitForServer() {
 
     for (let i = 0; i < maxRetries; i++) {
         try {
-            const port = process.env.PORT || '3001';
+            const port = process.env.PORT || '30000';
             const response = await fetch(`http://127.0.0.1:${ port }/api/auth/status`);
             if (response.ok) {
                 console.log('✅ Server is responding to requests');
@@ -170,8 +171,10 @@ async function startServer() {
     try {
         console.log('🚀 Starting embedded server in main process...');
 
-        // Set environment variables
-        process.env.PORT = process.env.PORT || '3001';
+        // Find available port in 30000-39999 range
+        const port = await findAvailablePort(30000, 39999);
+        process.env.PORT = String(port);
+        console.log(`📡 Using port: ${port}`);
         process.env.NODE_ENV = isDevelopment ? 'development' : 'production';
         process.env.ELECTRON_USER_DATA = app.getPath('userData');
 

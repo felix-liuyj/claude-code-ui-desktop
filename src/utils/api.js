@@ -1,7 +1,7 @@
 // Get the base URL for API calls - Electron desktop app
 const getBaseUrl = () => {
-    // Use configured port or default to 3001 for Electron desktop app
-    const port = window.electronAPI?.getConfig?.()?.PORT || '3001';
+    // Use configured port or default to 30000-39999 range for Electron desktop app
+    const port = window.electronAPI?.getConfig?.()?.PORT || '30000';
     return `http://localhost:${ port }`;
 };
 

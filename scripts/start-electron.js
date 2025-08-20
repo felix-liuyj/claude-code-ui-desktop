@@ -13,23 +13,8 @@ const projectRoot = path.join(__dirname, '..');
 
 console.log('🚀 Starting Claude Code UI Desktop App...');
 
-// Check and kill existing processes on port 3001
-async function checkPort() {
-    try {
-        const { stdout } = await execAsync('lsof -ti:3001');
-        if (stdout.trim()) {
-            console.log('🔄 Stopping existing processes on port 3001...');
-            await execAsync('lsof -ti:3001 | xargs kill -9');
-            // Wait a moment for processes to stop
-            await new Promise(resolve => setTimeout(resolve, 1000));
-        }
-    } catch (error) {
-        // Port is free, continue
-    }
-}
-
 async function main() {
-    await checkPort();
+    // Port will be dynamically allocated in 30000-39999 range by Electron main process
 
     // Check if dist folder exists
     if (!existsSync(path.join(projectRoot, 'dist'))) {
