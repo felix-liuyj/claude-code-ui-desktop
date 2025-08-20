@@ -1020,13 +1020,17 @@ function ToolsSettings({ isOpen, onClose }) {
                             <div className="space-y-6 md:space-y-8">
                                 {/* Git Commit Configuration */}
                                 <div className="space-y-4">
-                                    <div className="flex items-center gap-3">
-                                        <GitBranch className="w-5 h-5 text-primary"/>
-                                        <h3 className="text-lg font-medium text-foreground">
-                                            Git 提交消息配置
-                                        </h3>
-                                    </div>
-                                    <div className="space-y-4">
+                                    <div
+                                        className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                                        <div>
+                                            <div className="font-medium text-foreground mb-3 flex items-center gap-3">
+                                                <GitBranch className="w-5 h-5 text-primary"/>
+                                                Git 提交消息配置
+                                            </div>
+                                            <div className="text-sm text-muted-foreground mb-4">
+                                                配置提交消息生成和源代码控制选项
+                                            </div>
+                                            <div className="space-y-4">
                                         {/* Language Selection */}
                                         <div className="space-y-3">
                                             <div className="flex items-center gap-2">
@@ -1174,6 +1178,8 @@ function ToolsSettings({ isOpen, onClose }) {
                                                 </div>
                                             </label>
                                         </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -1213,17 +1219,17 @@ function ToolsSettings({ isOpen, onClose }) {
 
                                 {/* CLAUDE.md Configuration Example */}
                                 <div className="space-y-4">
-                                    <div className="flex items-center gap-3">
-                                        <FileText className="w-5 h-5 text-blue-500"/>
-                                        <h3 className="text-lg font-medium text-foreground">
-                                            CLAUDE.md 配置示例
-                                        </h3>
-                                    </div>
-                                    <div className="space-y-4">
-                                        <p className="text-sm text-muted-foreground">
-                                            在项目的 CLAUDE.md 或全局 ~/.claude/CLAUDE.md 文件中添加以下配置：
-                                        </p>
-                                        <div className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                                    <div
+                                        className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                                        <div>
+                                            <div className="font-medium text-foreground mb-3 flex items-center gap-3">
+                                                <FileText className="w-5 h-5 text-blue-500"/>
+                                                CLAUDE.md 配置示例
+                                            </div>
+                                            <div className="text-sm text-muted-foreground mb-4">
+                                                在项目的 CLAUDE.md 或全局 ~/.claude/CLAUDE.md 文件中添加以下配置
+                                            </div>
+                                            <div className="bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg p-3">
                                             <pre className="text-sm text-gray-800 dark:text-gray-200 overflow-x-auto">
 {`## Git 配置
 
@@ -1271,6 +1277,7 @@ function ToolsSettings({ isOpen, onClose }) {
                                                     <div>chore: 升级依赖版本</div>
                                                 </div>
                                             </div>
+                                        </div>
                                         </div>
                                     </div>
                                 </div>
