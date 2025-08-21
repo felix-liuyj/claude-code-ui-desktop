@@ -444,7 +444,7 @@ async function getGitSettings() {
     }
 }
 
-// Get Git conventions from CLAUDE.md files
+// Get Git conventions from CLAUDE.md or .gitmessage files
 async function getGitConventions(projectPath) {
     const conventions = {
         format: null,
@@ -454,7 +454,35 @@ async function getGitConventions(projectPath) {
     };
     
     try {
-        // 1. Try project-specific CLAUDE.md
+        // 1. Try project-specific .gitmessage.txt first (highest priority)
+        const gitmessageFile = path.join(projectPath, '.gitmessage.txt');
+        try {
+            const gitmessageContent = await fs.readFile(gitmessageFile, 'utf-8');
+            const gitmessageConventions = parseGitmessageTemplate(gitmessageContent);
+            if (gitmessageConventions) {
+                Object.assign(conventions, gitmessageConventions);
+                console.log('Found Git conventions in .gitmessage.txt');
+                return conventions; // Use .gitmessage.txt if found
+            }
+        } catch (error) {
+            // No .gitmessage.txt, continue
+        }
+        
+        // 2. Try app/statics/rules/.gitmessage.txt
+        const appGitmessageFile = path.join(projectPath, 'app', 'statics', 'rules', '.gitmessage.txt');
+        try {
+            const appGitmessageContent = await fs.readFile(appGitmessageFile, 'utf-8');
+            const appGitmessageConventions = parseGitmessageTemplate(appGitmessageContent);
+            if (appGitmessageConventions) {
+                Object.assign(conventions, appGitmessageConventions);
+                console.log('Found Git conventions in app/statics/rules/.gitmessage.txt');
+                return conventions;
+            }
+        } catch (error) {
+            // No app .gitmessage.txt, continue
+        }
+        
+        // 3. Try project-specific CLAUDE.md
         const projectClaudeFile = path.join(projectPath, 'CLAUDE.md');
         try {
             const projectContent = await fs.readFile(projectClaudeFile, 'utf-8');
@@ -467,7 +495,7 @@ async function getGitConventions(projectPath) {
             // No project CLAUDE.md, continue
         }
         
-        // 2. Try global CLAUDE.md (only if project conventions not found)
+        // 4. Try global CLAUDE.md (only if project conventions not found)
         if (!conventions.format) {
             const globalClaudeFile = path.join(os.homedir(), '.claude', 'CLAUDE.md');
             try {
@@ -487,6 +515,56 @@ async function getGitConventions(projectPath) {
     }
     
     return conventions;
+}
+
+// Parse Git conventions from .gitmessage.txt template
+function parseGitmessageTemplate(content) {
+    try {
+        const conventions = {};
+        
+        // Extract format from template (e.g., <type>(<scope>): <subject>)
+        const formatMatch = content.match(/#\s*<type>\(<scope>\):\s*<subject>|#\s*(\w+)\((\w+)\):\s*(\w+)/i);
+        if (formatMatch) {
+            conventions.format = '<type>(<scope>): <subject>';
+        }
+        
+        // Extract types from template
+        const typesMatch = content.match(/type:\s*([^\n]+)/i);
+        if (typesMatch) {
+            // Parse types like: feat | fix | docs | style | refactor | perf | test | build | ci | chore | revert
+            const typesList = typesMatch[1].split('|').map(t => t.trim());
+            conventions.types = typesList;
+        }
+        
+        // Extract scope examples
+        const scopeMatch = content.match(/scope:.*?(如|例如|e\.g\.|such as|like)([^\n]+)/i);
+        if (scopeMatch) {
+            const scopeExamples = scopeMatch[2].split(/[、,]/).map(s => s.trim());
+            conventions.scopes = scopeExamples;
+        }
+        
+        // Extract rules from the template comments
+        const rulesLines = [];
+        const lines = content.split('\n');
+        for (const line of lines) {
+            if (line.startsWith('#') && (line.includes('不超过') || line.includes('祈使句') || line.includes('50字符') || line.includes('imperative'))) {
+                rulesLines.push(line.replace(/^#\s*/, ''));
+            }
+        }
+        if (rulesLines.length > 0) {
+            conventions.rules = rulesLines.join('\n');
+        }
+        
+        // Set default conventional commit format if types are found
+        if (conventions.types && !conventions.format) {
+            conventions.format = '<type>(<scope>): <subject>';
+        }
+        
+        return conventions;
+    } catch (error) {
+        console.error('Error parsing .gitmessage template:', error);
+        return null;
+    }
 }
 
 // Parse Git conventions from CLAUDE.md content
@@ -545,19 +623,72 @@ async function generateWithClaudeCLI(projectPath, files, diff, conventions, lang
         // Prepare the prompt for Claude CLI
         const prompt = buildClaudePrompt(files, diff, conventions, language);
         
-        // Use Claude CLI to generate commit message
-        const { stdout } = await execAsync(
-            `echo "${prompt.replace(/"/g, '\\"')}" | claude --no-stream`,
-            { 
-                cwd: projectPath,
-                timeout: 30000 // 30 second timeout
-            }
-        );
+        // Write prompt to a temporary file to avoid shell escaping issues
+        const tmpDir = os.tmpdir();
+        const promptFile = path.join(tmpDir, `git-prompt-${Date.now()}.txt`);
+        await fs.writeFile(promptFile, prompt, 'utf-8');
         
-        const generatedMessage = stdout.trim();
-        if (generatedMessage && !generatedMessage.includes('Error') && !generatedMessage.includes('error')) {
-            console.log('Successfully generated commit message using Claude CLI');
-            return generatedMessage;
+        try {
+            // Use Claude CLI to generate commit message
+            const { stdout } = await execAsync(
+                `cat "${promptFile}" | claude`,
+                { 
+                    cwd: projectPath,
+                    timeout: 30000, // 30 second timeout
+                    maxBuffer: 1024 * 1024 * 10 // 10MB buffer
+                }
+            );
+            
+            const generatedMessage = stdout.trim();
+            
+            // Extract just the commit message if Claude returns extra content
+            // Look for common patterns like "Here's a commit message:" or quotes
+            let finalMessage = generatedMessage;
+            
+            // Remove common prefixes
+            // Remove code blocks first
+            finalMessage = finalMessage.replace(/^```[\s\S]*?```$/gm, '').trim();
+            
+            // Remove common intro phrases
+            finalMessage = finalMessage.replace(/^.*?(?:commit message|提交消息|消息)[:：]\s*/is, '').trim();
+            finalMessage = finalMessage.replace(/^.*?(?:here's|here is|建议|推荐).*?[:：]\s*/is, '').trim();
+            
+            // Remove surrounding quotes if present
+            const quoteMatch = finalMessage.match(/^["'`]([\s\S]*)["'`]$/s);
+            if (quoteMatch && quoteMatch[1]) {
+                finalMessage = quoteMatch[1].trim();
+            }
+            
+            // Take only the first line or paragraph if it's a multi-line response
+            const lines = finalMessage.split('\n').filter(line => line.trim());
+            if (lines.length > 0) {
+                // If it looks like a conventional commit, take the whole first line
+                // Otherwise, take up to the first blank line
+                if (lines[0].match(/^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\(.+\))?!?:/)) {
+                    finalMessage = lines[0];
+                } else {
+                    const firstParagraph = [];
+                    for (const line of lines) {
+                        if (line.trim() === '') break;
+                        firstParagraph.push(line);
+                        // Stop if we hit a line that looks like explanation text
+                        if (line.match(/^(this|these|it|the above|以上|这个|这些)/i)) break;
+                    }
+                    finalMessage = firstParagraph.join(' ').trim();
+                }
+            }
+            
+            if (finalMessage && !finalMessage.toLowerCase().includes('error')) {
+                console.log('Successfully generated commit message using Claude CLI');
+                return finalMessage;
+            }
+        } finally {
+            // Clean up temporary file
+            try {
+                await fs.unlink(promptFile);
+            } catch (e) {
+                // Ignore cleanup errors
+            }
         }
         
     } catch (error) {
@@ -572,18 +703,23 @@ function buildClaudePrompt(files, diff, conventions, language) {
     const isChineseLang = language === 'zh' || language === 'zh-CN';
     
     let prompt = isChineseLang 
-        ? '请为以下Git变更生成一个规范的提交消息：\n\n'
-        : 'Please generate a standardized commit message for the following Git changes:\n\n';
+        ? '请为以下Git变更生成一个完整的规范化提交消息，包含 header、body 和 footer。\n\n'
+        : 'Please generate a complete standardized commit message for the following Git changes, including header, body, and footer.\n\n';
     
-    // Add file information
+    // Add specific requirements for complete commit message
+    prompt += isChineseLang
+        ? '要求：\n1. 严格遵循 Conventional Commits 规范\n2. 包含完整的 header、body 和 footer\n3. header: <type>(<scope>): <subject>\n4. body: 详细说明改动内容和原因\n5. footer: 验证信息或关联信息\n6. 只返回提交消息本身\n\n'
+        : 'Requirements:\n1. Strictly follow Conventional Commits specification\n2. Include complete header, body, and footer\n3. Header: <type>(<scope>): <subject>\n4. Body: Detailed explanation of changes and reasons\n5. Footer: Verification info or related references\n6. Return only the commit message itself\n\n';
+    
+    // Add file information with better formatting
     prompt += isChineseLang 
-        ? `变更文件 (${files.length}个):\n${files.map(f => `- ${f}`).join('\n')}\n\n`
-        : `Changed files (${files.length}):\n${files.map(f => `- ${f}`).join('\n')}\n\n`;
+        ? `变更的文件 (${files.length} 个):\n${files.map(f => `  • ${f}`).join('\n')}\n\n`
+        : `Modified files (${files.length}):\n${files.map(f => `  • ${f}`).join('\n')}\n\n`;
     
-    // Add conventions if available
+    // Add conventions with examples
     if (conventions.format) {
         prompt += isChineseLang 
-            ? `提交消息格式要求: ${conventions.format}\n\n`
+            ? `提交消息格式: ${conventions.format}\n\n`
             : `Commit message format: ${conventions.format}\n\n`;
     }
     
@@ -593,17 +729,16 @@ function buildClaudePrompt(files, diff, conventions, language) {
             : `Allowed types: ${conventions.types.join(', ')}\n\n`;
     }
     
-    if (conventions.rules) {
-        prompt += isChineseLang 
-            ? `特殊规则:\n${conventions.rules}\n\n`
-            : `Special rules:\n${conventions.rules}\n\n`;
-    }
+    // Add example format
+    prompt += isChineseLang
+        ? '示例格式：\nfeat(components): 增强组件交互功能\n\n为组件添加新的交互特性，提高用户体验。\n包含响应式设计和可访问性优化。\n\n验证：功能测试通过，用户界面无异常。\n\n'
+        : 'Example format:\nfeat(components): enhance component interaction functionality\n\nAdd new interactive features to components to improve user experience.\nIncludes responsive design and accessibility optimizations.\n\nVerification: Feature testing passed, user interface shows no anomalies.\n\n';
     
-    // Add diff sample (first 1000 chars to avoid token limits)
-    const diffSample = diff.length > 1000 ? diff.substring(0, 1000) + '...' : diff;
+    // Add diff with better formatting
+    const diffSample = diff.length > 2000 ? diff.substring(0, 2000) + '\n... (diff truncated)' : diff;
     prompt += isChineseLang 
-        ? `代码变更内容:\n${diffSample}\n\n请生成一个简洁、准确的提交消息（仅返回消息本身，不要额外说明）：`
-        : `Code changes:\n${diffSample}\n\nPlease generate a concise, accurate commit message (return only the message, no additional explanation):`;
+        ? `代码变更详情:\n\`\`\`diff\n${diffSample}\n\`\`\`\n\n请生成完整的提交消息（包含 header、body、footer）：`
+        : `Code changes:\n\`\`\`diff\n${diffSample}\n\`\`\`\n\nGenerate complete commit message (including header, body, footer):`;
     
     return prompt;
 }
@@ -661,41 +796,232 @@ function generateRuleBasedMessage(files, diff, conventions, language) {
         }
     }
     
-    // Generate description based on files
+    // Generate more detailed description based on files and changes
     let description;
-    if (fileCount > 1) {
-        const components = new Set(files.map(f => {
-            const parts = f.split('/');
-            return parts[parts.length - 2] || parts[0];
-        }));
+    
+    // Analyze what types of files changed
+    const fileTypes = new Set();
+    const componentNames = new Set();
+    const directories = new Set();
+    
+    files.forEach(f => {
+        const parts = f.split('/');
+        const fileName = parts[parts.length - 1];
+        const ext = fileName.split('.').pop();
         
-        if (components.size === 1) {
-            const componentName = [...components][0];
-            description = isChineseLang ? `${componentName}组件` : `${componentName} component`;
+        // Track file types
+        if (['jsx', 'tsx'].includes(ext)) fileTypes.add('component');
+        else if (['css', 'scss', 'less'].includes(ext)) fileTypes.add('style');
+        else if (['js', 'ts'].includes(ext)) fileTypes.add('script');
+        else if (['json', 'yml', 'yaml'].includes(ext)) fileTypes.add('config');
+        else if (['md', 'txt'].includes(ext)) fileTypes.add('doc');
+        
+        // Track component/module names
+        if (parts.length > 1) {
+            directories.add(parts[0]);
+            const moduleName = parts[parts.length - 2] || parts[0];
+            componentNames.add(moduleName);
         } else {
-            description = isChineseLang ? '多个组件' : 'multiple components';
+            componentNames.add(fileName.replace(/\.[^.]+$/, ''));
+        }
+    });
+    
+    // Build description based on analysis
+    if (fileCount > 1) {
+        if (componentNames.size === 1) {
+            const componentName = [...componentNames][0];
+            const typeList = [...fileTypes];
+            
+            if (typeList.includes('component') && typeList.includes('style')) {
+                description = isChineseLang 
+                    ? `${componentName} 组件的功能和样式`
+                    : `${componentName} component functionality and styling`;
+            } else if (typeList.includes('component')) {
+                description = isChineseLang 
+                    ? `${componentName} 组件逻辑`
+                    : `${componentName} component logic`;
+            } else if (typeList.includes('style')) {
+                description = isChineseLang 
+                    ? `${componentName} 样式优化`
+                    : `${componentName} style improvements`;
+            } else {
+                description = isChineseLang 
+                    ? `${componentName} 模块`
+                    : `${componentName} module`;
+            }
+        } else if (directories.size === 1) {
+            const directory = [...directories][0];
+            description = isChineseLang 
+                ? `${directory} 模块的多个组件`
+                : `multiple ${directory} components`;
+        } else {
+            // Multiple components across directories
+            const mainComponents = [...componentNames].slice(0, 2).join(', ');
+            if (componentNames.size > 2) {
+                description = isChineseLang 
+                    ? `${mainComponents} 等${componentNames.size}个组件`
+                    : `${mainComponents} and ${componentNames.size - 2} more components`;
+            } else {
+                description = isChineseLang 
+                    ? `${mainComponents} 组件`
+                    : `${mainComponents} components`;
+            }
         }
     } else {
+        // Single file - be more specific
         const fileName = files[0].split('/').pop();
-        const componentName = fileName.replace(/\.(jsx?|tsx?|css|scss|py|js|ts)$/, '');
-        description = componentName;
+        const baseName = fileName.replace(/\.[^.]+$/, '');
+        const ext = fileName.split('.').pop();
+        
+        // Add context based on file type
+        if (['jsx', 'tsx'].includes(ext)) {
+            // Check if it has UI changes
+            const hasUIChanges = diff.includes('className') || diff.includes('style') || diff.includes('<div') || diff.includes('render');
+            if (hasUIChanges) {
+                description = isChineseLang 
+                    ? `${baseName} 组件的界面和交互`
+                    : `${baseName} component UI and interactions`;
+            } else {
+                description = isChineseLang 
+                    ? `${baseName} 组件逻辑`
+                    : `${baseName} component logic`;
+            }
+        } else if (['css', 'scss', 'less'].includes(ext)) {
+            description = isChineseLang 
+                ? `${baseName} 样式调整`
+                : `${baseName} style adjustments`;
+        } else if (['json', 'yml', 'yaml'].includes(ext)) {
+            description = isChineseLang 
+                ? `${baseName} 配置更新`
+                : `${baseName} configuration updates`;
+        } else if (ext === 'md') {
+            description = isChineseLang 
+                ? `${baseName} 文档更新`
+                : `${baseName} documentation updates`;
+        } else {
+            // Generic but with more context
+            if (additions > deletions) {
+                description = isChineseLang 
+                    ? `${baseName} 功能扩展`
+                    : `enhance ${baseName} functionality`;
+            } else if (deletions > additions) {
+                description = isChineseLang 
+                    ? `${baseName} 代码优化`
+                    : `optimize ${baseName} implementation`;
+            } else {
+                description = isChineseLang 
+                    ? `更新 ${baseName}`
+                    : `update ${baseName}`;
+            }
+        }
     }
     
     // Format according to conventions
     if (conventions.format) {
-        // Try to match convention format (like "type(scope): description")
+        // Handle conventional commit format: <type>(<scope>): <subject>
         const formatTemplate = conventions.format;
-        if (formatTemplate.includes('type') && formatTemplate.includes('description')) {
-            const scope = conventions.scopes && conventions.scopes.length > 0 ? conventions.scopes[0] : '';
-            let message = formatTemplate
-                .replace(/type/gi, action)
-                .replace(/scope/gi, scope)
-                .replace(/description/gi, description);
-            
-            // Clean up formatting
-            message = message.replace(/\(\s*\)/, '').replace(/\s+/g, ' ').trim();
-            return message;
+        
+        // Determine scope based on the files
+        let scope = '';
+        if (formatTemplate.includes('scope')) {
+            // Try to determine scope from directories or component names
+            if (directories.size === 1) {
+                scope = [...directories][0];
+            } else if (componentNames.size === 1) {
+                scope = [...componentNames][0].toLowerCase();
+            } else if (fileTypes.has('component')) {
+                scope = 'components';
+            } else if (fileTypes.has('style')) {
+                scope = 'styles';
+            } else if (fileTypes.has('config')) {
+                scope = 'config';
+            } else if (conventions.scopes && conventions.scopes.length > 0) {
+                // Use first available scope from conventions if we can't determine
+                scope = conventions.scopes[0];
+            }
         }
+        
+        // Build the complete commit message with header, body, and footer
+        let subject = description;
+        
+        // Build header: <type>(<scope>): <subject>
+        let header = action;
+        if (scope) {
+            header += `(${scope})`;
+        }
+        header += `: ${subject}`;
+        
+        // Build body: explain what changed and why
+        let body = '';
+        if (fileCount === 1) {
+            const fileName = files[0].split('/').pop();
+            if (action === 'feat') {
+                body = isChineseLang
+                    ? `\u4e3a ${fileName} \u6dfb\u52a0\u65b0\u529f\u80fd\uff0c\u589e\u5f3a\u7528\u6237\u4f53\u9a8c\u548c\u7cfb\u7edf\u529f\u80fd\u6027\u3002`
+                    : `Add new functionality to ${fileName} to enhance user experience and system capabilities.`;
+            } else if (action === 'fix') {
+                body = isChineseLang
+                    ? `\u4fee\u590d ${fileName} \u4e2d\u7684\u95ee\u9898\uff0c\u63d0\u9ad8\u7cfb\u7edf\u7a33\u5b9a\u6027\u548c\u53ef\u9760\u6027\u3002`
+                    : `Fix issues in ${fileName} to improve system stability and reliability.`;
+            } else if (action === 'refactor') {
+                body = isChineseLang
+                    ? `\u91cd\u6784 ${fileName} \u7684\u4ee3\u7801\u7ed3\u6784\uff0c\u63d0\u9ad8\u53ef\u8bfb\u6027\u548c\u7ef4\u62a4\u6027\u3002`
+                    : `Refactor code structure in ${fileName} to improve readability and maintainability.`;
+            } else if (action === 'style') {
+                body = isChineseLang
+                    ? `\u4f18\u5316 ${fileName} \u7684\u6837\u5f0f\u548c\u89c6\u89c9\u8868\u73b0\uff0c\u63d0\u5347\u7528\u6237\u754c\u9762\u4f53\u9a8c\u3002`
+                    : `Optimize styles and visual presentation in ${fileName} to enhance user interface experience.`;
+            } else {
+                body = isChineseLang
+                    ? `\u66f4\u65b0 ${fileName} \u7684\u5b9e\u73b0\uff0c\u4fdd\u6301\u7cfb\u7edf\u7684\u73b0\u4ee3\u5316\u548c\u9ad8\u6548\u6027\u3002`
+                    : `Update ${fileName} implementation to maintain system modernization and efficiency.`;
+            }
+        } else {
+            // Multiple files
+            const moduleCount = directories.size;
+            const componentCount = componentNames.size;
+            
+            if (action === 'feat') {
+                body = isChineseLang
+                    ? `\u5728 ${fileCount} \u4e2a\u6587\u4ef6\u4e2d\u5b9e\u73b0\u65b0\u529f\u80fd\uff0c\u6d89\u53ca ${moduleCount > 1 ? moduleCount + ' \u4e2a\u6a21\u5757' : '\u6838\u5fc3\u6a21\u5757'}\u3002\n\u589e\u5f3a\u7cfb\u7edf\u80fd\u529b\uff0c\u4f18\u5316\u7528\u6237\u4ea4\u4e92\u4f53\u9a8c\u3002`
+                    : `Implement new features across ${fileCount} files, affecting ${moduleCount > 1 ? moduleCount + ' modules' : 'core module'}.\nEnhance system capabilities and optimize user interaction experience.`;
+            } else if (action === 'fix') {
+                body = isChineseLang
+                    ? `\u4fee\u590d\u591a\u4e2a\u7ec4\u4ef6\u4e2d\u7684\u95ee\u9898\uff0c\u6d89\u53ca ${fileCount} \u4e2a\u6587\u4ef6\u3002\n\u63d0\u9ad8\u7cfb\u7edf\u7a33\u5b9a\u6027\uff0c\u786e\u4fdd\u529f\u80fd\u6b63\u5e38\u8fd0\u884c\u3002`
+                    : `Fix issues across multiple components, involving ${fileCount} files.\nImprove system stability and ensure proper functionality.`;
+            } else if (action === 'refactor') {
+                body = isChineseLang
+                    ? `\u91cd\u6784\u591a\u4e2a\u6a21\u5757\u7684\u4ee3\u7801\u7ed3\u6784\uff0c\u4f18\u5316 ${componentCount} \u4e2a\u7ec4\u4ef6\u3002\n\u63d0\u9ad8\u4ee3\u7801\u53ef\u8bfb\u6027\u548c\u7ef4\u62a4\u6027\uff0c\u4e3a\u540e\u7eed\u5f00\u53d1\u5960\u5b9a\u57fa\u7840\u3002`
+                    : `Refactor code structure across multiple modules, optimizing ${componentCount} components.\nImprove code readability and maintainability for future development.`;
+            } else {
+                body = isChineseLang
+                    ? `\u66f4\u65b0\u591a\u4e2a\u6a21\u5757\u7684\u5b9e\u73b0\uff0c\u6d89\u53ca ${fileCount} \u4e2a\u6587\u4ef6\u3002\n\u4fdd\u6301\u7cfb\u7edf\u7684\u73b0\u4ee3\u5316\u548c\u9ad8\u6548\u6027\u3002`
+                    : `Update implementation across multiple modules, involving ${fileCount} files.\nMaintain system modernization and efficiency.`;
+            }
+        }
+        
+        // Build footer
+        let footer = '';
+        if (action === 'feat') {
+            footer = isChineseLang
+                ? '\u9a8c\u8bc1\uff1a\u529f\u80fd\u6d4b\u8bd5\u901a\u8fc7\uff0c\u7528\u6237\u754c\u9762\u65e0\u5f02\u5e38\u3002'
+                : 'Verification: Feature testing passed, user interface shows no anomalies.';
+        } else if (action === 'fix') {
+            footer = isChineseLang
+                ? '\u9a8c\u8bc1\uff1a\u95ee\u9898\u4fee\u590d\u786e\u8ba4\uff0c\u56de\u5f52\u6d4b\u8bd5\u901a\u8fc7\u3002'
+                : 'Verification: Issue fix confirmed, regression testing passed.';
+        }
+        
+        // Assemble the complete message
+        let message = header;
+        if (body) {
+            message += '\n\n' + body;
+        }
+        if (footer) {
+            message += '\n\n' + footer;
+        }
+        
+        return message;
     }
     
     // Default format

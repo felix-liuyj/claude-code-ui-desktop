@@ -14,100 +14,18 @@ export const AnimatedTransition = ({
     onEnter,
     onExit
 }) => {
-    const [shouldRender, setShouldRender] = useState(show);
-    const [animationState, setAnimationState] = useState(show ? 'entered' : 'exited');
-
     useEffect(() => {
-        if (show) {
-            setShouldRender(true);
-            // 延迟触发进入动画
-            const timer = setTimeout(() => {
-                setAnimationState('entering');
-                onEnter && onEnter();
-                setTimeout(() => setAnimationState('entered'), duration);
-            }, delay);
-            return () => clearTimeout(timer);
-        } else {
-            setAnimationState('exiting');
-            onExit && onExit();
-            const timer = setTimeout(() => {
-                setAnimationState('exited');
-                setShouldRender(false);
-            }, duration);
-            return () => clearTimeout(timer);
+        if (show && onEnter) {
+            onEnter();
+        } else if (!show && onExit) {
+            onExit();
         }
-    }, [show, duration, delay, onEnter, onExit]);
+    }, [show, onEnter, onExit]);
 
-    if (!shouldRender) return null;
-
-    const getAnimationClasses = () => {
-        const baseClasses = `transition-all duration-${duration} ease-in-out`;
-        
-        switch (animation) {
-            case 'fade':
-                return {
-                    entering: `${baseClasses} opacity-0`,
-                    entered: `${baseClasses} opacity-100`,
-                    exiting: `${baseClasses} opacity-100`,
-                    exited: `${baseClasses} opacity-0`
-                };
-            case 'slideUp':
-                return {
-                    entering: `${baseClasses} opacity-0 transform translate-y-4`,
-                    entered: `${baseClasses} opacity-100 transform translate-y-0`,
-                    exiting: `${baseClasses} opacity-100 transform translate-y-0`,
-                    exited: `${baseClasses} opacity-0 transform translate-y-4`
-                };
-            case 'slideDown':
-                return {
-                    entering: `${baseClasses} opacity-0 transform -translate-y-4`,
-                    entered: `${baseClasses} opacity-100 transform translate-y-0`,
-                    exiting: `${baseClasses} opacity-100 transform translate-y-0`,
-                    exited: `${baseClasses} opacity-0 transform -translate-y-4`
-                };
-            case 'slideLeft':
-                return {
-                    entering: `${baseClasses} opacity-0 transform translate-x-4`,
-                    entered: `${baseClasses} opacity-100 transform translate-x-0`,
-                    exiting: `${baseClasses} opacity-100 transform translate-x-0`,
-                    exited: `${baseClasses} opacity-0 transform translate-x-4`
-                };
-            case 'slideRight':
-                return {
-                    entering: `${baseClasses} opacity-0 transform -translate-x-4`,
-                    entered: `${baseClasses} opacity-100 transform translate-x-0`,
-                    exiting: `${baseClasses} opacity-100 transform translate-x-0`,
-                    exited: `${baseClasses} opacity-0 transform -translate-x-4`
-                };
-            case 'scale':
-                return {
-                    entering: `${baseClasses} opacity-0 transform scale-95`,
-                    entered: `${baseClasses} opacity-100 transform scale-100`,
-                    exiting: `${baseClasses} opacity-100 transform scale-100`,
-                    exited: `${baseClasses} opacity-0 transform scale-95`
-                };
-            case 'bounce':
-                return {
-                    entering: `${baseClasses} opacity-0 transform scale-50`,
-                    entered: `${baseClasses} opacity-100 transform scale-100`,
-                    exiting: `${baseClasses} opacity-100 transform scale-100`,
-                    exited: `${baseClasses} opacity-0 transform scale-50`
-                };
-            default:
-                return {
-                    entering: baseClasses,
-                    entered: baseClasses,
-                    exiting: baseClasses,
-                    exited: baseClasses
-                };
-        }
-    };
-
-    const animationClasses = getAnimationClasses();
-    const currentClass = animationClasses[animationState] || '';
+    if (!show) return null;
 
     return (
-        <div className={`${currentClass} ${className}`}>
+        <div className={className}>
             {children}
         </div>
     );
@@ -118,16 +36,11 @@ export const AnimatedTransition = ({
  * 用于列表项的进入/退出动画
  */
 export const AnimatedListItem = ({ children, show, index = 0, className = '' }) => {
+    if (!show) return null;
     return (
-        <AnimatedTransition
-            show={show}
-            animation="slideUp"
-            duration={200}
-            delay={index * 50}
-            className={className}
-        >
+        <div className={className}>
             {children}
-        </AnimatedTransition>
+        </div>
     );
 };
 
@@ -135,15 +48,11 @@ export const AnimatedListItem = ({ children, show, index = 0, className = '' }) 
  * 模态框动画组件
  */
 export const AnimatedModal = ({ children, show, className = '' }) => {
+    if (!show) return null;
     return (
-        <AnimatedTransition
-            show={show}
-            animation="scale"
-            duration={250}
-            className={className}
-        >
+        <div className={className}>
             {children}
-        </AnimatedTransition>
+        </div>
     );
 };
 
@@ -151,16 +60,11 @@ export const AnimatedModal = ({ children, show, className = '' }) => {
  * 消息动画组件
  */
 export const AnimatedMessage = ({ children, show, index = 0, className = '' }) => {
+    if (!show) return null;
     return (
-        <AnimatedTransition
-            show={show}
-            animation="slideUp"
-            duration={300}
-            delay={index * 100}
-            className={className}
-        >
+        <div className={className}>
             {children}
-        </AnimatedTransition>
+        </div>
     );
 };
 
@@ -174,11 +78,7 @@ export const useButtonAnimation = () => {
         onMouseDown: () => setIsPressed(true),
         onMouseUp: () => setIsPressed(false),
         onMouseLeave: () => setIsPressed(false),
-        className: `transform transition-all duration-150 ease-in-out ${
-            isPressed 
-                ? 'scale-95 shadow-sm' 
-                : 'scale-100 hover:scale-105 hover:shadow-md active:scale-95'
-        }`
+        className: ''
     };
 
     return { buttonProps, isPressed };
@@ -193,11 +93,7 @@ export const useHoverAnimation = () => {
     const hoverProps = {
         onMouseEnter: () => setIsHovered(true),
         onMouseLeave: () => setIsHovered(false),
-        className: `transform transition-all duration-200 ease-in-out ${
-            isHovered 
-                ? 'scale-105 shadow-lg' 
-                : 'scale-100 hover:shadow-md'
-        }`
+        className: ''
     };
 
     return { hoverProps, isHovered };

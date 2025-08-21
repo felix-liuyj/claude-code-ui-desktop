@@ -1,0 +1,24 @@
+# <type>(<scope>): <subject>
+#  - type: feat | fix | docs | style | refactor | perf | test | build | ci | chore | revert
+#  - scope: 可选，表示影响范围，如 auth、db、api/user
+#  - subject: 不超过50字符，祈使句（如：add、fix、refactor），不以句号结尾
+
+# Body: 描述为什么改、改了什么、如何验证
+# 每行不超过72字符，详细说明动机、变更点与取舍
+
+# Footer:
+# - 关联 Issue: Refs #123 / Closes #123
+# - 破坏性变更: BREAKING CHANGE: xxx
+# - 共同作者: Co-authored-by: Name <email>
+# - DCO: Signed-off-by: Name <email>
+
+# -------------------- 提交示例 --------------------
+# feat(auth): 支持 OAuth2 PKCE 登录
+#
+# 为 web 客户端增加基于 PKCE 的授权码流程，避免在浏览器环境中暴露 client_secret。
+# 包含 token 刷新与错误码统一处理。
+#
+# 验证：本地与 dev 环境通过登录、刷新、登出用例；新增 e2e 用例。
+# Refs #482
+#
+# -------------------------------------------------

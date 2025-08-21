@@ -174,7 +174,7 @@ const MessageComponent = memo(({
                                         key={ idx }
                                         src={ img.data }
                                         alt={ img.name }
-                                        className="rounded-lg max-w-full h-auto cursor-pointer hover:opacity-90 transition-opacity"
+                                        className="rounded-lg max-w-full h-auto cursor-pointer hover:opacity-90"
                                         onClick={ () => window.open(img.data, '_blank') }
                                     />
                                 )) }
@@ -244,7 +244,7 @@ const MessageComponent = memo(({
                                                 e.stopPropagation();
                                                 onShowSettings();
                                             } }
-                                            className="p-1 rounded hover:bg-primary/20 transition-colors"
+                                            className="p-1 rounded hover:bg-primary/20"
                                             title="设置"
                                         >
                                             <svg className="w-4 h-4 text-primary" fill="none"
@@ -265,7 +265,7 @@ const MessageComponent = memo(({
                                                 <details className="mt-2" open={ autoExpandTools }>
                                                     <summary
                                                         className="text-sm text-primary cursor-pointer hover:text-primary/80 flex items-center gap-2">
-                                                        <svg className="w-4 h-4 transition-transform details-chevron"
+                                                        <svg className="w-4 h-4 details-chevron"
                                                              fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path strokeLinecap="round" strokeLinejoin="round"
                                                                   strokeWidth={ 2 } d="M19 9l-7 7-7-7"/>
@@ -500,7 +500,7 @@ const MessageComponent = memo(({
                                                 <details className="mt-2" open={ autoExpandTools }>
                                                     <summary
                                                         className="text-sm text-primary cursor-pointer hover:text-primary/80 flex items-center gap-2">
-                                                        <svg className="w-4 h-4 transition-transform details-chevron"
+                                                        <svg className="w-4 h-4 details-chevron"
                                                              fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path strokeLinecap="round" strokeLinejoin="round"
                                                                   strokeWidth={ 2 } d="M19 9l-7 7-7-7"/>
@@ -786,7 +786,7 @@ const MessageComponent = memo(({
                                                                             { options.map((option) => (
                                                                                 <button
                                                                                     key={ option.number }
-                                                                                    className={ `w-full text-left px-4 py-3 rounded-lg border-2 transition-all ${
+                                                                                    className={ `w-full text-left px-4 py-3 rounded-lg border-2 ${
                                                                                         selectedOption === option.number
                                                                                             ? 'bg-amber-600 dark:bg-amber-700 text-white border-amber-600 dark:border-amber-700 shadow-md'
                                                                                             : 'bg-white dark:bg-gray-800 text-amber-900 dark:text-amber-100 border-amber-300 dark:border-amber-700 hover:border-amber-400 dark:hover:border-amber-600 hover:shadow-sm'
@@ -1010,7 +1010,7 @@ const MessageComponent = memo(({
                                                         { options.map((option) => (
                                                             <button
                                                                 key={ option.number }
-                                                                className={ `w-full text-left px-4 py-3 rounded-lg border-2 transition-all ${
+                                                                className={ `w-full text-left px-4 py-3 rounded-lg border-2 ${
                                                                     option.isSelected
                                                                         ? 'bg-amber-600 dark:bg-amber-700 text-white border-amber-600 dark:border-amber-700 shadow-md'
                                                                         : 'bg-white dark:bg-gray-800 text-amber-900 dark:text-amber-100 border-amber-300 dark:border-amber-700'
@@ -1517,23 +1517,19 @@ function ChatInterface({
             // Handle assistant messages
             else if (msg.message?.role === 'assistant' && msg.message?.content) {
                 if (Array.isArray(msg.message.content)) {
+                    // Collect all text parts into a single message
+                    const textParts = [];
+                    let hasUsageLimit = false;
+                    let usageLimitReset = null;
+                    
                     for (const part of msg.message.content) {
                         if (part.type === 'text') {
                             const resetAt = detectUsageLimit(part.text);
                             if (resetAt) {
-                                converted.push({
-                                    type: 'assistant',
-                                    content: '',
-                                    timestamp: msg.timestamp || new Date().toISOString(),
-                                    isUsageLimit: true,
-                                    usageLimitReset: resetAt
-                                });
+                                hasUsageLimit = true;
+                                usageLimitReset = resetAt;
                             } else {
-                                converted.push({
-                                    type: 'assistant',
-                                    content: part.text,
-                                    timestamp: msg.timestamp || new Date().toISOString()
-                                });
+                                textParts.push(part.text);
                             }
                         } else if (part.type === 'tool_use') {
                             // Get the corresponding tool result
@@ -1551,6 +1547,26 @@ function ChatInterface({
                                 toolResultTimestamp: toolResult?.timestamp || new Date()
                             });
                         }
+                    }
+                    
+                    // Add combined text message if there are any text parts
+                    if (textParts.length > 0) {
+                        converted.push({
+                            type: 'assistant',
+                            content: textParts.join(''),
+                            timestamp: msg.timestamp || new Date().toISOString()
+                        });
+                    }
+                    
+                    // Add usage limit message if detected
+                    if (hasUsageLimit) {
+                        converted.push({
+                            type: 'assistant',
+                            content: '',
+                            timestamp: msg.timestamp || new Date().toISOString(),
+                            isUsageLimit: true,
+                            usageLimitReset: usageLimitReset
+                        });
                     }
                 } else if (typeof msg.message.content === 'string') {
                     const resetAt = detectUsageLimit(msg.message.content);
@@ -1786,6 +1802,12 @@ function ChatInterface({
 
                     // Handle different types of content in the response
                     if (Array.isArray(messageData.content)) {
+                        // Collect all text parts into a single message
+                        const textParts = [];
+                        let hasUsageLimit = false;
+                        let usageLimitReset = null;
+                        let isUserInterrupted = false;
+                        
                         for (const part of messageData.content) {
                             if (part.type === 'tool_use') {
                                 // Add tool use message
@@ -1808,22 +1830,8 @@ function ChatInterface({
                                     if (pieces.length >= 2) {
                                         const ts = parseInt(pieces[1], 10);
                                         if (!Number.isNaN(ts)) {
-                                            const resetAt = new Date(ts * 1000);
-                                            
-                                            // Check if we already have a usage limit message to prevent duplicates
-                                            setChatMessages(prev => {
-                                                const hasUsageLimitMessage = prev.some(msg => msg.isUsageLimit);
-                                                if (hasUsageLimitMessage) {
-                                                    return prev; // Don't add duplicate usage limit message
-                                                }
-                                                return [...prev, {
-                                                    type: 'assistant',
-                                                    content: '',
-                                                    timestamp: new Date(),
-                                                    isUsageLimit: true,
-                                                    usageLimitReset: resetAt
-                                                }];
-                                            });
+                                            hasUsageLimit = true;
+                                            usageLimitReset = new Date(ts * 1000);
                                             
                                             // Immediately stop processing when usage limit is reached
                                             setIsLoading(false);
@@ -1842,22 +1850,49 @@ function ChatInterface({
 
                                 // Detect user-interrupted session message
                                 if (part.text.trim() === 'Session interrupted by user.') {
-                                    setChatMessages(prev => [...prev, {
-                                        type: 'assistant',
-                                        content: '',
-                                        timestamp: new Date(),
-                                        isUserInterrupted: true
-                                    }]);
+                                    isUserInterrupted = true;
                                     continue;
                                 }
 
-                                // Fallback to regular text message
-                                setChatMessages(prev => [...prev, {
-                                    type: 'assistant',
-                                    content: part.text,
-                                    timestamp: new Date()
-                                }]);
+                                // Collect text parts
+                                textParts.push(part.text);
                             }
+                        }
+                        
+                        // Add combined text message if there are any text parts
+                        if (textParts.length > 0) {
+                            setChatMessages(prev => [...prev, {
+                                type: 'assistant',
+                                content: textParts.join(''),
+                                timestamp: new Date()
+                            }]);
+                        }
+                        
+                        // Add usage limit message if detected
+                        if (hasUsageLimit) {
+                            setChatMessages(prev => {
+                                const hasUsageLimitMessage = prev.some(msg => msg.isUsageLimit);
+                                if (hasUsageLimitMessage) {
+                                    return prev; // Don't add duplicate usage limit message
+                                }
+                                return [...prev, {
+                                    type: 'assistant',
+                                    content: '',
+                                    timestamp: new Date(),
+                                    isUsageLimit: true,
+                                    usageLimitReset: usageLimitReset
+                                }];
+                            });
+                        }
+                        
+                        // Add user interrupted message if detected
+                        if (isUserInterrupted) {
+                            setChatMessages(prev => [...prev, {
+                                type: 'assistant',
+                                content: '',
+                                timestamp: new Date(),
+                                isUserInterrupted: true
+                            }]);
                         }
                     } else if (typeof messageData.content === 'string' && messageData.content.trim()) {
                         // Detect usage limit and show red triangle alert with parsed time
@@ -2852,8 +2887,8 @@ function ChatInterface({
                                     <div className="flex items-center space-x-2">
                                         <div className="flex space-x-1">
                                             <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
-                                            <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                                            <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                                            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                                         </div>
                                         <span className="ml-2 animate-pulse">正在思考...</span>
                                     </div>
@@ -2883,7 +2918,7 @@ function ChatInterface({
                             <button
                                 type="button"
                                 onClick={ handleModeSwitch }
-                                className={ `px-3 py-1.5 rounded-lg text-sm font-medium border transition-all duration-200 ${
+                                className={ `px-3 py-1.5 rounded-lg text-sm font-medium border ${
                                     skipPermissions
                                         ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-200 border-red-300 dark:border-red-700 cursor-not-allowed'
                                         : permissionMode === 'default'
@@ -2923,7 +2958,7 @@ function ChatInterface({
                             { isUserScrolledUp && chatMessages.length > 0 && (
                                 <button
                                     onClick={ scrollToBottom }
-                                    className="w-8 h-8 bg-primary hover:bg-primary/90 text-white rounded-full shadow-lg flex items-center justify-center transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:ring-offset-gray-800"
+                                    className="w-8 h-8 bg-primary hover:bg-primary/90 text-white rounded-full shadow-lg flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:ring-offset-gray-800"
                                     title="滚动到底部"
                                 >
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -3006,7 +3041,7 @@ function ChatInterface({
                         ) }
 
                         <div { ...getRootProps() }
-                             className={ `relative bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-600 focus-within:ring-2 focus-within:ring-blue-500 dark:focus-within:ring-blue-500 focus-within:border-blue-500 transition-all duration-200 ${ isTextareaExpanded ? 'chat-input-expanded' : '' }` }>
+                             className={ `relative bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-600 focus-within:ring-2 focus-within:ring-blue-500 dark:focus-within:ring-blue-500 focus-within:border-blue-500 ${ isTextareaExpanded ? 'chat-input-expanded' : '' }` }>
                             <input { ...getInputProps() } />
                             <textarea
                                 ref={ textareaRef }
@@ -3031,7 +3066,7 @@ function ChatInterface({
                                 placeholder="询问 Claude 协助您的代码... (@ 引用文件)"
                                 disabled={ isLoading }
                                 rows={ 1 }
-                                className="chat-input-placeholder w-full pl-12 pr-28 sm:pr-40 py-3 sm:py-4 bg-transparent rounded-2xl focus:outline-none text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 disabled:opacity-50 resize-none min-h-[40px] sm:min-h-[56px] max-h-[40vh] sm:max-h-[300px] overflow-y-auto text-sm sm:text-base transition-all duration-200"
+                                className="chat-input-placeholder w-full pl-12 pr-28 sm:pr-40 py-3 sm:py-4 bg-transparent rounded-2xl focus:outline-none text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 disabled:opacity-50 resize-none min-h-[40px] sm:min-h-[56px] max-h-[40vh] sm:max-h-[300px] overflow-y-auto text-sm sm:text-base"
                                 style={ { height: 'auto' } }
                             />
                             {/* Clear button - shown when there's text */ }
@@ -3049,11 +3084,11 @@ function ChatInterface({
                                         setIsTextareaExpanded(false);
                                     } }
 
-                                    className="absolute -left-0.5 -top-3 sm:right-28 sm:left-auto sm:top-1/2 sm:-translate-y-1/2 w-6 h-6 sm:w-8 sm:h-8 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 border border-gray-300 dark:border-gray-600 rounded-full flex items-center justify-center transition-all duration-200 group z-10 shadow-sm"
+                                    className="absolute -left-0.5 -top-3 sm:right-28 sm:left-auto sm:top-1/2 sm:-translate-y-1/2 w-6 h-6 sm:w-8 sm:h-8 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 border border-gray-300 dark:border-gray-600 rounded-full flex items-center justify-center group z-10 shadow-sm"
                                     title="清空输入"
                                 >
                                     <svg
-                                        className="w-3 h-3 sm:w-4 sm:h-4 text-gray-600 dark:text-gray-300 group-hover:text-gray-800 dark:group-hover:text-gray-100 transition-colors"
+                                        className="w-3 h-3 sm:w-4 sm:h-4 text-gray-600 dark:text-gray-300 group-hover:text-gray-800 dark:group-hover:text-gray-100"
                                         fill="none"
                                         stroke="currentColor"
                                         viewBox="0 0 24 24"
@@ -3071,7 +3106,7 @@ function ChatInterface({
                             <button
                                 type="button"
                                 onClick={ open }
-                                className="absolute left-2 bottom-4 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                                className="absolute left-2 bottom-4 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
                                 title="附加图片"
                             >
                                 <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor"
@@ -3098,7 +3133,7 @@ function ChatInterface({
                                     handleSubmit(e);
                                 } }
 
-                                className="absolute right-2 top-1/2 transform -translate-y-1/2 w-12 h-12 sm:w-12 sm:h-12 bg-primary hover:bg-primary/90 disabled:bg-gray-400 disabled:cursor-not-allowed rounded-full flex items-center justify-center transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:ring-offset-gray-800 hover:scale-105 active:scale-95 disabled:hover:scale-100"
+                                className="absolute right-2 top-1/2 transform -translate-y-1/2 w-12 h-12 sm:w-12 sm:h-12 bg-primary hover:bg-primary/90 disabled:bg-gray-400 disabled:cursor-not-allowed rounded-full flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:ring-offset-gray-800"
                             >
                                 <svg
                                     className="w-4 h-4 sm:w-5 sm:h-5 text-white transform rotate-90"
