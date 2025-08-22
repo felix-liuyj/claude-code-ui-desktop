@@ -1186,7 +1186,32 @@ const MessageComponent = memo(({
                                                 )
                                             } }
                                         >
-                                            { String(message.content || '') }
+                                            { (() => {
+                                                // Handle potentially double-escaped or JSON-stringified content
+                                                let content = message.content || '';
+                                                
+                                                // If content looks like a JSON string, try to parse it
+                                                if (typeof content === 'string' && content.startsWith('"') && content.endsWith('"')) {
+                                                    try {
+                                                        content = JSON.parse(content);
+                                                    } catch (e) {
+                                                        // Not valid JSON, use as-is
+                                                    }
+                                                }
+                                                
+                                                // If content is still a string and contains escaped characters, unescape them
+                                                if (typeof content === 'string') {
+                                                    // Replace common escape sequences
+                                                    content = content
+                                                        .replace(/\\n/g, '\n')
+                                                        .replace(/\\t/g, '\t')
+                                                        .replace(/\\r/g, '\r')
+                                                        .replace(/\\"/g, '"')
+                                                        .replace(/\\\\/g, '\\');
+                                                }
+                                                
+                                                return String(content);
+                                            })() }
                                         </ReactMarkdown>
                                     </div>
                                 ) : (

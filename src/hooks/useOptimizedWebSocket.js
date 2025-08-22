@@ -154,7 +154,22 @@ export const useOptimizedWebSocket = (url, options = {}) => {
                     }
 
                     // 检查消息是否已处理过（去重）
-                    const messageId = message.id || message.timestamp || Date.now();
+                    // 使用消息内容和类型生成更稳定的ID
+                    const messageContent = message.content || message.message || '';
+                    const generateMessageHash = (content) => {
+                        // Simple hash function for content-based ID generation
+                        let hash = 0;
+                        for (let i = 0; i < content.length; i++) {
+                            const char = content.charCodeAt(i);
+                            hash = ((hash << 5) - hash) + char;
+                            hash = hash & hash; // Convert to 32bit integer
+                        }
+                        return Math.abs(hash).toString(36);
+                    };
+                    
+                    const messageId = message.id || message.timestamp || 
+                        `${message.type || 'msg'}-${generateMessageHash(messageContent)}-${message.role || 'unknown'}-${Date.now()}`;
+                    
                     if (messageCache.current.get(messageId)) {
                         return;
                     }

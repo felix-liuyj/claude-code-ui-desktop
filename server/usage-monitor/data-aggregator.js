@@ -359,16 +359,16 @@ export class DataAggregator {
                 description: 'Claude Max20 订阅'
             },
             'custom': {
-                tokens: detectedLimit || 50000,
-                cost: 50.00,
-                messages: 500,
+                tokens: detectedLimit || 88000,
+                cost: 35.00,
+                messages: 1000,
                 description: '自定义计划 (基于P90分析)'
             },
             'unknown': {
-                tokens: 19000,
-                cost: 18.00,
-                messages: 250,
-                description: '未知计划 (默认Pro限制)'
+                tokens: 88000,
+                cost: 35.00,
+                messages: 1000,
+                description: '未知计划 (默认Max5限制)'
             }
         };
 

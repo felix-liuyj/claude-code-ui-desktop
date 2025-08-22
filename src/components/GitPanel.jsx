@@ -88,7 +88,14 @@ function GitPanel({ selectedProject, isMobile }) {
             console.log('Git status response:', data);
 
             if (data.error) {
-                console.error('Git status error:', data.error);
+                // Don't log "Not a git repository" as an error - it's expected for non-git directories
+                if (data.error !== 'Not a git repository' && 
+                    data.errorCode !== 'NOT_GIT_REPO' &&
+                    !data.error.includes('不是 git 仓库')) {
+                    console.error('Git status error:', data.error);
+                } else {
+                    console.log('Project is not a Git repository:', selectedProject.name);
+                }
                 setGitStatus({ error: data.error, details: data.details });
             } else {
                 setGitStatus(data);

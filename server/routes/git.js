@@ -65,11 +65,20 @@ async function validateGitRepository(projectPath) {
         console.log(`[validateGitRepository] Validation successful for: ${projectPath}`);
         return normalizedProjectPath;
     } catch (error) {
-        console.error(`[validateGitRepository] Git command failed:`, error.message);
-        if (error.message.includes('Project directory is not a git repository')) {
-            throw error;
+        // More specific error handling for non-git repositories (supporting both English and Chinese git)
+        if ((error.message.includes('fatal') && error.message.includes('not a git repository')) ||
+            (error.message.includes('致命错误') && error.message.includes('不是 git 仓库'))) {
+            // This is expected for non-git projects, log at info level instead of error
+            console.log(`[validateGitRepository] Not a Git repository: ${projectPath}`);
+            const gitError = new Error('Not a git repository');
+            gitError.code = 'NOT_GIT_REPO';
+            gitError.details = 'This directory does not contain a .git folder. Initialize a git repository with "git init" to use source control features.';
+            throw gitError;
         }
-        throw new Error('Not a git repository. This directory does not contain a .git folder. Initialize a git repository with "git init" to use source control features.');
+        
+        // Log unexpected errors at error level
+        console.error(`[validateGitRepository] Unexpected error:`, error.message);
+        throw new Error('Failed to validate git repository: ' + error.message);
     }
 }
 
@@ -120,14 +129,19 @@ router.get('/status', async (req, res) => {
             untracked
         });
     } catch (error) {
+        // Handle non-git repository errors gracefully
+        if (error.code === 'NOT_GIT_REPO' || error.message.includes('not a git repository') || error.message.includes('Not a git repository')) {
+            console.log('Git status - not a git repository:', project);
+            return res.json({ 
+                error: 'Not a git repository',
+                isGitRepo: false,
+                details: error.details || error.message
+            });
+        }
         console.error('Git status error:', error);
         res.json({
-            error: error.message.includes('not a git repository') || error.message.includes('Project directory is not a git repository')
-                ? error.message
-                : 'Git operation failed',
-            details: error.message.includes('not a git repository') || error.message.includes('Project directory is not a git repository')
-                ? error.message
-                : `Failed to get git status: ${ error.message }`
+            error: 'Git operation failed',
+            details: `Failed to get git status: ${ error.message }`
         });
     }
 });
@@ -243,6 +257,16 @@ router.get('/branches', async (req, res) => {
 
         res.json({ branches });
     } catch (error) {
+        // Handle non-git repository errors gracefully
+        if (error.code === 'NOT_GIT_REPO' || error.message.includes('not a git repository') || error.message.includes('Not a git repository')) {
+            console.log('Git branches - not a git repository:', project);
+            return res.json({ 
+                branches: [],
+                isGitRepo: false,
+                error: 'Not a git repository',
+                details: error.details || error.message
+            });
+        }
         console.error('Git branches error:', error);
         res.json({ error: error.message });
     }
@@ -1134,6 +1158,18 @@ router.get('/remote-status', async (req, res) => {
             isUpToDate: ahead === 0 && behind === 0
         });
     } catch (error) {
+        // Handle non-git repository errors gracefully
+        if (error.code === 'NOT_GIT_REPO' || error.message.includes('not a git repository') || error.message.includes('Not a git repository')) {
+            console.log('Git remote status - not a git repository:', project);
+            return res.json({ 
+                ahead: 0,
+                behind: 0,
+                hasRemote: false,
+                isGitRepo: false,
+                error: 'Not a git repository',
+                details: error.details || error.message
+            });
+        }
         console.error('Git remote status error:', error);
         res.json({ error: error.message });
     }

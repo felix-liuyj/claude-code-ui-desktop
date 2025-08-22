@@ -31,6 +31,7 @@ class ProgressiveCache {
 
         // 初始化各层缓存
         this.memoryCache = new SimpleCache(this.options.memorySize);
+        this.indexedDBAvailable = false;  // 默认为不可用，初始化后会更新
         this.initIndexedDB();
         
         // 缓存统计
@@ -46,15 +47,53 @@ class ProgressiveCache {
      */
     async initIndexedDB() {
         if (!window.indexedDB) {
-            console.warn('IndexedDB not supported');
+            console.warn('IndexedDB not supported - falling back to localStorage only');
+            this.indexedDBAvailable = false;
             return;
         }
 
         try {
+            // 测试 IndexedDB 是否可用
+            await this.testIndexedDBAccess();
             this.indexedDB = await this.openDB('ProgressiveCache', 1);
+            this.indexedDBAvailable = true;
+            console.log('IndexedDB initialized successfully');
         } catch (error) {
-            console.error('Failed to initialize IndexedDB:', error);
+            console.warn('Failed to initialize IndexedDB, falling back to localStorage only:', error.message);
+            this.indexedDBAvailable = false;
+            this.indexedDB = null;
         }
+    }
+
+    /**
+     * 测试 IndexedDB 访问权限
+     */
+    async testIndexedDBAccess() {
+        return new Promise((resolve, reject) => {
+            // 尝试打开一个测试数据库
+            const request = indexedDB.open('__test__', 1);
+            
+            request.onerror = () => {
+                reject(new Error(`IndexedDB access denied: ${request.error?.message || 'Unknown error'}`));
+            };
+            
+            request.onsuccess = () => {
+                // 立即删除测试数据库
+                const db = request.result;
+                db.close();
+                indexedDB.deleteDatabase('__test__');
+                resolve();
+            };
+            
+            request.onupgradeneeded = (event) => {
+                // 测试数据库创建，无需做任何操作
+            };
+            
+            // 设置超时防止无限等待
+            setTimeout(() => {
+                reject(new Error('IndexedDB test timeout'));
+            }, 3000);
+        });
     }
 
     /**
@@ -103,7 +142,7 @@ class ProgressiveCache {
         }
 
         // 3. 尝试IndexedDB
-        if (this.indexedDB) {
+        if (this.indexedDBAvailable && this.indexedDB) {
             try {
                 const indexedDBResult = await this.getFromIndexedDB(key);
                 if (indexedDBResult && this.isValid(indexedDBResult)) {
@@ -115,6 +154,8 @@ class ProgressiveCache {
                 }
             } catch (error) {
                 console.warn('IndexedDB get failed:', error);
+                // 如果 IndexedDB 操作失败，标记为不可用
+                this.indexedDBAvailable = false;
             }
         }
 
@@ -156,7 +197,9 @@ class ProgressiveCache {
                     break;
                     
                 case CACHE_TYPE.INDEXED_DB:
-                    await this.setInIndexedDB(key, cacheItem);
+                    if (this.indexedDBAvailable) {
+                        await this.setInIndexedDB(key, cacheItem);
+                    }
                     this.setInLocalStorage(key, cacheItem);
                     this.memoryCache.set(key, cacheItem);
                     break;
@@ -180,9 +223,9 @@ class ProgressiveCache {
             return CACHE_TYPE.INDEXED_DB;
         }
 
-        // 大数据存储在IndexedDB
+        // 大数据存储在IndexedDB（如果可用），否则使用localStorage
         if (cacheItem.size > this.options.compressionThreshold) {
-            return CACHE_TYPE.INDEXED_DB;
+            return this.indexedDBAvailable ? CACHE_TYPE.INDEXED_DB : CACHE_TYPE.LOCAL_STORAGE;
         }
 
         // 中等优先级存储在localStorage
@@ -295,11 +338,12 @@ class ProgressiveCache {
         });
 
         // 清理IndexedDB
-        if (this.indexedDB) {
+        if (this.indexedDBAvailable && this.indexedDB) {
             try {
                 await this.cleanupIndexedDB(now);
             } catch (error) {
                 console.error('IndexedDB cleanup failed:', error);
+                this.indexedDBAvailable = false;
             }
         }
 
@@ -409,11 +453,12 @@ class ProgressiveCache {
             console.warn('Failed to delete from localStorage:', error);
         }
 
-        if (this.indexedDB) {
+        if (this.indexedDBAvailable && this.indexedDB) {
             try {
                 await this.deleteFromIndexedDB(key);
             } catch (error) {
                 console.warn('Failed to delete from IndexedDB:', error);
+                this.indexedDBAvailable = false;
             }
         }
     }
@@ -446,13 +491,14 @@ class ProgressiveCache {
         keysToRemove.forEach(key => localStorage.removeItem(key));
 
         // 清空IndexedDB
-        if (this.indexedDB) {
+        if (this.indexedDBAvailable && this.indexedDB) {
             try {
                 const transaction = this.indexedDB.transaction(['cache'], 'readwrite');
                 const store = transaction.objectStore('cache');
                 store.clear();
             } catch (error) {
                 console.error('Failed to clear IndexedDB:', error);
+                this.indexedDBAvailable = false;
             }
         }
 

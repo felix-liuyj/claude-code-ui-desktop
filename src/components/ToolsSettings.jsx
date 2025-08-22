@@ -746,26 +746,6 @@ function ToolsSettings({ isOpen, onClose }) {
                                 工具
                             </button>
                             <button
-                                onClick={ () => setActiveTab('appearance') }
-                                className={ `flex-shrink-0 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
-                                    activeTab === 'appearance'
-                                        ? 'border-primary text-primary'
-                                        : 'border-transparent text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
-                                }` }
-                            >
-                                外观
-                            </button>
-                            <button
-                                onClick={ () => setActiveTab('git') }
-                                className={ `flex-shrink-0 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
-                                    activeTab === 'git'
-                                        ? 'border-primary text-primary'
-                                        : 'border-transparent text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
-                                }` }
-                            >
-                                Git
-                            </button>
-                            <button
                                 onClick={ () => setActiveTab('security') }
                                 className={ `flex-shrink-0 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
                                     activeTab === 'security'
@@ -786,6 +766,16 @@ function ToolsSettings({ isOpen, onClose }) {
                                 记忆
                             </button>
                             <button
+                                onClick={ () => setActiveTab('git') }
+                                className={ `flex-shrink-0 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+                                    activeTab === 'git'
+                                        ? 'border-primary text-primary'
+                                        : 'border-transparent text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
+                                }` }
+                            >
+                                Git
+                            </button>
+                            <button
                                 onClick={ () => setActiveTab('mcp') }
                                 className={ `flex-shrink-0 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
                                     activeTab === 'mcp'
@@ -794,6 +784,16 @@ function ToolsSettings({ isOpen, onClose }) {
                                 }` }
                             >
                                 MCP
+                            </button>
+                            <button
+                                onClick={ () => setActiveTab('appearance') }
+                                className={ `flex-shrink-0 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+                                    activeTab === 'appearance'
+                                        ? 'border-primary text-primary'
+                                        : 'border-transparent text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
+                                }` }
+                            >
+                                外观
                             </button>
                             <button
                                 onClick={ () => setActiveTab('usage') }
@@ -1017,275 +1017,154 @@ function ToolsSettings({ isOpen, onClose }) {
 
                         {/* Git Tab */}
                         { activeTab === 'git' && (
-                            <div className="space-y-6 md:space-y-8">
-                                {/* Git Commit Configuration */}
-                                <div className="space-y-4">
+                            <div className="space-y-6">
+                                {/* 提交消息语言卡片 */}
+                                <div className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg p-3">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <div className="p-1.5 bg-primary/10 rounded-md">
+                                            <Languages className="w-3.5 h-3.5 text-primary"/>
+                                        </div>
+                                        <h3 className="text-base font-semibold text-foreground">提交消息语言</h3>
+                                    </div>
+                                    <p className="text-xs text-muted-foreground mb-3">
+                                        选择生成提交消息时使用的语言
+                                    </p>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                        {[
+                                            { value: 'chinese', title: '中文', icon: '🇨🇳', badge: '推荐' },
+                                            { value: 'english', title: 'English', icon: '🇺🇸', badge: null }
+                                        ].map((language) => (
+                                            <div
+                                                key={language.value}
+                                                className={`
+                                                    relative p-2 border rounded-md cursor-pointer transition-all duration-200
+                                                    ${gitCommitLanguage === language.value
+                                                        ? 'border-primary bg-primary/5'
+                                                        : 'border-border hover:border-primary/50'
+                                                    }
+                                                `}
+                                                onClick={() => setGitCommitLanguage(language.value)}
+                                            >
+                                                {language.badge && (
+                                                    <div className="absolute -top-0.5 -right-0.5 px-1 py-0.5 bg-primary text-primary-foreground text-xs font-medium rounded">
+                                                        {language.badge}
+                                                    </div>
+                                                )}
+                                                <div className="flex items-center gap-2">
+                                                    <div className="text-sm" role="img" aria-label={language.title}>
+                                                        {language.icon}
+                                                    </div>
+                                                    <div className="flex-1">
+                                                        <h4 className="font-medium text-foreground text-sm">{language.title}</h4>
+                                                    </div>
+                                                    <div className={`
+                                                        w-3 h-3 rounded-full border flex items-center justify-center transition-colors
+                                                        ${gitCommitLanguage === language.value ? 'border-primary bg-primary' : 'border-border'}
+                                                    `}>
+                                                        {gitCommitLanguage === language.value && (
+                                                            <div className="w-1 h-1 rounded-full bg-primary-foreground"></div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* 提交规范卡片 */}
+                                <div className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg p-3">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <div className="p-1.5 bg-primary/10 rounded-md">
+                                            <MessageCircle className="w-3.5 h-3.5 text-primary"/>
+                                        </div>
+                                        <h3 className="text-base font-semibold text-foreground">提交规范</h3>
+                                    </div>
+                                    <p className="text-xs text-muted-foreground mb-3">
+                                        选择提交消息的格式规范和约束规则
+                                    </p>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                        {[
+                                            { value: 'conventional', title: 'Conventional Commits', desc: 'feat:, fix:, docs:', icon: '🚀', badge: '推荐' },
+                                            { value: 'angular', title: 'Angular 规范', desc: '更严格的范围要求', icon: '📋' },
+                                            { value: 'simple', title: '简单格式', desc: '无固定格式要求', icon: '📝' },
+                                            { value: 'chinese', title: '中文标准格式', desc: '新增:, 修复:, 更新:', icon: '🇨🇳' }
+                                        ].map((standard) => (
+                                            <div
+                                                key={standard.value}
+                                                className={`
+                                                    relative p-2 border rounded-md cursor-pointer transition-all duration-200
+                                                    ${gitCommitStandard === standard.value
+                                                        ? 'border-primary bg-primary/5'
+                                                        : 'border-border hover:border-primary/50'
+                                                    }
+                                                `}
+                                                onClick={() => setGitCommitStandard(standard.value)}
+                                            >
+                                                {standard.badge && (
+                                                    <div className="absolute -top-0.5 -right-0.5 px-1 py-0.5 bg-primary text-primary-foreground text-xs font-medium rounded">
+                                                        {standard.badge}
+                                                    </div>
+                                                )}
+                                                <div className="flex items-start gap-2">
+                                                    <div className="text-sm mt-0.5" role="img" aria-label={standard.title}>
+                                                        {standard.icon}
+                                                    </div>
+                                                    <div className="flex-1">
+                                                        <h4 className="font-medium text-foreground text-sm mb-0.5">{standard.title}</h4>
+                                                        <p className="text-xs text-muted-foreground leading-tight">{standard.desc}</p>
+                                                    </div>
+                                                    <div className={`
+                                                        w-3 h-3 rounded-full border flex items-center justify-center transition-colors mt-0.5
+                                                        ${gitCommitStandard === standard.value ? 'border-primary bg-primary' : 'border-border'}
+                                                    `}>
+                                                        {gitCommitStandard === standard.value && (
+                                                            <div className="w-1 h-1 rounded-full bg-primary-foreground"></div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Claude CLI 集成卡片 */}
+                                <div className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                                    <div className="flex items-center gap-3 mb-3">
+                                        <div className="p-2 bg-primary/10 rounded-md">
+                                            <Terminal className="w-4 h-4 text-primary"/>
+                                        </div>
+                                        <h3 className="text-lg font-semibold text-foreground">Claude CLI 集成</h3>
+                                    </div>
+                                    <p className="text-sm text-muted-foreground mb-4">
+                                        配置 Claude 与代码提交的自动化集成
+                                    </p>
                                     <div
-                                        className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-                                        <div>
-                                            <div className="font-medium text-foreground mb-3 flex items-center gap-3">
-                                                <GitBranch className="w-5 h-5 text-primary"/>
-                                                Git 提交消息配置
+                                        className={`
+                                            p-3 border-2 rounded-lg cursor-pointer transition-all duration-200
+                                            ${gitClaudeIntegration
+                                                ? 'border-primary bg-primary/5'
+                                                : 'border-border hover:border-primary/50'
+                                            }
+                                        `}
+                                        onClick={() => setGitClaudeIntegration(!gitClaudeIntegration)}
+                                    >
+                                        <div className="flex items-start gap-3">
+                                            <div className="text-lg mt-0.5" role="img" aria-label="AI助手">
+                                                🤖
                                             </div>
-                                            <div className="text-sm text-muted-foreground mb-4">
-                                                配置提交消息生成和源代码控制选项
+                                            <div className="flex-1">
+                                                <h4 className="font-medium text-foreground mb-1">启用自动提交消息生成</h4>
+                                                <p className="text-xs text-muted-foreground">Claude 在提交代码时自动生成规范的提交消息</p>
                                             </div>
-                                            <div className="space-y-4">
-                                        {/* Language Selection */}
-                                        <div className="space-y-4">
-                                            <div className="flex items-center gap-3">
-                                                <div className="p-2 bg-primary/10 rounded-md">
-                                                    <Languages className="w-5 h-5 text-primary"/>
-                                                </div>
-                                                <h3 className="text-xl font-semibold text-foreground">提交消息语言</h3>
-                                            </div>
-                                            <p className="text-sm text-muted-foreground pl-11 -mt-2">
-                                                选择生成提交消息时使用的语言
-                                            </p>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                {[
-                                                    {
-                                                        value: 'chinese',
-                                                        title: '中文',
-                                                        subtitle: '（推荐）',
-                                                        description: '使用中文生成提交消息，更符合本土化开发习惯',
-                                                        icon: '🇨🇳',
-                                                        badge: '推荐'
-                                                    },
-                                                    {
-                                                        value: 'english',
-                                                        title: 'English',
-                                                        subtitle: '',
-                                                        description: 'Generate commit messages in English for international projects',
-                                                        icon: '🇺🇸',
-                                                        badge: null
-                                                    }
-                                                ].map((language) => (
-                                                    <div
-                                                        key={language.value}
-                                                        className={`
-                                                            relative h-32 p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 hover:shadow-md
-                                                            ${gitCommitLanguage === language.value
-                                                                ? 'border-primary bg-primary/5 shadow-md'
-                                                                : 'border-border bg-background hover:border-primary/50'
-                                                            }
-                                                        `}
-                                                        onClick={() => setGitCommitLanguage(language.value)}
-                                                    >
-                                                        {language.badge && (
-                                                            <div className="absolute -top-2 -right-2 px-2 py-1 bg-primary text-primary-foreground text-xs font-medium rounded-full">
-                                                                {language.badge}
-                                                            </div>
-                                                        )}
-                                                        <div className="flex items-start gap-3 h-full">
-                                                            <div className="text-2xl mt-0.5" role="img" aria-label={language.title}>
-                                                                {language.icon}
-                                                            </div>
-                                                            <div className="flex-1 min-w-0 flex flex-col">
-                                                                <div className="flex items-center gap-2 mb-1">
-                                                                    <h4 className="font-semibold text-foreground">
-                                                                        {language.title}
-                                                                    </h4>
-                                                                    {language.subtitle && (
-                                                                        <span className="text-sm text-muted-foreground">
-                                                                            {language.subtitle}
-                                                                        </span>
-                                                                    )}
-                                                                </div>
-                                                                <p className="text-sm text-muted-foreground leading-relaxed flex-1">
-                                                                    {language.description}
-                                                                </p>
-                                                            </div>
-                                                            <div className={`
-                                                                w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors
-                                                                ${gitCommitLanguage === language.value
-                                                                    ? 'border-primary bg-primary'
-                                                                    : 'border-border'
-                                                                }
-                                                            `}>
-                                                                {gitCommitLanguage === language.value && (
-                                                                    <div className="w-2 h-2 rounded-full bg-primary-foreground"></div>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                        <input
-                                                            type="radio"
-                                                            name="gitLanguage"
-                                                            value={language.value}
-                                                            checked={gitCommitLanguage === language.value}
-                                                            onChange={(e) => setGitCommitLanguage(e.target.value)}
-                                                            className="sr-only"
-                                                        />
+                                            <div className={`
+                                                w-4 h-4 rounded border-2 flex items-center justify-center transition-colors
+                                                ${gitClaudeIntegration ? 'border-primary bg-primary' : 'border-border'}
+                                            `}>
+                                                {gitClaudeIntegration && (
+                                                    <div className="w-2.5 h-2.5 text-primary-foreground flex items-center justify-center text-xs">
+                                                        ✓
                                                     </div>
-                                                ))}
-                                            </div>
-                                        </div>
-
-                                        {/* Commit Standard Selection */}
-                                        <div className="space-y-4">
-                                            <div className="flex items-center gap-3">
-                                                <div className="p-2 bg-primary/10 rounded-md">
-                                                    <MessageCircle className="w-5 h-5 text-primary"/>
-                                                </div>
-                                                <h3 className="text-xl font-semibold text-foreground">提交规范</h3>
-                                            </div>
-                                            <p className="text-sm text-muted-foreground pl-11 -mt-2">
-                                                选择提交消息的格式规范和约束规则
-                                            </p>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                {[
-                                                    {
-                                                        value: 'conventional',
-                                                        title: 'Conventional Commits',
-                                                        subtitle: '（推荐）',
-                                                        description: 'feat:, fix:, docs:, style:, refactor:, test:, chore:',
-                                                        icon: '🚀',
-                                                        badge: '推荐'
-                                                    },
-                                                    {
-                                                        value: 'angular',
-                                                        title: 'Angular 规范',
-                                                        subtitle: '',
-                                                        description: '类似 Conventional，但更严格的范围要求',
-                                                        icon: '📋',
-                                                        badge: null
-                                                    },
-                                                    {
-                                                        value: 'simple',
-                                                        title: '简单格式',
-                                                        subtitle: '',
-                                                        description: '无固定格式要求，简洁明了',
-                                                        icon: '📝',
-                                                        badge: null
-                                                    },
-                                                    {
-                                                        value: 'chinese',
-                                                        title: '中文标准格式',
-                                                        subtitle: '',
-                                                        description: '新增:, 修复:, 更新:, 重构:, 测试:, 文档:',
-                                                        icon: '🇨🇳',
-                                                        badge: null
-                                                    }
-                                                ].map((standard) => (
-                                                    <div
-                                                        key={standard.value}
-                                                        className={`
-                                                            relative h-32 p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 hover:shadow-md
-                                                            ${gitCommitStandard === standard.value
-                                                                ? 'border-primary bg-primary/5 shadow-md'
-                                                                : 'border-border bg-background hover:border-primary/50'
-                                                            }
-                                                        `}
-                                                        onClick={() => setGitCommitStandard(standard.value)}
-                                                    >
-                                                        {standard.badge && (
-                                                            <div className="absolute -top-2 -right-2 px-2 py-1 bg-primary text-primary-foreground text-xs font-medium rounded-full">
-                                                                {standard.badge}
-                                                            </div>
-                                                        )}
-                                                        <div className="flex items-start gap-3 h-full">
-                                                            <div className="text-2xl mt-0.5" role="img" aria-label={standard.title}>
-                                                                {standard.icon}
-                                                            </div>
-                                                            <div className="flex-1 min-w-0 flex flex-col">
-                                                                <div className="flex items-center gap-2 mb-1">
-                                                                    <h4 className="font-semibold text-foreground">
-                                                                        {standard.title}
-                                                                    </h4>
-                                                                    {standard.subtitle && (
-                                                                        <span className="text-sm text-muted-foreground">
-                                                                            {standard.subtitle}
-                                                                        </span>
-                                                                    )}
-                                                                </div>
-                                                                <p className="text-sm text-muted-foreground leading-relaxed flex-1">
-                                                                    {standard.description}
-                                                                </p>
-                                                            </div>
-                                                            <div className={`
-                                                                w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors
-                                                                ${gitCommitStandard === standard.value
-                                                                    ? 'border-primary bg-primary'
-                                                                    : 'border-border'
-                                                                }
-                                                            `}>
-                                                                {gitCommitStandard === standard.value && (
-                                                                    <div className="w-2 h-2 rounded-full bg-primary-foreground"></div>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                        <input
-                                                            type="radio"
-                                                            name="gitStandard"
-                                                            value={standard.value}
-                                                            checked={gitCommitStandard === standard.value}
-                                                            onChange={(e) => setGitCommitStandard(e.target.value)}
-                                                            className="sr-only"
-                                                        />
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-
-                                        {/* Claude CLI Integration */}
-                                        <div className="space-y-4">
-                                            <div className="flex items-center gap-3">
-                                                <div className="p-2 bg-primary/10 rounded-md">
-                                                    <Terminal className="w-5 h-5 text-primary"/>
-                                                </div>
-                                                <h3 className="text-xl font-semibold text-foreground">Claude CLI 集成</h3>
-                                            </div>
-                                            <p className="text-sm text-muted-foreground pl-11 -mt-2">
-                                                配置 Claude 与代码提交的自动化集成
-                                            </p>
-                                            <div className="grid grid-cols-1 gap-4">
-                                                <div
-                                                    className={`
-                                                        relative h-32 p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 hover:shadow-md
-                                                        ${gitClaudeIntegration
-                                                            ? 'border-primary bg-primary/5 shadow-md'
-                                                            : 'border-border bg-background hover:border-primary/50'
-                                                        }
-                                                    `}
-                                                    onClick={() => setGitClaudeIntegration(!gitClaudeIntegration)}
-                                                >
-                                                    <div className="flex items-start gap-3 h-full">
-                                                        <div className="text-2xl mt-0.5" role="img" aria-label="AI助手">
-                                                            🤖
-                                                        </div>
-                                                        <div className="flex-1 min-w-0 flex flex-col">
-                                                            <div className="flex items-center gap-2 mb-1">
-                                                                <h4 className="font-semibold text-foreground">
-                                                                    启用自动提交消息生成
-                                                                </h4>
-                                                            </div>
-                                                            <p className="text-sm text-muted-foreground leading-relaxed flex-1">
-                                                                Claude 在提交代码时自动生成规范的提交消息，遵循选定的语言和格式规范
-                                                            </p>
-                                                        </div>
-                                                        <div className={`
-                                                            w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors
-                                                            ${gitClaudeIntegration
-                                                                ? 'border-primary bg-primary'
-                                                                : 'border-border'
-                                                            }
-                                                        `}>
-                                                            {gitClaudeIntegration && (
-                                                                <div className="w-3 h-3 text-primary-foreground flex items-center justify-center">
-                                                                    ✓
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={gitClaudeIntegration}
-                                                        onChange={(e) => setGitClaudeIntegration(e.target.checked)}
-                                                        className="sr-only"
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
@@ -1395,109 +1274,89 @@ function ToolsSettings({ isOpen, onClose }) {
                         {/* Security Tab */ }
                         { activeTab === 'security' && (
                             <div className="space-y-6 md:space-y-8">
-                                {/* Permission Mode */ }
-                                <div className="space-y-4">
-                                    <div className="flex items-center gap-3">
-                                        <Shield className="w-5 h-5 text-primary"/>
-                                        <h3 className="text-lg font-medium text-foreground">
-                                            权限模式
-                                        </h3>
-                                    </div>
-                                    <div className="space-y-4">
-                                        <div
-                                            className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-                                            <div>
-                                                <div className="text-sm text-muted-foreground mb-4">
-                                                    选择工具权限的处理方式（当启用 --dangerously-skip-permissions
-                                                    时，此设置将被忽略）
-                                                </div>
-                                                { skipPermissions && (
-                                                    <div
-                                                        className="mb-3 p-3 rounded-lg text-sm bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-200 border border-red-300 dark:border-red-700">
-                                                        已启用 <code
-                                                        className="px-1 bg-red-100/70 dark:bg-red-800/40 rounded">--dangerously-skip-permissions</code>，权限模式已被忽略。请在下方关闭以恢复。
-                                                    </div>
-                                                ) }
-                                                <div className="space-y-3">
-                                                    {/* Default Mode */ }
-                                                    <label className="flex items-center space-x-3 cursor-pointer">
-                                                        <input type="radio" name="permissionMode" value="default"
-                                                               checked={ permissionMode === 'default' }
-                                                               onChange={ (e) => e.target.checked && updatePermissionMode('default') }
-                                                               disabled={ skipPermissions }
-                                                               className="h-4 w-4 text-primary focus:ring-primary border-gray-300 dark:border-gray-600"/>
-                                                        <div className="flex items-center space-x-2">
-                                                            <Shield
-                                                                className="w-4 h-4 text-primary"/>
-                                                            <span
-                                                                className="text-sm text-gray-700 dark:text-gray-300">默认模式</span>
-                                                        </div>
-                                                    </label>
-                                                    <p className="text-xs text-gray-500 dark:text-gray-400 ml-7">每次使用工具时都会提示权限确认</p>
-                                                    {/* Accept Edits Mode */ }
-                                                    <label className="flex items-center space-x-3 cursor-pointer">
-                                                        <input type="radio" name="permissionMode" value="acceptEdits"
-                                                               checked={ permissionMode === 'acceptEdits' }
-                                                               onChange={ (e) => e.target.checked && updatePermissionMode('acceptEdits') }
-                                                               disabled={ skipPermissions }
-                                                               className="h-4 w-4 text-primary focus:ring-primary border-gray-300 dark:border-gray-600"/>
-                                                        <div className="flex items-center space-x-2">
-                                                            <Edit3 className="w-4 h-4 text-green-500"/>
-                                                            <span
-                                                                className="text-sm text-gray-700 dark:text-gray-300">接受编辑</span>
-                                                        </div>
-                                                    </label>
-                                                    <p className="text-xs text-gray-500 dark:text-gray-400 ml-7">自动允许安全的编辑与读取类操作，对潜在危险操作仍会提示</p>
-                                                    {/* Bypass Permissions Mode */ }
-                                                    <label className="flex items-center space-x-3 cursor-pointer">
-                                                        <input type="radio" name="permissionMode"
-                                                               value="bypassPermissions"
-                                                               checked={ permissionMode === 'bypassPermissions' }
-                                                               onChange={ (e) => e.target.checked && updatePermissionMode('bypassPermissions') }
-                                                               disabled={ skipPermissions }
-                                                               className="h-4 w-4 text-primary focus:ring-primary border-gray-300 dark:border-gray-600"/>
-                                                        <div className="flex items-center space-x-2">
-                                                            <AlertTriangle className="w-4 h-4 text-orange-500"/>
-                                                            <span
-                                                                className="text-sm text-gray-700 dark:text-gray-300">绕过权限</span>
-                                                        </div>
-                                                    </label>
-                                                    <p className="text-xs text-gray-500 dark:text-gray-400 ml-7">尽量减少权限提示，但与 <code
-                                                        className="px-1 bg-gray-100 dark:bg-gray-800 rounded">--dangerously-skip-permissions</code> 不同，仍会对高风险操作进行保护
-                                                    </p>
-                                                    {/* Plan Mode */ }
-                                                    <label className="flex items-center space-x-3 cursor-pointer">
-                                                        <input type="radio" name="permissionMode" value="plan"
-                                                               checked={ permissionMode === 'plan' }
-                                                               onChange={ (e) => e.target.checked && updatePermissionMode('plan') }
-                                                               disabled={ skipPermissions }
-                                                               className="h-4 w-4 text-primary focus:ring-primary border-gray-300 dark:border-gray-600"/>
-                                                        <div className="flex items-center space-x-2">
-                                                            <FileText className="w-4 h-4 text-primary"/>
-                                                            <span
-                                                                className="text-sm text-gray-700 dark:text-gray-300">计划模式</span>
-                                                        </div>
-                                                    </label>
-                                                    <p className="text-xs text-gray-500 dark:text-gray-400 ml-7">仅生成计划，不直接执行潜在有副作用的操作</p>{/* Plan Mode */ }
-                                                </div>
-                                            </div>
+                                {/* 权限模式卡片 */}
+                                <div className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg p-3">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <div className="p-1.5 bg-primary/10 rounded-md">
+                                            <Shield className="w-3.5 h-3.5 text-primary"/>
                                         </div>
+                                        <h3 className="text-base font-semibold text-foreground">权限模式</h3>
+                                    </div>
+                                    <p className="text-xs text-muted-foreground mb-3">
+                                        选择工具权限的处理方式
+                                    </p>
+                                    { skipPermissions && (
+                                        <div className="mb-3 p-3 rounded-lg text-sm bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-200 border border-red-300 dark:border-red-700">
+                                            已启用 <code className="px-1 bg-red-100/70 dark:bg-red-800/40 rounded">--dangerously-skip-permissions</code>，权限模式已被忽略。请在下方关闭以恢复。
+                                        </div>
+                                    ) }
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                        {[
+                                            { value: 'default', title: '默认模式', icon: Shield, color: 'text-primary', desc: '每次使用工具时都会提示权限确认' },
+                                            { value: 'acceptEdits', title: '接受编辑', icon: Edit3, color: 'text-green-500', desc: '自动允许安全的编辑与读取类操作' },
+                                            { value: 'bypassPermissions', title: '绕过权限', icon: AlertTriangle, color: 'text-orange-500', desc: '尽量减少权限提示，保护高风险操作' },
+                                            { value: 'plan', title: '计划模式', icon: FileText, color: 'text-primary', desc: '仅生成计划，不直接执行潜在有副作用的操作' }
+                                        ].map((mode) => {
+                                            const IconComponent = mode.icon;
+                                            return (
+                                                <label
+                                                    key={mode.value}
+                                                    className={`
+                                                        relative p-2 border rounded-md cursor-pointer transition-all duration-200
+                                                        ${permissionMode === mode.value
+                                                            ? 'border-primary bg-primary/5'
+                                                            : 'border-border hover:border-primary/50'
+                                                        }
+                                                        ${skipPermissions ? 'opacity-50 cursor-not-allowed' : ''}
+                                                    `}
+                                                >
+                                                    <input 
+                                                        type="radio" 
+                                                        name="permissionMode" 
+                                                        value={mode.value}
+                                                        checked={permissionMode === mode.value}
+                                                        onChange={(e) => e.target.checked && updatePermissionMode(mode.value)}
+                                                        disabled={skipPermissions}
+                                                        className="sr-only"
+                                                    />
+                                                    <div className="flex items-start gap-2">
+                                                        <IconComponent className={`w-3.5 h-3.5 ${mode.color} mt-0.5`}/>
+                                                        <div className="flex-1">
+                                                            <h4 className="font-medium text-foreground text-sm">{mode.title}</h4>
+                                                            <p className="text-xs text-muted-foreground mt-0.5 leading-tight">{mode.desc}</p>
+                                                        </div>
+                                                        <div className={`
+                                                            w-3 h-3 rounded-full border flex items-center justify-center transition-colors mt-0.5
+                                                            ${permissionMode === mode.value ? 'border-primary bg-primary' : 'border-border'}
+                                                        `}>
+                                                            {permissionMode === mode.value && (
+                                                                <div className="w-1 h-1 rounded-full bg-primary-foreground"></div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </label>
+                                            );
+                                        })}
                                     </div>
                                 </div>
 
-                                {/* Dangerous Skip Permissions */ }
-                                <div className="space-y-4">
-                                    <div className="flex items-center gap-3">
-                                        <AlertTriangle className="w-5 h-5 text-orange-500"/>
-                                        <h3 className="text-lg font-medium text-foreground">危险选项</h3>
+                                {/* 危险选项卡片 */}
+                                <div className="bg-gray-50 dark:bg-gray-900/50 border border-orange-200 dark:border-orange-800 rounded-lg p-3">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <div className="p-1.5 bg-orange-100 dark:bg-orange-900/30 rounded-md">
+                                            <AlertTriangle className="w-3.5 h-3.5 text-orange-500"/>
+                                        </div>
+                                        <h3 className="text-base font-semibold text-orange-900 dark:text-orange-100">危险选项</h3>
                                     </div>
-                                    <div
-                                        className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-                                        <div className="text-sm text-muted-foreground mb-3">高危设置，请谨慎使用</div>
-                                        <div
-                                            className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-4">
-                                            <label className="flex items-center gap-3">
-                                                <input type="checkbox" checked={ skipPermissions } onChange={ (e) => {
+                                    <p className="text-xs text-orange-700 dark:text-orange-300 mb-3">
+                                        高危设置，请谨慎使用
+                                    </p>
+                                    <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-700 rounded-md p-2">
+                                        <label className="flex items-start gap-2 cursor-pointer">
+                                            <input 
+                                                type="checkbox" 
+                                                checked={skipPermissions} 
+                                                onChange={(e) => {
                                                     const checked = e.target.checked;
                                                     if (checked) {
                                                         const first = confirm('危险操作：即将启用 --dangerously-skip-permissions。启用后将跳过所有权限确认，工具可能在无提示的情况下修改/删除文件、执行命令。确定继续？');
@@ -1514,19 +1373,18 @@ function ToolsSettings({ isOpen, onClose }) {
                                                     const newValue = !!checked;
                                                     setSkipPermissions(newValue);
                                                     setToolsChanged(true);
-                                                } }
-                                                       className="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded focus:ring-primary"/>
-                                                <div>
-                                                    <div
-                                                        className="font-medium text-orange-900 dark:text-orange-100">跳过所有权限提示（极度危险）
-                                                    </div>
-                                                    <div
-                                                        className="text-sm text-orange-700 dark:text-orange-300">等同于 <code
-                                                        className="px-1 bg-orange-100 dark:bg-orange-800/40 rounded">--dangerously-skip-permissions</code> 标志。启用后，权限模式将被忽略。
-                                                    </div>
+                                                }}
+                                                className="w-3.5 h-3.5 text-orange-600 bg-orange-100 border-orange-300 rounded focus:ring-orange-500 mt-0.5" 
+                                            />
+                                            <div className="flex-1">
+                                                <div className="font-medium text-orange-900 dark:text-orange-100 text-sm">
+                                                    跳过所有权限提示（极度危险）
                                                 </div>
-                                            </label>
-                                        </div>
+                                                <div className="text-xs text-orange-700 dark:text-orange-300 mt-0.5 leading-tight">
+                                                    等同于 <code className="px-1 bg-orange-100 dark:bg-orange-800/40 rounded">--dangerously-skip-permissions</code> 标志。启用后，权限模式将被忽略。
+                                                </div>
+                                            </div>
+                                        </label>
                                     </div>
                                 </div>
                             </div>
