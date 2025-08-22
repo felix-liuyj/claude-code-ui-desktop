@@ -13,24 +13,28 @@ export const useVersionCheck = (owner, repo) => {
                     // In Electron, get version from main process
                     const version = await window.electronAPI.getVersion();
                     setCurrentVersion(version);
+                    return version;
                 } else {
                     // Fallback for web mode - try to get from server
                     try {
                         const response = await fetch('/api/version');
                         const data = await response.json();
                         setCurrentVersion(data.version);
+                        return data.version;
                     } catch {
                         // If no server endpoint, use unknown version
                         setCurrentVersion('unknown');
+                        return 'unknown';
                     }
                 }
             } catch (error) {
                 console.error('Failed to get current version:', error);
                 setCurrentVersion('unknown');
+                return 'unknown';
             }
         };
 
-        const checkVersion = async () => {
+        const checkVersion = async (currentVer) => {
             try {
                 const response = await fetch(`https://api.github.com/repos/${ owner }/${ repo }/releases/latest`);
                 
@@ -53,7 +57,12 @@ export const useVersionCheck = (owner, repo) => {
                 if (data.tag_name) {
                     const latest = data.tag_name.replace(/^v/, '');
                     setLatestVersion(latest);
-                    setUpdateAvailable(currentVersion && currentVersion !== 'unknown' && currentVersion !== latest);
+                    
+                    // Use the passed current version for comparison
+                    const hasUpdate = currentVer && currentVer !== 'unknown' && currentVer !== latest;
+                    setUpdateAvailable(hasUpdate);
+                    
+                    console.log('Version check:', { current: currentVer, latest, hasUpdate });
                 } else {
                     // No releases found, don't show update notification
                     setUpdateAvailable(false);
@@ -67,13 +76,16 @@ export const useVersionCheck = (owner, repo) => {
             }
         };
 
-        getCurrentVersion().then(() => {
-            checkVersion();
-        });
+        const initVersionCheck = async () => {
+            const currentVer = await getCurrentVersion();
+            await checkVersion(currentVer);
+        };
 
-        const interval = setInterval(checkVersion, 5 * 60 * 1000); // Check every 5 minutes
+        initVersionCheck();
+
+        const interval = setInterval(() => checkVersion(currentVersion), 5 * 60 * 1000); // Check every 5 minutes
         return () => clearInterval(interval);
-    }, [owner, repo, currentVersion]);
+    }, [owner, repo]); // Remove currentVersion from dependencies
 
     return { updateAvailable, latestVersion, currentVersion };
 }; 

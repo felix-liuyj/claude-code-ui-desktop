@@ -24,6 +24,24 @@ contextBridge.exposeInMainWorld('electronAPI', {
     isDevToolsOpened: () => ipcRenderer.invoke('is-dev-tools-opened'),
     isDevelopmentMode: () => ipcRenderer.invoke('is-development-mode'),
 
+    // Auto-updater operations
+    checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),
+    installUpdate: () => ipcRenderer.invoke('install-update'),
+    
+    // Auto-updater event listeners
+    onUpdateAvailable: (callback) => {
+        ipcRenderer.on('update-available', callback);
+        return () => ipcRenderer.removeListener('update-available', callback);
+    },
+    onUpdateDownloaded: (callback) => {
+        ipcRenderer.on('update-downloaded', callback);
+        return () => ipcRenderer.removeListener('update-downloaded', callback);
+    },
+    onDownloadProgress: (callback) => {
+        ipcRenderer.on('download-progress', callback);
+        return () => ipcRenderer.removeListener('download-progress', callback);
+    },
+
     // Menu events
     onMenuAction: (callback) => {
         const events = [

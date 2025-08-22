@@ -44,6 +44,10 @@ export const api = {
         apiFetch(`/api/projects/${ projectName }`, {
             method: 'DELETE',
         }),
+    deleteProjectCompletely: (projectName) =>
+        apiFetch(`/api/projects/${ projectName }/complete`, {
+            method: 'DELETE',
+        }),
     createProject: (path) =>
         apiFetch('/api/projects/create', {
             method: 'POST',

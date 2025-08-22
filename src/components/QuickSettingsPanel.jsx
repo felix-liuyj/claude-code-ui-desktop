@@ -134,7 +134,7 @@ const QuickSettingsPanel = memo(({
 
                     {/* Settings Content */ }
                     <div
-                        className={ `flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-6 bg-background ${ isMobile ? 'pb-20' : '' }` }>
+                        className={ `flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-6 bg-background scrollbar-auto-hide ${ isMobile ? 'pb-20' : '' }` }>
                         {/* Appearance Settings */ }
                         <div className="space-y-2">
                             <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">外观设置</h4>

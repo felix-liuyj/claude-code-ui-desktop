@@ -1,4 +1,5 @@
 const { app, BrowserWindow, dialog, ipcMain, Menu, shell } = require('electron');
+const { autoUpdater } = require('electron-updater');
 const { join, dirname } = require('path');
 const fs = require('fs');
 const { findAvailablePort } = require('../utils/findAvailablePort.cjs');
@@ -13,6 +14,52 @@ let mainWindow;
 let serverProcess;
 
 const isDevelopment = process.env.NODE_ENV === 'development';
+
+// Configure auto-updater
+if (!isDevelopment) {
+    autoUpdater.checkForUpdatesAndNotify();
+    
+    // Auto-updater events
+    autoUpdater.on('checking-for-update', () => {
+        console.log('Checking for update...');
+    });
+    
+    autoUpdater.on('update-available', (info) => {
+        console.log('Update available.', info);
+        // Send notification to renderer process
+        if (mainWindow) {
+            mainWindow.webContents.send('update-available', info);
+        }
+    });
+    
+    autoUpdater.on('update-not-available', (info) => {
+        console.log('Update not available.', info);
+    });
+    
+    autoUpdater.on('error', (err) => {
+        console.log('Error in auto-updater. ' + err);
+    });
+    
+    autoUpdater.on('download-progress', (progressObj) => {
+        let log_message = "Download speed: " + progressObj.bytesPerSecond;
+        log_message = log_message + ' - Downloaded ' + progressObj.percent + '%';
+        log_message = log_message + ' (' + progressObj.transferred + "/" + progressObj.total + ')';
+        console.log(log_message);
+        
+        // Send progress to renderer process
+        if (mainWindow) {
+            mainWindow.webContents.send('download-progress', progressObj);
+        }
+    });
+    
+    autoUpdater.on('update-downloaded', (info) => {
+        console.log('Update downloaded', info);
+        // Send notification to renderer process
+        if (mainWindow) {
+            mainWindow.webContents.send('update-downloaded', info);
+        }
+    });
+}
 
 function createWindow() {
     // Configure session security headers
@@ -53,6 +100,12 @@ function createWindow() {
         },
         icon: join(__dirname, process.env.DESKTOP_ICON_PATH || '../public/icon.png'),
         titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
+        titleBarOverlay: process.platform === 'win32' ? {
+            color: '#ffffff',
+            symbolColor: '#000000',
+            height: 28
+        } : false,
+        trafficLightPosition: process.platform === 'darwin' ? { x: 10, y: 10 } : undefined,
         show: false // Don't show until ready
     });
 
@@ -457,6 +510,27 @@ app.on('before-quit', () => {
 // IPC handlers
 ipcMain.handle('app-version', () => {
     return app.getVersion();
+});
+
+// Auto-updater handlers
+ipcMain.handle('check-for-updates', () => {
+    if (isDevelopment) {
+        console.log('Auto-updater disabled in development mode');
+        return { available: false, reason: 'development' };
+    }
+    
+    autoUpdater.checkForUpdatesAndNotify();
+    return { success: true };
+});
+
+ipcMain.handle('install-update', () => {
+    if (isDevelopment) {
+        console.log('Auto-updater disabled in development mode');
+        return { success: false, reason: 'development' };
+    }
+    
+    autoUpdater.quitAndInstall();
+    return { success: true };
 });
 
 ipcMain.handle('show-save-dialog', async (event, options) => {

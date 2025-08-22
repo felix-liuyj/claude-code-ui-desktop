@@ -803,6 +803,33 @@ async function deleteProject(projectName) {
     }
 }
 
+// Delete a project (including non-empty ones) completely from Claude space
+async function deleteProjectCompletely(projectName) {
+    const claudeProjectsDir = process.env.CLAUDE_PROJECTS_DIR || '.claude/projects';
+    const projectDir = path.join(process.env.HOME, claudeProjectsDir, projectName);
+
+    try {
+        console.log(`🗑️ Completely deleting project: ${projectName}`);
+        
+        // Remove the project directory entirely (including all sessions)
+        await fs.rm(projectDir, { recursive: true, force: true });
+
+        // Remove from project config
+        const config = await loadProjectConfig();
+        delete config[projectName];
+        await saveProjectConfig(config);
+
+        // Clear from cache
+        clearProjectDirectoryCache();
+
+        console.log(`✅ Project ${projectName} completely deleted from Claude space`);
+        return true;
+    } catch (error) {
+        console.error(`❌ Error completely deleting project ${ projectName }:`, error);
+        throw error;
+    }
+}
+
 // Add a project manually to the config and initialize Claude project
 async function addProjectManually(projectPath, displayName = null) {
     const absolutePath = path.resolve(projectPath);
@@ -930,6 +957,7 @@ export {
     deleteSession,
     isProjectEmpty,
     deleteProject,
+    deleteProjectCompletely,
     addProjectManually,
     loadProjectConfig,
     saveProjectConfig,

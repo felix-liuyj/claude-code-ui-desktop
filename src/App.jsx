@@ -106,6 +106,81 @@ function AppContent() {
         return () => window.removeEventListener('resize', checkMobile);
     }, []);
 
+    // Set up global functions for GitPanel
+    useEffect(() => {
+        window.claudeCommitChanges = async (project, selectedFiles) => {
+            if (!project || !selectedFiles || selectedFiles.length === 0) {
+                console.warn('没有选择的文件或项目');
+                return;
+            }
+
+            const message = `提交当前变动\n\n项目: ${project.displayName || project.name}\n文件: ${selectedFiles.length} 个\n\n请分析这些变动并创建合适的提交消息，然后提交这些更改。`;
+            
+            // Don't switch to chat tab - keep user in current view
+            // setActiveTab('chat');
+            // setSelectedProject(project);
+            
+            // Get tools settings from localStorage
+            const getToolsSettings = () => {
+                try {
+                    const savedSettings = localStorage.getItem('claude-tools-settings');
+                    if (savedSettings) {
+                        return JSON.parse(savedSettings);
+                    }
+                } catch (error) {
+                    console.error('Error loading tools settings:', error);
+                }
+                return {
+                    allowedTools: [],
+                    disallowedTools: [],
+                    skipPermissions: false
+                };
+            };
+
+            const toolsSettings = getToolsSettings();
+            
+            // Create a temporary session ID for smart commit
+            const smartCommitSessionId = `smart-commit-${Date.now()}`;
+            
+            // Send properly formatted message to Claude Code for background processing
+            if (sendMessage) {
+                sendMessage({
+                    type: 'claude-command',
+                    command: message,
+                    options: {
+                        projectPath: project.path,
+                        cwd: project.fullPath,
+                        sessionId: smartCommitSessionId, // Use temporary session ID
+                        resume: false, // Always create new temporary session
+                        toolsSettings: toolsSettings,
+                        permissionMode: 'default', // Use default permission mode
+                        images: [], // No images for smart commit
+                        background: true, // Flag to indicate this is a background operation
+                        smartCommit: true // Flag to identify as smart commit operation
+                    }
+                });
+            }
+            
+            return smartCommitSessionId; // Return session ID for tracking
+        };
+
+        window.abortClaudeSession = () => {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                // Send abort request to server
+                ws.send(JSON.stringify({
+                    type: 'abort-session',
+                    sessionId: selectedSession?.id || 'current' // Abort current session
+                }));
+                console.log('🛑 Sent abort request for session:', selectedSession?.id || 'current');
+            }
+        };
+
+        return () => {
+            delete window.claudeCommitChanges;
+            delete window.abortClaudeSession;
+        };
+    }, [sendMessage, setActiveTab, setSelectedProject, ws, selectedSession]);
+
     useEffect(() => {
         // Fetch projects on component mount
         debugLog('🔍 [AppContent] useEffect: Fetching projects...');
@@ -614,15 +689,32 @@ function AppContent() {
 
                     {/* Upgrade Instructions */ }
                     <div className="space-y-3">
-                        <h3 className="text-sm font-medium text-gray-900 dark:text-white">如何升级：</h3>
-                        <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-3 border">
-                            <code className="text-sm text-gray-800 dark:text-gray-200 font-mono">
-                                git checkout main && git pull && npm install
-                            </code>
-                        </div>
-                        <p className="text-xs text-gray-600 dark:text-gray-400">
-                            在您的 Claude Code UI 目录中运行此命令以更新到最新版本。
-                        </p>
+                        <h3 className="text-sm font-medium text-gray-900 dark:text-white">升级方式：</h3>
+                        {window.electronAPI ? (
+                            // Desktop app - auto update
+                            <div className="space-y-2">
+                                <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 border border-blue-200 dark:border-blue-800">
+                                    <p className="text-sm text-blue-800 dark:text-blue-200">
+                                        🚀 桌面应用支持自动更新
+                                    </p>
+                                </div>
+                                <p className="text-xs text-gray-600 dark:text-gray-400">
+                                    点击"立即更新"按钮将自动下载并安装最新版本，完成后应用将重启。
+                                </p>
+                            </div>
+                        ) : (
+                            // Web mode - git commands
+                            <div className="space-y-2">
+                                <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-3 border">
+                                    <code className="text-sm text-gray-800 dark:text-gray-200 font-mono">
+                                        git checkout main && git pull && npm install
+                                    </code>
+                                </div>
+                                <p className="text-xs text-gray-600 dark:text-gray-400">
+                                    在您的 Claude Code UI 目录中运行此命令以更新到最新版本。
+                                </p>
+                            </div>
+                        )}
                     </div>
 
                     {/* Actions */ }
@@ -633,16 +725,35 @@ function AppContent() {
                         >
                             稍后
                         </button>
-                        <button
-                            onClick={ () => {
-                                // Copy command to clipboard
-                                navigator.clipboard.writeText('git checkout main && git pull && npm install');
-                                setShowVersionModal(false);
-                            } }
-                            className="flex-1 px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary/90 rounded-md transition-colors"
-                        >
-                            复制命令
-                        </button>
+                        {window.electronAPI ? (
+                            <button
+                                onClick={ async () => {
+                                    try {
+                                        // Trigger auto update
+                                        await window.electronAPI.checkForUpdates();
+                                        setShowVersionModal(false);
+                                    } catch (error) {
+                                        console.error('Failed to start update:', error);
+                                        // Fallback to manual download
+                                        window.open(`https://github.com/felix-liuyj/claude-code-ui-desktop/releases/latest`, '_blank');
+                                    }
+                                } }
+                                className="flex-1 px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary/90 rounded-md transition-colors"
+                            >
+                                立即更新
+                            </button>
+                        ) : (
+                            <button
+                                onClick={ () => {
+                                    // Copy command to clipboard
+                                    navigator.clipboard.writeText('git checkout main && git pull && npm install');
+                                    setShowVersionModal(false);
+                                } }
+                                className="flex-1 px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary/90 rounded-md transition-colors"
+                            >
+                                复制命令
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>
@@ -664,6 +775,13 @@ function AppContent() {
 
     return (
         <div className={ containerClasses }>
+            {/* macOS 拖拽区域 */}
+            { needsMacOSMenuBarOffset && (
+                <div 
+                    className="fixed top-0 left-0 right-0 h-7 bg-transparent z-50"
+                    style={{ WebkitAppRegion: 'drag' }}
+                />
+            )}
             {/* 主内容区域 */}
             <div className="flex flex-1 min-h-0">
                 {/* Fixed Desktop Sidebar */ }

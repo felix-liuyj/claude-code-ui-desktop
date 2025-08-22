@@ -1,16 +1,5 @@
 ## [1.1.1](https://github.com/felix-liuyj/claude-code-ui-desktop/compare/v1.1.0...v1.1.1) (2025-08-22)
 
-### Features
-
-* **release:** 优化发布流程和变更日志管理 ([d889553](https://github.com/felix-liuyj/claude-code-ui-desktop/commit/d88955322a33871126f4e76dde2f52199d4c75b2))
-* **ui:** 优化设置界面布局和修复多项功能问题 ([788ccba](https://github.com/felix-liuyj/claude-code-ui-desktop/commit/788ccba07e669bd5078b73ccc1a1af7c71381b4e))
-
-### Bug Fixes
-
-* **components:** README, routes and 2 more components ([bd72885](https://github.com/felix-liuyj/claude-code-ui-desktop/commit/bd7288525155d9f4361246c6a347b33722e1a1d7))
-* include utils directory in electron-builder files configuration ([9cfa6c3](https://github.com/felix-liuyj/claude-code-ui-desktop/commit/9cfa6c389758f09b9b009e692c023a1546665133))
-## [1.1.1](https://github.com/felix-liuyj/claude-code-ui-desktop/compare/v1.1.0...v1.1.1) (2025-08-22)
-
 ### ✨ 新增功能
 
 #### 界面优化

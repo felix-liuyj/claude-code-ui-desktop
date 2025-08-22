@@ -203,7 +203,7 @@ const PerformanceDashboard = ({ isVisible = false, onClose }) => {
     return (
         <div 
             ref={dashboardRef}
-            className={`performance-dashboard fixed w-96 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50 max-h-[90vh] overflow-y-auto ${
+            className={`performance-dashboard fixed w-96 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50 max-h-[90vh] overflow-y-auto scrollbar-thin ${
                 isDragging ? 'shadow-2xl' : ''
             }`}
             style={{

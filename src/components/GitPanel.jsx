@@ -14,14 +14,17 @@ import {
     RefreshCw,
     Sparkles,
     Trash2,
-    Upload
+    Upload,
+    X
 } from 'lucide-react';
 import { MicButton } from './MicButton.jsx';
 import { apiFetch } from '../utils/api';
 import { useElectron } from '../utils/electron';
+import { useWebSocket } from '../utils/websocket';
 
 function GitPanel({ selectedProject, isMobile }) {
     const electron = useElectron();
+    const { messages } = useWebSocket(); // Get WebSocket messages for tracking smart commit progress
     const [gitStatus, setGitStatus] = useState(null);
     const [gitDiff, setGitDiff] = useState({});
     const [isLoading, setIsLoading] = useState(false);
@@ -49,6 +52,9 @@ function GitPanel({ selectedProject, isMobile }) {
     const [isPublishing, setIsPublishing] = useState(false);
     const [isCommitAreaCollapsed, setIsCommitAreaCollapsed] = useState(isMobile); // Collapsed by default on mobile
     const [confirmAction, setConfirmAction] = useState(null); // { type: 'discard|commit|pull|push', file?: string, message?: string }
+    const [isSmartCommitting, setIsSmartCommitting] = useState(false); // Track smart commit progress
+    const [smartCommitSessionId, setSmartCommitSessionId] = useState(null); // Track smart commit session
+    const [smartCommitProgress, setSmartCommitProgress] = useState('正在分析代码变动...'); // Progress message
     const textareaRef = useRef(null);
     const dropdownRef = useRef(null);
 
@@ -74,6 +80,76 @@ function GitPanel({ selectedProject, isMobile }) {
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
+
+    // WebSocket message listener for tracking smart commit progress
+    useEffect(() => {
+        if (messages.length > 0 && smartCommitSessionId) {
+            const latestMessage = messages[messages.length - 1];
+            
+            // Only process messages related to our smart commit session
+            if (latestMessage.data?.sessionId === smartCommitSessionId || 
+                latestMessage.sessionId === smartCommitSessionId) {
+                
+                switch (latestMessage.type) {
+                    case 'claude-response':
+                        const messageData = latestMessage.data?.message || latestMessage.data;
+                        
+                        // Update progress based on message content/type
+                        if (messageData?.role === 'assistant') {
+                            if (messageData.content) {
+                                // Extract relevant progress information from Claude's response
+                                const content = messageData.content;
+                                if (content.includes('分析') || content.includes('analyzing')) {
+                                    setSmartCommitProgress('正在分析代码变动...');
+                                } else if (content.includes('提交') || content.includes('commit')) {
+                                    setSmartCommitProgress('正在生成提交消息...');
+                                } else if (content.includes('完成') || content.includes('success')) {
+                                    setSmartCommitProgress('智能提交完成！');
+                                    // Auto-close after success
+                                    setTimeout(() => {
+                                        setIsSmartCommitting(false);
+                                        setSmartCommitSessionId(null);
+                                        fetchGitStatus(); // Refresh git status
+                                    }, 2000);
+                                }
+                            }
+                        }
+                        break;
+                        
+                    case 'claude-tool-call':
+                        // Track tool usage during smart commit
+                        const toolData = latestMessage.data;
+                        if (toolData?.tool === 'bash' || toolData?.name === 'Bash') {
+                            setSmartCommitProgress('正在执行Git操作...');
+                        } else if (toolData?.tool === 'edit' || toolData?.name === 'Edit') {
+                            setSmartCommitProgress('正在更新文件...');
+                        } else {
+                            setSmartCommitProgress('正在处理操作...');
+                        }
+                        break;
+                        
+                    case 'claude-complete':
+                        // Smart commit session completed
+                        setSmartCommitProgress('智能提交完成！');
+                        setTimeout(() => {
+                            setIsSmartCommitting(false);
+                            setSmartCommitSessionId(null);
+                            fetchGitStatus(); // Refresh git status
+                        }, 2000);
+                        break;
+                        
+                    case 'claude-error':
+                        // Smart commit failed
+                        setSmartCommitProgress('智能提交失败');
+                        setTimeout(() => {
+                            setIsSmartCommitting(false);
+                            setSmartCommitSessionId(null);
+                        }, 3000);
+                        break;
+                }
+            }
+        }
+    }, [messages, smartCommitSessionId]);
 
     const fetchGitStatus = async () => {
         if (!selectedProject) return;
@@ -1057,17 +1133,49 @@ function GitPanel({ selectedProject, isMobile }) {
                       <span className="text-xs text-gray-500">
                         已选择 { selectedFiles.size } 个文件
                       </span>
-                                                <button
-                                                    onClick={ () => setConfirmAction({
-                                                        type: 'commit',
-                                                        message: `提交 ${ selectedFiles.size } 个文件，消息为："${ commitMessage.trim() }"？`
-                                                    }) }
-                                                    disabled={ !commitMessage.trim() || selectedFiles.size === 0 || isCommitting }
-                                                    className="px-3 py-1 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1"
-                                                >
-                                                    <Check className="w-3 h-3"/>
-                                                    <span>{ isCommitting ? '正在提交...' : '提交' }</span>
-                                                </button>
+                                                <div className="flex items-center gap-2">
+                                                    {/* Smart Commit Button */}
+                                                    <button
+                                                        onClick={ async () => {
+                                                            if (window.claudeCommitChanges) {
+                                                                setIsSmartCommitting(true);
+                                                                setSmartCommitProgress('正在启动智能提交...');
+                                                                try {
+                                                                    const sessionId = await window.claudeCommitChanges(selectedProject, Array.from(selectedFiles));
+                                                                    setSmartCommitSessionId(sessionId);
+                                                                    setSmartCommitProgress('正在分析代码变动...');
+                                                                } catch (error) {
+                                                                    console.error('Smart commit failed:', error);
+                                                                    setSmartCommitProgress('智能提交失败');
+                                                                    setTimeout(() => setIsSmartCommitting(false), 2000);
+                                                                }
+                                                            }
+                                                        } }
+                                                        disabled={ selectedFiles.size === 0 || isSmartCommitting }
+                                                        className="px-3 py-1 text-sm bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white rounded-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1 transition-all duration-200"
+                                                        title="智能提交 - 让 Claude Code 分析变动并提交"
+                                                    >
+                                                        { isSmartCommitting ? (
+                                                            <RefreshCw className="w-3 h-3 animate-spin"/>
+                                                        ) : (
+                                                            <Sparkles className="w-3 h-3"/>
+                                                        ) }
+                                                        <span>{ isSmartCommitting ? '智能提交中...' : '智能提交' }</span>
+                                                    </button>
+                                                    
+                                                    {/* Regular Commit Button */}
+                                                    <button
+                                                        onClick={ () => setConfirmAction({
+                                                            type: 'commit',
+                                                            message: `提交 ${ selectedFiles.size } 个文件，消息为："${ commitMessage.trim() }"？`
+                                                        }) }
+                                                        disabled={ !commitMessage.trim() || selectedFiles.size === 0 || isCommitting }
+                                                        className="px-3 py-1 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1"
+                                                    >
+                                                        <Check className="w-3 h-3"/>
+                                                        <span>{ isCommitting ? '正在提交...' : '提交' }</span>
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                     </>
@@ -1266,6 +1374,66 @@ function GitPanel({ selectedProject, isMobile }) {
                                             <span>创建分支</span>
                                         </>
                                     ) }
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            ) }
+
+            {/* Smart Commit Progress Modal */ }
+            { isSmartCommitting && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="fixed inset-0 bg-black bg-opacity-50"/>
+                    <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full">
+                        {/* Close button */}
+                        <button
+                            onClick={() => {
+                                if (window.abortClaudeSession) {
+                                    window.abortClaudeSession();
+                                }
+                                setIsSmartCommitting(false);
+                            }}
+                            className="absolute top-3 right-3 p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                            title="中断智能提交"
+                        >
+                            <X className="w-4 h-4"/>
+                        </button>
+
+                        <div className="p-6">
+                            <div className="flex items-center mb-4">
+                                <div className="p-2 rounded-full bg-gradient-to-r from-purple-100 to-blue-100 dark:from-purple-900/30 dark:to-blue-900/30 mr-3">
+                                    <Sparkles className="w-5 h-5 text-transparent bg-gradient-to-r from-purple-500 to-blue-500 bg-clip-text"/>
+                                </div>
+                                <h3 className="text-lg font-semibold">智能提交中</h3>
+                            </div>
+
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+                                {smartCommitProgress}
+                            </p>
+
+                            <div className="flex items-center justify-center mb-4">
+                                <div className="relative">
+                                    <div className="w-8 h-8 rounded-full border-4 border-gray-200 dark:border-gray-700"></div>
+                                    <div className="absolute inset-0 w-8 h-8 rounded-full border-4 border-t-transparent border-r-transparent border-purple-500 animate-spin"></div>
+                                </div>
+                            </div>
+
+                            <div className="text-xs text-center text-gray-500 dark:text-gray-400 mb-4">
+                                请稍候，Claude Code 正在处理您的请求
+                            </div>
+
+                            <div className="text-center">
+                                <button
+                                    onClick={() => {
+                                        if (window.abortClaudeSession) {
+                                            window.abortClaudeSession();
+                                        }
+                                        setIsSmartCommitting(false);
+                                    }}
+                                    className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                                >
+                                    中断任务
                                 </button>
                             </div>
                         </div>

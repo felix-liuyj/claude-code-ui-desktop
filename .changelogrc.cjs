@@ -12,7 +12,11 @@ const config = {
     { type: 'test', section: '✅ 测试相关' },
     { type: 'build', section: '👷 构建系统' },
     { type: 'ci', section: '🔄 持续集成' }
-  ]
+  ],
+  commitIgnore: (commit) => {
+    // 排除发布相关的 chore 提交
+    return commit.type === 'chore' && commit.subject && commit.subject.includes('release v');
+  }
 };
 
 module.exports = config;

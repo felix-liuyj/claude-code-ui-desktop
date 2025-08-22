@@ -16,6 +16,7 @@ import {
     clearProjectDirectoryCache,
     decodeProjectPath,
     deleteProject,
+    deleteProjectCompletely,
     deleteSession,
     extractProjectDirectory,
     getProjects,
@@ -221,6 +222,17 @@ app.delete('/api/projects/:projectName', async (req, res) => {
     try {
         const { projectName } = req.params;
         await deleteProject(projectName);
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Delete project completely (including sessions) from Claude space
+app.delete('/api/projects/:projectName/complete', async (req, res) => {
+    try {
+        const { projectName } = req.params;
+        await deleteProjectCompletely(projectName);
         res.json({ success: true });
     } catch (error) {
         res.status(500).json({ error: error.message });

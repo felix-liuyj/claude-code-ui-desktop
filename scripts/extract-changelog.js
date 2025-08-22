@@ -65,8 +65,8 @@ function extractVersionChangelog(content, version) {
     endIndex = lines.length;
   }
   
-  // 提取版本内容，去除版本标题行
-  const versionLines = lines.slice(startIndex + 1, endIndex);
+  // 提取版本内容，包含版本标题行
+  const versionLines = lines.slice(startIndex, endIndex);
   
   // 移除开头和结尾的空行
   while (versionLines.length > 0 && versionLines[0].trim() === '') {

@@ -249,7 +249,7 @@ const MemoryEditor = ({
                             <RefreshCw className="w-8 h-8 animate-spin text-gray-400" />
                         </div>
                     ) : previewMode ? (
-                        <div className="h-full overflow-auto p-6">
+                        <div className="h-full overflow-auto scrollbar-auto-hide p-6">
                             {content ? (
                                 <div className="prose prose-sm max-w-none dark:prose-invert
                                     prose-headings:text-gray-900 dark:prose-headings:text-gray-100
@@ -275,7 +275,7 @@ const MemoryEditor = ({
                                             code: ({ node, inline, className, children, ...props }) => {
                                                 const match = /language-(\w+)/.exec(className || '');
                                                 return !inline && match ? (
-                                                    <pre className="overflow-x-auto">
+                                                    <pre className="overflow-x-auto scrollbar-thin">
                                                         <code className={className} {...props}>
                                                             {children}
                                                         </code>

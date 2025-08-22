@@ -354,7 +354,7 @@ export function MonthlyView() {
                 <div className="p-4 border-b bg-gray-50 dark:bg-gray-700">
                     <h3 className="font-semibold">详细月度数据</h3>
                 </div>
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto scrollbar-thin">
                     <table className="w-full text-sm">
                         <thead className="bg-gray-50 dark:bg-gray-700">
                             <tr>

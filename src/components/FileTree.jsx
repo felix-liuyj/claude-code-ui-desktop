@@ -354,7 +354,10 @@ function FileTree({ selectedProject }) {
                 </div>
             ) }
 
-            <ScrollArea className="flex-1 p-4">
+            <ScrollArea 
+                className="flex-1 p-4"
+                scrollbarStyle="thin"
+            >
                 { files.length === 0 ? (
                     <div className="text-center py-8">
                         <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center mx-auto mb-3">
