@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8"/>
+    <title>3D 硬币打赏按钮</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=0, maximum-scale=1.0"/>
+    <style>
+        *, *::before, *::after {
+            box-sizing: border-box;
+            transform-style: preserve-3d;
+        }
+
+        body {
+            background: #fff;
+            display: grid;
+            place-items: center;
+            min-height: 100vh;
+            font-family: system-ui, sans-serif;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            body { background: #000; }
+        }
+
+        main {
+            scale: 1.2;
+            transform: translate3d(0, 0, 100vmax);
+        }
+
+        button {
+            touch-action: none;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            --bg: #1871f4;
+            --ru: 15;
+            background: var(--bg);
+            border: 1px solid color-mix(in oklch, var(--bg), #000 12%);
+            border-radius: 6px;
+            color: #fff;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.875rem;
+            padding: 0;
+            transform-origin: 75% 50%;
+            transition: transform 0.26s, box-shadow 0.26s;
+            box-shadow: 0 0.6px 0.7px #0003, 0 2.3px 2.6px -0.8px #0003, 0 5.9px 6.6px -1.7px #0003, 0 14.5px 16.3px -2.5px #0003;
+        }
+
+        .content {
+            align-items: center;
+            clip-path: inset(-100vmax 0 1px 0);
+            display: flex;
+            gap: 0.75rem;
+            height: 100%;
+            padding: 0.5rem 0.75rem;
+        }
+
+        button[data-tipping="false"]:active {
+            transform: rotate(-15deg);
+            box-shadow: -0.5px 0.7px 1px #0003, -1.8px 2.3px 3.3px -0.8px #0003, -4.6px 6px 8.5px -1.7px #0003, -11.4px 14.6px 20.8px -2.5px #0003;
+        }
+
+        button:is(:focus-visible, :hover) {
+            --bg: color-mix(in oklch, #1871f4, #000 5%);
+        }
+
+        button:is(:focus-visible, :hover) .purse {
+            rotate: y 360deg;
+            transition: rotate 0.26s 0.12s ease-out;
+        }
+
+        .purse, .scene, .hole {
+            position: absolute;
+            transform-style: preserve-3d;
+        }
+
+        .purse {
+            inset: 0;
+            height: 100%;
+            width: 100%;
+        }
+
+        .scene {
+            --thickness: 4;
+            aspect-ratio: 1;
+            display: inline-block;
+            perspective: 100vh;
+            position: relative;
+            width: 1.2lh;
+        }
+
+        .hole {
+            inset: 0;
+            scale: 0;
+            transform: translate3d(0, 0, -8px);
+            transform-origin: 50% 70%;
+            z-index: 10;
+        }
+
+        .hole::before {
+            background: black;
+            border-radius: 50%;
+            box-shadow: 0 2px #333 inset;
+            content: "";
+            height: 40%;
+            left: 50%;
+            position: absolute;
+            top: 70%;
+            translate: -50% -50%;
+            width: 125%;
+        }
+
+        .hole::after {
+            background: var(--bg);
+            content: "";
+            height: 200%;
+            left: 50%;
+            mask: radial-gradient(125% 32% at 50% 3%, transparent 50%, #fff 50%);
+            position: absolute;
+            top: 0;
+            transform: translate3d(0, 0, 20px);
+            translate: -50% 25%;
+            width: 121%;
+        }
+
+        .coin {
+            --depth: 2;
+            --detail: hsl(43 97% 46%);
+            --face: #ffdc02;
+            --side: #f4ae00;
+            --rx: 0;
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 50%;
+            position: absolute;
+            translate: -50% -50%;
+            top: 50%;
+            left: 50%;
+            transform-style: preserve-3d;
+        }
+
+        .coin__core {
+            --base: 0;
+            height: 100%;
+            width: calc(var(--depth) * 2px);
+            background: var(--side);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            translate: -50% -50%;
+            transform: rotateY(90deg) rotateX(calc((90 - var(--rx)) * -1deg));
+            transform-style: preserve-3d;
+        }
+
+        .coin__core--rotated {
+            --base: 90;
+            transform: rotateY(90deg) rotateX(calc((90 - var(--rx)) * 1deg));
+        }
+
+        .coin__core::after, 
+        .coin__core::before {
+            content: "";
+            height: 100%;
+            width: calc(var(--depth) * 2px);
+            background: var(--side);
+            position: absolute;
+            inset: 0;
+            transform-style: preserve-3d;
+        }
+
+        .coin__core::after {
+            transform: rotateX(calc((var(--base) - var(--rx)) * 1deg));
+        }
+
+        .coin__core::before {
+            transform: rotateX(calc((var(--base) - var(--rx)) * -1deg));
+        }
+
+        .coin__face {
+            height: 100%;
+            width: 100%;
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            transform-style: preserve-3d;
+            background: var(--face);
+            display: grid;
+            place-items: center;
+            color: var(--detail);
+        }
+
+        .coin__face svg {
+            width: 65%;
+            scale: -1 1;
+            translate: -5% 0;
+        }
+
+        .coin__face::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background: var(--side);
+            backface-visibility: hidden;
+        }
+
+        .coin__face--front {
+            transform: translate3d(0, 0, calc((var(--depth) * 1px) + 0.5px)) rotateY(180deg);
+        }
+
+        .coin__face--rear {
+            transform: translate3d(0, 0, calc((var(--depth) * -1px) - 0.5px));
+        }
+    </style>
+</head>
+<body>
+<main>
+    <button data-tipping="false">
+            <span class="content">
+                <span class="scene">
+                    <span class="hole"></span>
+                    <span class="purse">
+                        <span class="coin">
+                            <span class="coin__face coin__face--front">
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M12 2L13.5 8H20L15 12L17 18L12 15L7 18L9 12L4 8H10.5L12 2Z" fill="currentColor"/>
+                                </svg>
+                            </span>
+                            <span class="coin__core"></span>
+                            <span class="coin__core coin__core--rotated"></span>
+                            <span class="coin__face coin__face--rear">
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M12 2L13.5 8H20L15 12L17 18L12 15L7 18L9 12L4 8H10.5L12 2Z" fill="currentColor"/>
+                                </svg>
+                            </span>
+                        </span>
+                    </span>
+                </span>
+                <span>留下你的小费</span>
+            </span>
+    </button>
+</main>
+
+<script type="module">
+    import gsap from "https://cdn.skypack.dev/gsap@3.13.0";
+    import { Physics2DPlugin } from "https://cdn.skypack.dev/gsap@3.13.0/Physics2DPlugin";
+
+    gsap.registerPlugin(Physics2DPlugin);
+
+    const button = document.querySelector('button');
+    const coin = button.querySelector(".coin");
+
+    const tip = () => {
+        if (button.dataset.tipping === "true") return;
+
+        const currentRotation = gsap.getProperty(button, "rotate");
+        if (currentRotation < 0) document.documentElement.dataset.flipped = "true";
+
+        button.dataset.tipping = "true";
+
+        const rotation = Math.abs(currentRotation);
+        const duration = gsap.utils.mapRange(0, 15, 0, 0.6)(rotation);
+        const distance = gsap.utils.snap(1, gsap.utils.mapRange(0, 15, 100, 350)(rotation));
+        const velocity = gsap.utils.mapRange(0, 15, 300, 700)(rotation);
+        const bounce = gsap.utils.mapRange(300, 700, 2, 12)(Math.abs(velocity));
+        const distanceDuration = gsap.utils.mapRange(100, 350, 0.25, 0.6)(distance);
+        const spin = gsap.utils.snap(1, gsap.utils.mapRange(100, 350, 1, 6)(distance));
+        const offRotate = gsap.utils.random(0, 90, 1) * -1;
+        const hangtime = Math.max(1, duration * 4);
+
+        const tl = gsap.timeline({
+            onComplete: () => {
+                gsap.set(coin, { yPercent: 100 });
+
+                gsap.timeline({
+                    onComplete: () => {
+                        gsap.set(button, { clearProps: "all" });
+                        gsap.set(coin, { clearProps: "all" });
+                        gsap.set(".purse", { clearProps: "all" });
+                        button.dataset.tipping = "false";
+                    }
+                })
+                    .to(button, {
+                        yPercent: bounce,
+                        repeat: 1,
+                        duration: 0.12,
+                        yoyo: true
+                    })
+                    .fromTo(".hole", { scale: 1 }, {
+                        scale: 0,
+                        duration: 0.2,
+                        delay: 0.2
+                    })
+                    .set(coin, { clearProps: "all" })
+                    .set(coin, { yPercent: -50 })
+                    .fromTo(".purse", { xPercent: -200 }, {
+                        delay: 0.5,
+                        xPercent: 0,
+                        duration: 0.5,
+                        ease: "power1.out"
+                    })
+                    .fromTo(coin, { rotate: -460 }, {
+                        rotate: 0,
+                        duration: 0.5,
+                        ease: "power1.out"
+                    }, "<")
+                    .timeScale(1.1);
+            }
+        })
+            .set(button, { transition: "none" })
+            .fromTo(button, { rotate: currentRotation }, {
+                rotate: 0,
+                duration,
+                ease: "elastic.out(1.75,0.75)"
+            })
+            .to(coin, {
+                onUpdate: function () {
+                    const y = gsap.getProperty(coin, "y");
+                    if (y >= coin.offsetHeight) {
+                        this.progress(1);
+                        tl.progress(1);
+                    }
+                },
+                duration: hangtime,
+                physics2D: { velocity, angle: -90, gravity: 1000 }
+            }, `>-${ duration * 0.825 }`)
+            .fromTo(coin, { rotateX: 0 }, {
+                duration: distanceDuration * 2,
+                rotateX: spin * -360
+            }, "<")
+            .to(coin, { rotateY: offRotate, duration: distanceDuration }, "<")
+            .to(coin, { "--rx": offRotate, duration: distanceDuration }, "<")
+            .fromTo(".hole", { scale: 0 }, { scale: 1, duration: 0.2 }, hangtime * 0.35)
+            .timeScale(1.1);
+    };
+
+    button.addEventListener("click", tip);
+</script>
+</body>
+</html>
