@@ -9,7 +9,6 @@
 # Footer:
 # - 关联 Issue: Refs #123 / Closes #123
 # - 破坏性变更: BREAKING CHANGE: xxx
-# - 共同作者: Co-authored-by: Name <email>
 # - DCO: Signed-off-by: Name <email>
 
 # -------------------- 提交示例 --------------------

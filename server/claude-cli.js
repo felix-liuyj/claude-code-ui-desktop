@@ -11,7 +11,7 @@ let activeClaudeProcesses = new Map(); // Track active processes by session ID
 
 async function spawnClaude(command, options = {}, ws) {
     return new Promise(async (resolve, reject) => {
-        const { sessionId, projectPath, cwd, resume, toolsSettings, permissionMode, images } = options;
+        const { sessionId, projectPath, cwd, resume, toolsSettings, permissionMode, images, background, smartCommit } = options;
         let capturedSessionId = sessionId; // Track session ID throughout the process
         let sessionCreatedSent = false; // Track if we've already sent session-created event
 
@@ -298,8 +298,8 @@ async function spawnClaude(command, options = {}, ws) {
                             activeClaudeProcesses.set(capturedSessionId, claudeProcess);
                         }
 
-                        // Send session-created event only once for new sessions
-                        if (!sessionId && !sessionCreatedSent) {
+                        // Send session-created event only once for new sessions (but not for smart commits)
+                        if (!sessionId && !sessionCreatedSent && !smartCommit) {
                             sessionCreatedSent = true;
                             ws.send(JSON.stringify({
                                 type: 'session-created',
@@ -311,7 +311,10 @@ async function spawnClaude(command, options = {}, ws) {
                     // Send parsed response to WebSocket
                     ws.send(JSON.stringify({
                         type: 'claude-response',
-                        data: response
+                        data: response,
+                        sessionId: capturedSessionId,
+                        background: background,
+                        smartCommit: smartCommit
                     }));
                 } catch (parseError) {
                     console.log('📄 Non-JSON response:', line);
@@ -343,7 +346,10 @@ async function spawnClaude(command, options = {}, ws) {
             console.error('Claude CLI stderr:', data.toString());
             ws.send(JSON.stringify({
                 type: 'claude-error',
-                error: data.toString()
+                error: data.toString(),
+                sessionId: capturedSessionId,
+                background: background,
+                smartCommit: smartCommit
             }));
         });
 
@@ -358,6 +364,9 @@ async function spawnClaude(command, options = {}, ws) {
             ws.send(JSON.stringify({
                 type: 'claude-complete',
                 exitCode: code,
+                sessionId: capturedSessionId,
+                background: background,
+                smartCommit: smartCommit,
                 isNewSession: !sessionId && !!command // Flag to indicate this was a new session
             }));
 
@@ -392,7 +401,10 @@ async function spawnClaude(command, options = {}, ws) {
 
             ws.send(JSON.stringify({
                 type: 'claude-error',
-                error: error.message
+                error: error.message,
+                sessionId: capturedSessionId,
+                background: background,
+                smartCommit: smartCommit
             }));
 
             reject(error);

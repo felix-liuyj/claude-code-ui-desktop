@@ -1,9 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
-    <meta charset="UTF-8"/>
-    <title>“造”了一台电脑</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="3D电脑键盘交互动画效果">
+    <title>"造"了一台电脑</title>
     <style>
+        /* 全局样式重置和基础设置 */
         *, *::after, *::before {
             margin: 0;
             padding: 0;
@@ -11,77 +14,119 @@
             transform-style: preserve-3d;
         }
 
+        /* 页面主体样式 */
         body {
             width: 100%;
             height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            background-color: #1a1919;
+            background: radial-gradient(circle at center, #2a2929 0%, #1a1919 100%);
             overflow: hidden;
-            font-family: sans-serif;
-            font-weight: bolder;
-            color: rgba(255, 255, 251, 0.7);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-weight: 600;
+            color: rgba(255, 255, 251, 0.8);
             text-transform: uppercase;
             letter-spacing: 2px;
+            margin: 0;
+            padding: 0;
         }
 
-        .main {
-            width: 800px;
-            height: 600px;
+        /* 3D电脑容器主体 */
+        .computer-container {
+            width: min(800px, 90vw);
+            height: min(600px, 70vh);
             position: relative;
             cursor: pointer;
-            margin-top: 200px;
+            margin-top: clamp(50px, 15vh, 200px);
+            transform-style: preserve-3d;
         }
 
-        @media (max-width: 1000px) {
-            .main {
-                transform: scale(0.75);
+        @media (max-width: 1200px) {
+            .computer-container {
+                width: 80vw;
+                height: 60vh;
             }
         }
 
-        @media (max-width: 800px) {
-            .main {
-                transform: scale(0.5);
+        @media (max-width: 768px) {
+            .computer-container {
+                width: 95vw;
+                height: 50vh;
+                margin-top: clamp(30px, 10vh, 100px);
+            }
+            
+            body {
+                font-size: 14px;
+                letter-spacing: 1px;
             }
         }
 
-        @media (max-width: 700px) {
-            .main {
-                transform: scale(0.4);
+        @media (max-width: 480px) {
+            .computer-container {
+                width: 100vw;
+                height: 45vh;
+                margin-top: clamp(20px, 5vh, 50px);
+            }
+            
+            body {
+                font-size: 12px;
+                letter-spacing: 0.5px;
             }
         }
 
-        @media (max-width: 500px) {
-            .main {
-                transform: scale(0.3);
+        /* 高对比度和深色主题支持 */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: radial-gradient(circle at center, #1a1a1a 0%, #0d0d0d 100%);
             }
         }
 
+        @media (prefers-reduced-motion: reduce) {
+            .keyboard {
+                transition: none;
+            }
+            
+            .screen {
+                animation: none;
+            }
+        }
+
+        /* 布局工具类 */
         .flex {
             display: flex;
             justify-content: center;
             align-items: center;
         }
 
+        /* 3D面通用样式 */
         .face {
             position: absolute;
         }
 
+        /* 屏幕显示区域 */
         .screen {
-            width: 303.0303030303px;
-            height: 240px;
+            width: clamp(250px, 30.3vw, 303px);
+            height: clamp(200px, 24vh, 240px);
             transform: translateZ(100px) translateY(-200px) translateZ(50px) rotateX(270deg);
-            background-color: #a9dffd;
+            background: linear-gradient(135deg, #a9dffd 0%, #8fd2f8 100%);
             border-radius: 10px;
-            box-shadow: 0 0 5px rgba(169, 223, 253, 0.8), 0 0 10px rgba(169, 223, 253, 0.7), 0 0 15px rgba(169, 223, 253, 0.6), 0 0 20px rgba(169, 223, 253, 0.5), 0 0 40px rgba(169, 223, 253, 0.4), 0 0 60px rgba(169, 223, 253, 0.3);
-            animation: screen 1s ease-in alternate infinite;
+            box-shadow: 
+                0 0 5px rgba(169, 223, 253, 0.8),
+                0 0 10px rgba(169, 223, 253, 0.7),
+                0 0 15px rgba(169, 223, 253, 0.6),
+                0 0 20px rgba(169, 223, 253, 0.5),
+                0 0 40px rgba(169, 223, 253, 0.4),
+                0 0 60px rgba(169, 223, 253, 0.3);
+            animation: screen-glow 1s ease-in-out alternate infinite;
         }
 
+        /* 键盘主体容器 */
         .keyboard {
-            width: 500px;
-            height: 160px;
+            width: clamp(400px, 50vw, 500px);
+            height: clamp(120px, 16vh, 160px);
             transform: perspective(10000px) rotateX(50deg) rotateZ(-25deg);
+            transition: transform 0.1s ease-out;
         }
 
         .keyboard__front {
@@ -140,21 +185,30 @@
         }
 
         .key {
-            width: 30px;
-            height: 27px;
-            transition: 0.05s ease;
+            width: clamp(20px, 3vw, 30px);
+            height: clamp(18px, 2.7vw, 27px);
+            transition: transform 0.05s ease, box-shadow 0.1s ease;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            outline: none;
+        }
+        
+        .key:focus {
+            outline: 2px solid rgba(169, 223, 253, 0.8);
+            outline-offset: 2px;
         }
 
         .key--w2 {
-            width: 60px;
+            width: clamp(40px, 6vw, 60px);
         }
 
         .key--w3 {
-            width: 90px;
+            width: clamp(60px, 9vw, 90px);
         }
 
         .key--w6 {
-            width: 195px;
+            width: clamp(130px, 19.5vw, 195px);
         }
 
         .key__front {
@@ -308,19 +362,27 @@
             background: #ffccc1;
         }
 
-        @keyframes screen {
+        @keyframes screen-glow {
             0%, 90%, 96% {
-                background-color: #a9dffd;
+                background: linear-gradient(135deg, #a9dffd 0%, #8fd2f8 100%);
+                box-shadow: 
+                    0 0 5px rgba(169, 223, 253, 0.8),
+                    0 0 10px rgba(169, 223, 253, 0.7),
+                    0 0 15px rgba(169, 223, 253, 0.6);
             }
             93%, 100% {
-                background-color: rgba(143, 210, 248, 0.8);
+                background: linear-gradient(135deg, rgba(143, 210, 248, 0.9) 0%, rgba(169, 223, 253, 0.7) 100%);
+                box-shadow: 
+                    0 0 8px rgba(169, 223, 253, 0.9),
+                    0 0 15px rgba(169, 223, 253, 0.8),
+                    0 0 25px rgba(169, 223, 253, 0.7);
             }
         }</style>
 </head>
 <body>
-<div class="main flex" id="m">
-    <div class="keyboard flex" id="k">
-        <div class="screen flex" id="s"></div>
+<main class="computer-container flex" id="computer-main">
+    <div class="keyboard flex" id="keyboard-wrapper" role="application" aria-label="3D虚拟键盘">
+        <div class="screen flex" id="screen-display" aria-live="polite" aria-label="屏幕显示区域"></div>
         <div class="keyboard__front face"></div>
         <div class="keyboard__back face"></div>
         <div class="keyboard__right face"></div>
@@ -835,159 +897,185 @@
         </div>
         <div class="keyboard__bottom face"></div>
     </div>
-</div>
-<script>const m = document.querySelector('#m');
-const k = document.querySelector('#k');
-const s = document.querySelector('#s');
-const kd = document.querySelectorAll('.key');
-let con = 0;
-let base = (e) => {
-    let x = e.pageX / window.innerWidth - 0.5;
-    let y = e.pageY / window.innerHeight - 0.5;
-    k.style.transform = `perspective(10000px)rotateX(${ y * 10 + 60 }deg)rotateZ(-${ x * 40 + 35 }deg)`
+</main>
+<script>
+/**
+ * 3D电脑键盘交互系统
+ * 实现鼠标跟踪的3D键盘效果和按键交互功能
+ * 作者：优化版本 2025
+ */
+
+// 获取DOM元素
+const computerMain = document.querySelector('#computer-main');
+const keyboardWrapper = document.querySelector('#keyboard-wrapper');
+const screenDisplay = document.querySelector('#screen-display');
+const keys = document.querySelectorAll('.key');
+
+/**
+ * 键码到键盘按键索引的映射表
+ * 将键盘按键码映射到3D键盘模型中对应按键的索引位置
+ */
+const KEY_MAP = {
+    81: 15,  // Q键
+    87: 16,  // W键
+    69: 17,  // E键
+    82: 18,  // R键
+    84: 19,  // T键
+    89: 20,  // Y键
+    85: 21,  // U键
+    73: 22,  // I键
+    79: 23,  // O键
+    80: 24,  // P键
+    65: 29,  // A键
+    83: 30,  // S键
+    68: 31,  // D键
+    70: 32,  // F键
+    71: 33,  // G键
+    72: 34,  // H键
+    74: 35,  // J键
+    75: 36,  // K键
+    76: 37,  // L键
+    192: 38, // `键（重音符）
+    90: 41,  // Z键
+    88: 42,  // X键
+    67: 43,  // C键
+    86: 44,  // V键
+    66: 45,  // B键
+    78: 46,  // N键
+    77: 47,  // M键
+    13: 39,  // Enter键
+    32: 56,  // 空格键
+    8: 27    // 退格键
 };
-let addKey = (e) => {
-    let kc = event.keyCode;
-    if ((kc >= 65 && kc <= 90) || kc == 32) {
-        if (kc == 81) {
-            kd[15].classList.add('key--down')
-        } else if (kc == 87) {
-            kd[16].classList.add('key--down')
-        } else if (kc == 69) {
-            kd[17].classList.add('key--down')
-        } else if (kc == 82) {
-            kd[18].classList.add('key--down')
-        } else if (kc == 84) {
-            kd[19].classList.add('key--down')
-        } else if (kc == 89) {
-            kd[20].classList.add('key--down')
-        } else if (kc == 85) {
-            kd[21].classList.add('key--down')
-        } else if (kc == 73) {
-            kd[22].classList.add('key--down')
-        } else if (kc == 79) {
-            kd[23].classList.add('key--down')
-        } else if (kc == 80) {
-            kd[24].classList.add('key--down')
-        } else if (kc == 65) {
-            kd[29].classList.add('key--down')
-        } else if (kc == 83) {
-            kd[30].classList.add('key--down')
-        } else if (kc == 68) {
-            kd[31].classList.add('key--down')
-        } else if (kc == 70) {
-            kd[32].classList.add('key--down')
-        } else if (kc == 71) {
-            kd[33].classList.add('key--down')
-        } else if (kc == 72) {
-            kd[34].classList.add('key--down')
-        } else if (kc == 74) {
-            kd[35].classList.add('key--down')
-        } else if (kc == 75) {
-            kd[36].classList.add('key--down')
-        } else if (kc == 76) {
-            kd[37].classList.add('key--down')
-        } else if (kc == 192) {
-            kd[38].classList.add('key--down')
-        } else if (kc == 90) {
-            kd[41].classList.add('key--down')
-        } else if (kc == 88) {
-            kd[42].classList.add('key--down')
-        } else if (kc == 67) {
-            kd[43].classList.add('key--down')
-        } else if (kc == 86) {
-            kd[44].classList.add('key--down')
-        } else if (kc == 66) {
-            kd[45].classList.add('key--down')
-        } else if (kc == 78) {
-            kd[46].classList.add('key--down')
-        } else if (kc == 77) {
-            kd[47].classList.add('key--down')
-        } else if (kc == 13) {
-            kd[39].classList.add('key--down')
-        } else if (kc == 32) {
-            kd[56].classList.add('key--down');
-            s.innerHTML += '&nbsp;'
-        }
-        s.innerHTML += String.fromCharCode(kc);
-        con++;
-        if (con > 10) {
-            s.innerHTML = '';
-            con = 0
-        }
+
+// 屏幕显示字符计数器
+let characterCount = 0;
+
+/**
+ * 鼠标移动事件处理函数
+ * 根据鼠标位置计算3D键盘的旋转角度，实现跟随效果
+ * @param {MouseEvent} event - 鼠标事件对象
+ */
+function handleMouseMove(event) {
+    // 将鼠标坐标转换为 -0.5 到 0.5 的范围
+    const x = (event.pageX / window.innerWidth) - 0.5;
+    const y = (event.pageY / window.innerHeight) - 0.5;
+    
+    // 计算旋转角度
+    const rotateX = y * 10 + 60;  // Y轴影响X轴旋转
+    const rotateZ = x * 40 + 35;  // X轴影响Z轴旋转
+    
+    // 应用3D变换
+    keyboardWrapper.style.transform = 
+        `perspective(10000px) rotateX(${rotateX}deg) rotateZ(-${rotateZ}deg)`;
+}
+
+/**
+ * 按键按下事件处理函数
+ * 处理键盘按键按下时的视觉反馈和屏幕更新
+ * @param {KeyboardEvent} event - 键盘事件对象
+ */
+function handleKeyDown(event) {
+    const keyCode = event.keyCode;
+    
+    // 检查是否为有效按键
+    if (!isValidKey(keyCode)) return;
+    
+    // 添加按键按下视觉效果
+    addKeyPressEffect(keyCode);
+    
+    // 更新屏幕显示内容
+    updateScreenDisplay(keyCode);
+}
+
+/**
+ * 按键释放事件处理函数
+ * 移除按键的按下状态视觉效果
+ * @param {KeyboardEvent} event - 键盘事件对象
+ */
+function handleKeyUp(event) {
+    const keyCode = event.keyCode;
+    removeKeyPressEffect(keyCode);
+}
+
+/**
+ * 验证按键是否有效
+ * @param {number} keyCode - 键盘按键码
+ * @returns {boolean} 是否为有效按键
+ */
+function isValidKey(keyCode) {
+    return (keyCode >= 65 && keyCode <= 90) || // A-Z字母键
+           keyCode === 32 ||                    // 空格键
+           keyCode === 8 ||                     // 退格键
+           keyCode === 13;                      // 回车键
+}
+
+/**
+ * 添加按键按下的视觉效果
+ * @param {number} keyCode - 键盘按键码
+ */
+function addKeyPressEffect(keyCode) {
+    const keyIndex = KEY_MAP[keyCode];
+    if (keyIndex !== undefined && keys[keyIndex]) {
+        keys[keyIndex].classList.add('key--down');
     }
-    if (kc === 8) {
-        s.innerHTML = '';
-        kd[27].classList.add('key--down');
-        con = 0
+}
+
+/**
+ * 移除按键按下的视觉效果
+ * @param {number} keyCode - 键盘按键码
+ */
+function removeKeyPressEffect(keyCode) {
+    const keyIndex = KEY_MAP[keyCode];
+    if (keyIndex !== undefined && keys[keyIndex]) {
+        keys[keyIndex].classList.remove('key--down');
     }
-};
-let removeKey = (e) => {
-    let kc = event.keyCode;
-    if (kc === 81) {
-        kd[15].classList.remove('key--down')
-    } else if (kc == 87) {
-        kd[16].classList.remove('key--down')
-    } else if (kc == 69) {
-        kd[17].classList.remove('key--down')
-    } else if (kc == 82) {
-        kd[18].classList.remove('key--down')
-    } else if (kc == 84) {
-        kd[19].classList.remove('key--down')
-    } else if (kc == 89) {
-        kd[20].classList.remove('key--down')
-    } else if (kc == 85) {
-        kd[21].classList.remove('key--down')
-    } else if (kc == 73) {
-        kd[22].classList.remove('key--down')
-    } else if (kc == 79) {
-        kd[23].classList.remove('key--down')
-    } else if (kc == 80) {
-        kd[24].classList.remove('key--down')
-    } else if (kc == 65) {
-        kd[29].classList.remove('key--down')
-    } else if (kc == 83) {
-        kd[30].classList.remove('key--down')
-    } else if (kc == 68) {
-        kd[31].classList.remove('key--down')
-    } else if (kc == 70) {
-        kd[32].classList.remove('key--down')
-    } else if (kc == 71) {
-        kd[33].classList.remove('key--down')
-    } else if (kc == 72) {
-        kd[34].classList.remove('key--down')
-    } else if (kc == 74) {
-        kd[35].classList.remove('key--down')
-    } else if (kc == 75) {
-        kd[36].classList.remove('key--down')
-    } else if (kc == 76) {
-        kd[37].classList.remove('key--down')
-    } else if (kc == 192) {
-        kd[38].classList.remove('key--down')
-    } else if (kc == 90) {
-        kd[41].classList.remove('key--down')
-    } else if (kc == 88) {
-        kd[42].classList.remove('key--down')
-    } else if (kc == 67) {
-        kd[43].classList.remove('key--down')
-    } else if (kc == 86) {
-        kd[44].classList.remove('key--down')
-    } else if (kc == 66) {
-        kd[45].classList.remove('key--down')
-    } else if (kc == 78) {
-        kd[46].classList.remove('key--down')
-    } else if (kc == 77) {
-        kd[47].classList.remove('key--down')
-    } else if (kc == 32) {
-        kd[56].classList.remove('key--down')
-    } else if (kc == 13) {
-        kd[39].classList.remove('key--down')
-    } else if (kc == 8) {
-        kd[27].classList.remove('key--down')
+}
+
+/**
+ * 更新屏幕显示内容
+ * 根据按键类型更新屏幕上的显示文本
+ * @param {number} keyCode - 键盘按键码
+ */
+function updateScreenDisplay(keyCode) {
+    if (keyCode === 8) { // 退格键：清空屏幕
+        screenDisplay.innerHTML = '';
+        characterCount = 0;
+        return;
     }
-};
-m.addEventListener('mousemove', base);
-window.addEventListener('keydown', addKey);
-window.addEventListener('keyup', removeKey);</script>
+    
+    if (keyCode === 32) { // 空格键：添加空格
+        screenDisplay.innerHTML += '&nbsp;';
+    } else if (keyCode === 13) { // 回车键：只触发视觉效果，不显示字符
+        return;
+    } else { // 普通字母键：显示对应字符
+        screenDisplay.innerHTML += String.fromCharCode(keyCode);
+    }
+    
+    characterCount++;
+    
+    // 屏幕字符数量限制：超过10个字符时清空重新开始
+    if (characterCount > 10) {
+        screenDisplay.innerHTML = '';
+        characterCount = 0;
+    }
+}
+
+/**
+ * 初始化事件监听器
+ * 绑定鼠标移动和键盘按键事件
+ */
+function initEventListeners() {
+    // 鼠标移动事件：实现3D键盘跟随效果
+    computerMain.addEventListener('mousemove', handleMouseMove);
+    
+    // 键盘按键事件：处理按键交互
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+}
+
+// 页面加载完成后初始化
+initEventListeners();
+</script>
 </body>
 </html>

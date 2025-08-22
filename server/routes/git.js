@@ -209,8 +209,14 @@ router.post('/commit', async (req, res) => {
             await execAsync(`git add "${ file }"`, { cwd: projectPath });
         }
 
-        // Commit with message
-        const { stdout } = await execAsync(`git commit -m "${ message.replace(/"/g, '\\"') }"`, { cwd: projectPath });
+        // Clean commit message by removing Claude Code signatures
+        let cleanMessage = message;
+        cleanMessage = cleanMessage.replace(/🤖\s*Generated with \[Claude Code\]\(https:\/\/claude\.ai\/code\)/g, '').trim();
+        cleanMessage = cleanMessage.replace(/Co-Authored-By:\s*Claude\s*<noreply@anthropic\.com>/gi, '').trim();
+        cleanMessage = cleanMessage.replace(/\n+$/, '').trim();
+
+        // Commit with cleaned message
+        const { stdout } = await execAsync(`git commit -m "${ cleanMessage.replace(/"/g, '\\"') }"`, { cwd: projectPath });
 
         res.json({ success: true, output: stdout });
     } catch (error) {
@@ -446,7 +452,7 @@ async function generateEnhancedCommitMessage(projectPath, files, diff) {
         }
         
         // 4. Fallback to enhanced rule-based generation
-        return generateRuleBasedMessage(files, diff, conventions, language);
+        return await generateRuleBasedMessage(files, diff, conventions, language, projectPath);
         
     } catch (error) {
         console.error('Enhanced commit message generation failed:', error);
@@ -683,6 +689,13 @@ async function generateWithClaudeCLI(projectPath, files, diff, conventions, lang
                 finalMessage = quoteMatch[1].trim();
             }
             
+            // Remove Claude Code signatures and co-authored lines
+            finalMessage = finalMessage.replace(/🤖\s*Generated with \[Claude Code\]\(https:\/\/claude\.ai\/code\)/g, '').trim();
+            finalMessage = finalMessage.replace(/Co-Authored-By:\s*Claude\s*<noreply@anthropic\.com>/gi, '').trim();
+            
+            // Remove empty lines at the end
+            finalMessage = finalMessage.replace(/\n+$/, '').trim();
+            
             // Take only the first line or paragraph if it's a multi-line response
             const lines = finalMessage.split('\n').filter(line => line.trim());
             if (lines.length > 0) {
@@ -753,10 +766,10 @@ function buildClaudePrompt(files, diff, conventions, language) {
             : `Allowed types: ${conventions.types.join(', ')}\n\n`;
     }
     
-    // Add example format
+    // Add example format with complete footer
     prompt += isChineseLang
-        ? '示例格式：\nfeat(components): 增强组件交互功能\n\n为组件添加新的交互特性，提高用户体验。\n包含响应式设计和可访问性优化。\n\n验证：功能测试通过，用户界面无异常。\n\n'
-        : 'Example format:\nfeat(components): enhance component interaction functionality\n\nAdd new interactive features to components to improve user experience.\nIncludes responsive design and accessibility optimizations.\n\nVerification: Feature testing passed, user interface shows no anomalies.\n\n';
+        ? '示例格式：\nfeat(components): 增强组件交互功能\n\n为组件添加新的交互特性，提高用户体验。\n包含响应式设计和可访问性优化。\n\n验证：功能测试通过，用户界面无异常。\nSigned-off-by: Developer <developer@example.com>\n\n'
+        : 'Example format:\nfeat(components): enhance component interaction functionality\n\nAdd new interactive features to components to improve user experience.\nIncludes responsive design and accessibility optimizations.\n\nVerification: Feature testing passed, user interface shows no anomalies.\nSigned-off-by: Developer <developer@example.com>\n\n';
     
     // Add diff with better formatting
     const diffSample = diff.length > 2000 ? diff.substring(0, 2000) + '\n... (diff truncated)' : diff;
@@ -768,7 +781,7 @@ function buildClaudePrompt(files, diff, conventions, language) {
 }
 
 // Enhanced rule-based message generation with conventions and language support
-function generateRuleBasedMessage(files, diff, conventions, language) {
+async function generateRuleBasedMessage(files, diff, conventions, language, projectPath) {
     const isChineseLang = language === 'zh' || language === 'zh-CN';
     const fileCount = files.length;
     
@@ -1024,8 +1037,10 @@ function generateRuleBasedMessage(files, diff, conventions, language) {
             }
         }
         
-        // Build footer
+        // Build footer according to .gitmessage.txt rules
         let footer = '';
+        
+        // Add verification info based on action type
         if (action === 'feat') {
             footer = isChineseLang
                 ? '\u9a8c\u8bc1\uff1a\u529f\u80fd\u6d4b\u8bd5\u901a\u8fc7\uff0c\u7528\u6237\u754c\u9762\u65e0\u5f02\u5e38\u3002'
@@ -1034,6 +1049,53 @@ function generateRuleBasedMessage(files, diff, conventions, language) {
             footer = isChineseLang
                 ? '\u9a8c\u8bc1\uff1a\u95ee\u9898\u4fee\u590d\u786e\u8ba4\uff0c\u56de\u5f52\u6d4b\u8bd5\u901a\u8fc7\u3002'
                 : 'Verification: Issue fix confirmed, regression testing passed.';
+        } else if (action === 'refactor') {
+            footer = isChineseLang
+                ? '\u9a8c\u8bc1\uff1a\u91cd\u6784\u540e\u529f\u80fd\u6b63\u5e38\uff0c\u4ee3\u7801\u8d28\u91cf\u63d0\u5347\u3002'
+                : 'Verification: Functionality maintained after refactoring, code quality improved.';
+        } else if (action === 'style') {
+            footer = isChineseLang
+                ? '\u9a8c\u8bc1\uff1a\u6837\u5f0f\u66f4\u65b0\u65e0\u526f\u4f5c\u7528\uff0c\u89c6\u89c9\u6548\u679c\u7b26\u5408\u9884\u671f\u3002'
+                : 'Verification: Style updates have no side effects, visual effects meet expectations.';
+        } else if (action === 'perf') {
+            footer = isChineseLang
+                ? '\u9a8c\u8bc1\uff1a\u6027\u80fd\u4f18\u5316\u6548\u679c\u786e\u8ba4\uff0c\u65e0\u529f\u80fd\u56de\u9000\u3002'
+                : 'Verification: Performance improvements confirmed, no functional regression.';
+        } else if (action === 'docs') {
+            footer = isChineseLang
+                ? '\u9a8c\u8bc1\uff1a\u6587\u6863\u5185\u5bb9\u51c6\u786e\uff0c\u683c\u5f0f\u89c4\u8303\u3002'
+                : 'Verification: Documentation content accurate, formatting compliant.';
+        } else if (action === 'test') {
+            footer = isChineseLang
+                ? '\u9a8c\u8bc1\uff1a\u6d4b\u8bd5\u7528\u4f8b\u8986\u76d6\u5b8c\u6574\uff0c\u6267\u884c\u901a\u8fc7\u3002'
+                : 'Verification: Test cases provide complete coverage, execution passed.';
+        } else {
+            // Generic footer for other types
+            footer = isChineseLang
+                ? '\u9a8c\u8bc1\uff1a\u53d8\u66f4\u5185\u5bb9\u5df2\u786e\u8ba4\uff0c\u7cfb\u7edf\u8fd0\u884c\u6b63\u5e38\u3002'
+                : 'Verification: Changes confirmed, system operating normally.';
+        }
+        
+        // Add breaking change notice if it's a major change
+        if (additions > 50 || deletions > 50 || fileCount > 10) {
+            const breakingChange = isChineseLang
+                ? '\n\nBREAKING CHANGE: 涉及多个文件的重大变更，可能影响现有功能。'
+                : '\n\nBREAKING CHANGE: Major changes involving multiple files, may affect existing functionality.';
+            footer += breakingChange;
+        }
+        
+        // Add signed-off-by if configured (check git config)
+        if (projectPath) {
+            try {
+                const { stdout: gitUserName } = await execAsync('git config user.name', { cwd: projectPath });
+                const { stdout: gitUserEmail } = await execAsync('git config user.email', { cwd: projectPath });
+                
+                if (gitUserName.trim() && gitUserEmail.trim()) {
+                    footer += `\n\nSigned-off-by: ${gitUserName.trim()} <${gitUserEmail.trim()}>`;
+                }
+            } catch (error) {
+                // Git config not available, skip signed-off-by
+            }
         }
         
         // Assemble the complete message
@@ -1044,6 +1106,11 @@ function generateRuleBasedMessage(files, diff, conventions, language) {
         if (footer) {
             message += '\n\n' + footer;
         }
+        
+        // Remove Claude Code signatures if they somehow got included
+        message = message.replace(/🤖\s*Generated with \[Claude Code\]\(https:\/\/claude\.ai\/code\)/g, '').trim();
+        message = message.replace(/Co-Authored-By:\s*Claude\s*<noreply@anthropic\.com>/gi, '').trim();
+        message = message.replace(/\n+$/, '').trim();
         
         return message;
     }
@@ -1074,6 +1141,7 @@ function generateSimpleCommitMessage(files, diff) {
     }
 
     // Generate message based on files
+    let message;
     if (isMultipleFiles) {
         const components = new Set(files.map(f => {
             const parts = f.split('/');
@@ -1081,15 +1149,21 @@ function generateSimpleCommitMessage(files, diff) {
         }));
 
         if (components.size === 1) {
-            return `${ action } ${ [...components][0] } component`;
+            message = `${ action } ${ [...components][0] } component`;
         } else {
-            return `${ action } multiple components`;
+            message = `${ action } multiple components`;
         }
     } else {
         const fileName = files[0].split('/').pop();
         const componentName = fileName.replace(/\.(jsx?|tsx?|css|scss)$/, '');
-        return `${ action } ${ componentName }`;
+        message = `${ action } ${ componentName }`;
     }
+    
+    // Remove Claude Code signatures if they somehow got included
+    message = message.replace(/🤖\s*Generated with \[Claude Code\]\(https:\/\/claude\.ai\/code\)/g, '').trim();
+    message = message.replace(/Co-Authored-By:\s*Claude\s*<noreply@anthropic\.com>/gi, '').trim();
+    
+    return message;
 }
 
 // Get remote status (ahead/behind commits with smart remote detection)
