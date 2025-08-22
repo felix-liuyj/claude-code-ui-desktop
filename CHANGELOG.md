@@ -1,23 +1,13 @@
 ## [1.1.1](https://github.com/felix-liuyj/claude-code-ui-desktop/compare/v1.1.0...v1.1.1) (2025-08-22)
 
-### Features
-
-* **ui:** 优化设置界面布局和修复多项功能问题 ([788ccba](https://github.com/felix-liuyj/claude-code-ui-desktop/commit/788ccba07e669bd5078b73ccc1a1af7c71381b4e))
-
-### Bug Fixes
-
-* **components:** README, routes and 2 more components ([bd72885](https://github.com/felix-liuyj/claude-code-ui-desktop/commit/bd7288525155d9f4361246c6a347b33722e1a1d7))
-* include utils directory in electron-builder files configuration ([9cfa6c3](https://github.com/felix-liuyj/claude-code-ui-desktop/commit/9cfa6c389758f09b9b009e692c023a1546665133))
-## [1.1.1](https://github.com/felix-liuyj/claude-code-ui-desktop/compare/v1.1.0...v1.1.1) (2025-08-22)
-
 ### ✨ 新增功能
 
 #### 界面优化
-* **设置标签页重排**: 按使用频率和逻辑分组重新排列设置标签页顺序：工具 > 安全项 > 记忆 > Git > MCP > 外观 > 使用量 > 开发者 > 关于
+* **设置标签页重排**: 按使用频率和逻辑分组重新排列设置标签页顺序：工具 > 安全项 > 记忆 > Git > MCP > 外观 > 使用量 > 开发者 > 关于 ([788ccba](https://github.com/felix-liuyj/claude-code-ui-desktop/commit/788ccba07e669bd5078b73ccc1a1af7c71381b4e))
 * **Git 设置分组**: 将 Git 设置拆分为三个独立卡片 - 提交消息语言、提交规范、Claude CLI 集成，提升配置体验
 * **紧凑界面设计**: 全面压缩选项卡片尺寸，减少内边距和间距，提升界面紧凑度和信息密度
 
-### 问题修复
+### 🐛 问题修复
 
 #### 消息系统优化
 * **重复消息问题**: 修复 WebSocket 消息重复显示问题，改进消息 ID 生成算法使用内容哈希确保唯一性
@@ -31,7 +21,11 @@
 * **IndexedDB 降级**: 修复 IndexedDB 初始化失败问题，添加访问测试和 localStorage 降级策略
 * **使用量监控修正**: 更正 max5 计划的限制配置（Token: 88,000, Cost: $35.00, Messages: 1,000）
 
-### 技术改进
+#### 构建配置修复
+* **文件包含修复**: 修复 electron-builder 构建时未包含 utils 目录的问题 ([9cfa6c3](https://github.com/felix-liuyj/claude-code-ui-desktop/commit/9cfa6c389758f09b9b009e692c023a1546665133))
+* **组件路由修复**: 修复 README 组件和路由配置问题 ([bd72885](https://github.com/felix-liuyj/claude-code-ui-desktop/commit/bd7288525155d9f4361246c6a347b33722e1a1d7))
+
+### 🔧 技术改进
 
 * **WebSocket 消息去重**: 使用稳定的哈希算法优化消息去重机制，提升实时通信可靠性
 * **渐进式缓存增强**: 改进多层缓存系统的错误处理和降级策略，提升数据访问稳定性
