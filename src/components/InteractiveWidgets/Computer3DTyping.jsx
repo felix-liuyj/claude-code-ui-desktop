@@ -64,20 +64,6 @@ const Computer3DTyping = ({
     }
   };
 
-  // 鼠标移动事件处理函数
-  const handleMouseMove = (event) => {
-    if (!keyboardRef.current || !containerRef.current) return;
-    
-    const rect = containerRef.current.getBoundingClientRect();
-    const x = (event.clientX - rect.left) / rect.width - 0.5;
-    const y = (event.clientY - rect.top) / rect.height - 0.5;
-    
-    const rotateX = y * 10 + 60;
-    const rotateZ = x * 40 + 35;
-    
-    keyboardRef.current.style.transform = 
-      `perspective(10000px) rotateX(${rotateX}deg) rotateZ(-${rotateZ}deg)`;
-  };
 
   // 添加按键按下的视觉效果
   const addKeyPressEffect = (keyCode) => {
@@ -198,16 +184,13 @@ const Computer3DTyping = ({
     };
   }, [text]);
 
-  // 绑定鼠标移动事件
+  // 设置固定角度
   useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    container.addEventListener('mousemove', handleMouseMove);
-
-    return () => {
-      container.removeEventListener('mousemove', handleMouseMove);
-    };
+    if (!keyboardRef.current) return;
+    
+    // 固定在初始角度
+    keyboardRef.current.style.transform = 
+      `perspective(10000px) rotateX(60deg) rotateZ(-35deg)`;
   }, []);
 
   // 清理定时器
@@ -229,15 +212,6 @@ const Computer3DTyping = ({
     </div>
   );
 
-  // 暴露控制方法给父组件
-  React.useImperativeHandle(React.forwardRef((props, ref) => ref), () => ({
-    start: startTyping,
-    stop: stopTyping,
-    restart,
-    clear: clearScreen,
-    isTyping,
-    isPaused
-  }), [startTyping, stopTyping, restart, clearScreen, isTyping, isPaused]);
 
   return (
     <main 

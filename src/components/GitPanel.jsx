@@ -1414,10 +1414,10 @@ function GitPanel({ selectedProject, isMobile }) {
                             </p>
 
                             <div className="flex items-center justify-center" style={{ 
-                                height: '200px',
+                                height: '180px',
                                 marginBottom: '1rem'
                             }}>
-                                <div style={{ transform: 'scale(0.75)' }}>
+                                <div style={{ transform: 'scale(0.6)', transformOrigin: 'center center' }}>
                                     <Computer3DTyping 
                                         text="Pending..."
                                         typingSpeed={400}

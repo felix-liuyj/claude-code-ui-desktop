@@ -308,6 +308,14 @@ async function spawnClaude(command, options = {}, ws) {
                         }
                     }
 
+                    // Clean Claude Code signatures from response data for smart commits
+                    if (smartCommit && response && response.stdout) {
+                        response.stdout = response.stdout
+                            .replace(/🤖\s*Generated with \[Claude Code\]\(https:\/\/claude\.ai\/code\)/g, '')
+                            .replace(/Co-Authored-By:\s*Claude\s*<noreply@anthropic\.com>/gi, '')
+                            .trim();
+                    }
+
                     // Send parsed response to WebSocket
                     ws.send(JSON.stringify({
                         type: 'claude-response',
