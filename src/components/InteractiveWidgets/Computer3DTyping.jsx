@@ -1,0 +1,341 @@
+import React, { useRef, useEffect, useState, useCallback } from 'react';
+import './Computer3D.css';
+
+/**
+ * 3D电脑键盘自动打字动画组件
+ * 基于Computer3D组件，实现自动打字效果
+ */
+const Computer3DTyping = ({ 
+  className = '', 
+  text = 'Loading...', 
+  typingSpeed = 500, // 每个字符的间隔时间（毫秒）
+  pauseDuration = 500, // 打字完成后的暂停时间（毫秒）
+  onComplete, // 每轮完成的回调
+  autoStart = true, // 是否自动开始
+  loop = true // 是否循环
+}) => {
+  const containerRef = useRef(null);
+  const keyboardRef = useRef(null);
+  const screenRef = useRef(null);
+  const [screenContent, setScreenContent] = useState('');
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isTyping, setIsTyping] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+  const intervalRef = useRef(null);
+  const timeoutRef = useRef(null);
+
+  // 键码到键盘按键索引的映射表
+  const KEY_MAP = {
+    // 字母键
+    81: 15, 87: 16, 69: 17, 82: 18, 84: 19, 89: 20, 85: 21, 73: 22, 79: 23, 80: 24,
+    65: 29, 83: 30, 68: 31, 70: 32, 71: 33, 72: 34, 74: 35, 75: 36, 76: 37,
+    90: 41, 88: 42, 67: 43, 86: 44, 66: 45, 78: 46, 77: 47,
+    
+    // 数字键
+    49: 1, 50: 2, 51: 3, 52: 4, 53: 5, 54: 6, 55: 7, 56: 8, 57: 9, 48: 10,
+    
+    // 符号键
+    190: 49, // 句号
+    32: 56,  // 空格键
+    8: 27,   // 退格键
+  };
+
+  // 字符到键码的映射
+  const getKeyCodeFromChar = (char) => {
+    const upperChar = char.toUpperCase();
+    const charCode = upperChar.charCodeAt(0);
+    
+    // 字母 A-Z
+    if (charCode >= 65 && charCode <= 90) {
+      return charCode;
+    }
+    
+    // 数字 0-9
+    if (charCode >= 48 && charCode <= 57) {
+      return charCode;
+    }
+    
+    // 特殊字符
+    switch (char) {
+      case '.': return 190;
+      case ' ': return 32;
+      case '\n': return 13;
+      default: return null;
+    }
+  };
+
+  // 鼠标移动事件处理函数
+  const handleMouseMove = (event) => {
+    if (!keyboardRef.current || !containerRef.current) return;
+    
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = (event.clientX - rect.left) / rect.width - 0.5;
+    const y = (event.clientY - rect.top) / rect.height - 0.5;
+    
+    const rotateX = y * 10 + 60;
+    const rotateZ = x * 40 + 35;
+    
+    keyboardRef.current.style.transform = 
+      `perspective(10000px) rotateX(${rotateX}deg) rotateZ(-${rotateZ}deg)`;
+  };
+
+  // 添加按键按下的视觉效果
+  const addKeyPressEffect = (keyCode) => {
+    const keyIndex = KEY_MAP[keyCode];
+    if (keyIndex !== undefined && containerRef.current) {
+      const keys = containerRef.current.querySelectorAll('.key');
+      if (keys[keyIndex]) {
+        keys[keyIndex].classList.add('key--down');
+        
+        // 100ms后移除效果
+        setTimeout(() => {
+          if (keys[keyIndex]) {
+            keys[keyIndex].classList.remove('key--down');
+          }
+        }, 100);
+      }
+    }
+  };
+
+  // 模拟打字效果
+  const typeCharacter = useCallback((char) => {
+    const keyCode = getKeyCodeFromChar(char);
+    
+    if (keyCode) {
+      // 添加视觉效果
+      addKeyPressEffect(keyCode);
+      
+      // 更新屏幕内容
+      if (char === ' ') {
+        setScreenContent(prev => prev + '\u00A0'); // 非断行空格
+      } else {
+        setScreenContent(prev => prev + char);
+      }
+    }
+  }, []);
+
+  // 清空屏幕
+  const clearScreen = useCallback(() => {
+    // 模拟退格键效果
+    addKeyPressEffect(8);
+    setScreenContent('');
+    setCurrentIndex(0);
+  }, []);
+
+  // 开始打字动画
+  const startTyping = useCallback(() => {
+    if (!text || isTyping) return;
+    
+    setIsTyping(true);
+    setIsPaused(false);
+    
+    const typeNextChar = () => {
+      if (currentIndex < text.length) {
+        const char = text[currentIndex];
+        typeCharacter(char);
+        setCurrentIndex(prev => prev + 1);
+        
+        intervalRef.current = setTimeout(typeNextChar, typingSpeed);
+      } else {
+        // 打字完成
+        setIsTyping(false);
+        setIsPaused(true);
+        
+        // 调用完成回调
+        if (onComplete) {
+          onComplete();
+        }
+        
+        // 暂停后清空并重新开始
+        timeoutRef.current = setTimeout(() => {
+          clearScreen();
+          
+          if (loop) {
+            // 延迟一点后重新开始
+            setTimeout(() => {
+              setIsPaused(false);
+              startTyping();
+            }, 200);
+          }
+        }, pauseDuration);
+      }
+    };
+    
+    typeNextChar();
+  }, [text, currentIndex, typingSpeed, pauseDuration, typeCharacter, clearScreen, onComplete, loop, isTyping]);
+
+  // 停止打字动画
+  const stopTyping = useCallback(() => {
+    if (intervalRef.current) {
+      clearTimeout(intervalRef.current);
+      intervalRef.current = null;
+    }
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    setIsTyping(false);
+    setIsPaused(false);
+  }, []);
+
+  // 重新开始
+  const restart = useCallback(() => {
+    stopTyping();
+    clearScreen();
+    setTimeout(() => {
+      startTyping();
+    }, 200);
+  }, [stopTyping, clearScreen, startTyping]);
+
+  // 当文本改变时重新开始
+  useEffect(() => {
+    if (autoStart) {
+      restart();
+    }
+    
+    return () => {
+      stopTyping();
+    };
+  }, [text]);
+
+  // 绑定鼠标移动事件
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    container.addEventListener('mousemove', handleMouseMove);
+
+    return () => {
+      container.removeEventListener('mousemove', handleMouseMove);
+    };
+  }, []);
+
+  // 清理定时器
+  useEffect(() => {
+    return () => {
+      stopTyping();
+    };
+  }, [stopTyping]);
+
+  // 创建按键组件
+  const createKey = (className = '', colorClass = '') => (
+    <div className={`key flex ${className}`}>
+      <div className={`key__front face ${colorClass ? `face--key-${colorClass}` : ''}`}></div>
+      <div className={`key__back face ${colorClass ? `face--key-${colorClass.replace('3', '1')}` : ''}`}></div>
+      <div className={`key__right face ${colorClass ? `face--key-${colorClass.replace('3', '1')}` : ''}`}></div>
+      <div className={`key__left face ${colorClass ? `face--key-${colorClass.replace('3', '2')}` : ''}`}></div>
+      <div className={`key__top face ${colorClass ? `face--key-${colorClass.replace('3', '1')}` : ''}`}></div>
+      <div className={`key__bottom face ${colorClass ? `face--key-${colorClass.replace('3', '2')}` : ''}`}></div>
+    </div>
+  );
+
+  // 暴露控制方法给父组件
+  React.useImperativeHandle(React.forwardRef((props, ref) => ref), () => ({
+    start: startTyping,
+    stop: stopTyping,
+    restart,
+    clear: clearScreen,
+    isTyping,
+    isPaused
+  }), [startTyping, stopTyping, restart, clearScreen, isTyping, isPaused]);
+
+  return (
+    <main 
+      className={`computer-container flex ${className}`}
+      ref={containerRef}
+      id="computer-main"
+    >
+      <div 
+        className="keyboard flex" 
+        ref={keyboardRef}
+        role="application" 
+        aria-label="3D虚拟键盘 - 自动打字模式"
+      >
+        <div 
+          className="screen flex" 
+          ref={screenRef}
+          aria-live="polite" 
+          aria-label="屏幕显示区域"
+        >
+          {screenContent}
+          {/* 添加光标效果 */}
+          {isTyping && (
+            <span className="typing-cursor" style={{
+              animation: 'blink 1s infinite',
+              marginLeft: '2px',
+              color: 'rgba(0,0,0,0.7)'
+            }}>|</span>
+          )}
+        </div>
+        
+        <div className="keyboard__front face"></div>
+        <div className="keyboard__back face"></div>
+        <div className="keyboard__right face"></div>
+        <div className="keyboard__left face"></div>
+        
+        <div className="keyboard__top face">
+          {/* 数字行 */}
+          <div className="keys">
+            {createKey('', 'b3')}
+            {Array.from({ length: 10 }, (_, i) => createKey())}
+            {createKey()}
+            {createKey()}
+            {createKey('key--w2', 'b3')}
+          </div>
+          
+          {/* 第一排字母行 */}
+          <div className="keys">
+            {createKey('key--w2', 'b3')}
+            {Array.from({ length: 10 }, (_, i) => createKey())}
+            {createKey()}
+            {createKey()}
+            {createKey('key--w2', 'b3')}
+          </div>
+          
+          {/* 第二排字母行 */}
+          <div className="keys">
+            {createKey('key--w3', 'b3')}
+            {Array.from({ length: 9 }, (_, i) => createKey())}
+            {createKey()}
+            {createKey()}
+            {createKey('key--w2', 'o3')}
+          </div>
+          
+          {/* 第三排字母行 */}
+          <div className="keys">
+            {createKey('key--w2', 'b3')}
+            {Array.from({ length: 10 }, (_, i) => createKey())}
+            {createKey()}
+            {createKey('key--w3', 'b3')}
+          </div>
+          
+          {/* 空格键行 */}
+          <div className="keys">
+            {createKey('', 'b3')}
+            {createKey('', 'o3')}
+            {createKey('', 'b3')}
+            {createKey('', 'b3')}
+            {createKey('key--w6')}
+            {createKey('', 'b3')}
+            {createKey('', 'b3')}
+            {createKey('', 'b3')}
+            {createKey('', 'b3')}
+            {createKey('', 'b3')}
+          </div>
+        </div>
+        
+        <div className="keyboard__bottom face"></div>
+      </div>
+
+      {/* 添加光标闪烁动画 */}
+      <style jsx>{`
+        @keyframes blink {
+          0%, 50% { opacity: 1; }
+          51%, 100% { opacity: 0; }
+        }
+      `}</style>
+    </main>
+  );
+};
+
+export default Computer3DTyping;

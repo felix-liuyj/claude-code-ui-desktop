@@ -1,0 +1,280 @@
+/* 硬币打赏按钮容器 */
+.coin-tip-container {
+  display: grid;
+  place-items: center;
+  font-family: system-ui, sans-serif;
+}
+
+.coin-tip-container *, 
+.coin-tip-container *::before, 
+.coin-tip-container *::after {
+  box-sizing: border-box;
+  transform-style: preserve-3d;
+}
+
+/* 主按钮样式 */
+.coin-tip-button {
+  touch-action: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  --bg: #1871f4;
+  --ru: 15;
+  background: var(--bg);
+  border: 1px solid color-mix(in oklch, var(--bg), #000 12%);
+  border-radius: 6px;
+  color: #fff;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.875rem;
+  padding: 0;
+  transform-origin: 75% 50%;
+  transition: transform 0.26s, box-shadow 0.26s;
+  box-shadow: 
+    0 0.6px 0.7px #0003, 
+    0 2.3px 2.6px -0.8px #0003, 
+    0 5.9px 6.6px -1.7px #0003, 
+    0 14.5px 16.3px -2.5px #0003;
+  scale: 1.2;
+}
+
+.coin-tip-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.coin-button-content {
+  align-items: center;
+  clip-path: inset(-100vmax 0 1px 0);
+  display: flex;
+  gap: 0.75rem;
+  height: 100%;
+  padding: 0.5rem 0.75rem;
+}
+
+.coin-tip-button[data-tipping="false"]:active:not(:disabled) {
+  transform: rotate(-15deg);
+  box-shadow: 
+    -0.5px 0.7px 1px #0003, 
+    -1.8px 2.3px 3.3px -0.8px #0003, 
+    -4.6px 6px 8.5px -1.7px #0003, 
+    -11.4px 14.6px 20.8px -2.5px #0003;
+}
+
+.coin-tip-button:is(:focus-visible, :hover):not(:disabled) {
+  --bg: color-mix(in oklch, #1871f4, #000 5%);
+}
+
+.coin-tip-button:is(:focus-visible, :hover):not(:disabled) .coin-purse {
+  rotate: y 360deg;
+  transition: rotate 0.26s 0.12s ease-out;
+}
+
+.coin-purse, 
+.coin-scene, 
+.coin-hole {
+  position: absolute;
+  transform-style: preserve-3d;
+}
+
+.coin-purse {
+  inset: 0;
+  height: 100%;
+  width: 100%;
+}
+
+.coin-scene {
+  --thickness: 4;
+  aspect-ratio: 1;
+  display: inline-block;
+  perspective: 100vh;
+  position: relative;
+  width: 1.2lh;
+}
+
+.coin-hole {
+  inset: 0;
+  scale: 0;
+  transform: translate3d(0, 0, -8px);
+  transform-origin: 50% 70%;
+  z-index: 10;
+}
+
+.coin-hole::before {
+  background: black;
+  border-radius: 50%;
+  box-shadow: 0 2px #333 inset;
+  content: "";
+  height: 40%;
+  left: 50%;
+  position: absolute;
+  top: 70%;
+  translate: -50% -50%;
+  width: 125%;
+}
+
+.coin-hole::after {
+  background: var(--bg);
+  content: "";
+  height: 200%;
+  left: 50%;
+  mask: radial-gradient(125% 32% at 50% 3%, transparent 50%, #fff 50%);
+  position: absolute;
+  top: 0;
+  transform: translate3d(0, 0, 20px);
+  translate: -50% 25%;
+  width: 121%;
+}
+
+/* 硬币样式 */
+.coin {
+  --depth: 2;
+  --detail: hsl(43 97% 46%);
+  --face: #ffdc02;
+  --side: #f4ae00;
+  --rx: 0;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  position: absolute;
+  translate: -50% -50%;
+  top: 50%;
+  left: 50%;
+  transform-style: preserve-3d;
+}
+
+.coin__core {
+  --base: 0;
+  height: 100%;
+  width: calc(var(--depth) * 2px);
+  background: var(--side);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+  transform: rotateY(90deg) rotateX(calc((90 - var(--rx)) * -1deg));
+  transform-style: preserve-3d;
+}
+
+.coin__core--rotated {
+  --base: 90;
+  transform: rotateY(90deg) rotateX(calc((90 - var(--rx)) * 1deg));
+}
+
+.coin__core::after, 
+.coin__core::before {
+  content: "";
+  height: 100%;
+  width: calc(var(--depth) * 2px);
+  background: var(--side);
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+}
+
+.coin__core::after {
+  transform: rotateX(calc((var(--base) - var(--rx)) * 1deg));
+}
+
+.coin__core::before {
+  transform: rotateX(calc((var(--base) - var(--rx)) * -1deg));
+}
+
+.coin__face {
+  height: 100%;
+  width: 100%;
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  transform-style: preserve-3d;
+  background: var(--face);
+  display: grid;
+  place-items: center;
+  color: var(--detail);
+}
+
+.coin__face svg {
+  width: 65%;
+  scale: -1 1;
+  translate: -5% 0;
+}
+
+.coin__face::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--side);
+  backface-visibility: hidden;
+}
+
+.coin__face--front {
+  transform: translate3d(0, 0, calc((var(--depth) * 1px) + 0.5px)) rotateY(180deg);
+}
+
+.coin__face--rear {
+  transform: translate3d(0, 0, calc((var(--depth) * -1px) - 0.5px));
+}
+
+.coin-button-text {
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .coin-tip-button {
+    scale: 1;
+    font-size: 0.8rem;
+  }
+  
+  .coin-button-content {
+    gap: 0.5rem;
+    padding: 0.4rem 0.6rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .coin-tip-button {
+    scale: 0.9;
+    font-size: 0.75rem;
+  }
+  
+  .coin-button-content {
+    gap: 0.4rem;
+    padding: 0.35rem 0.5rem;
+  }
+}
+
+/* 可访问性增强 */
+@media (prefers-reduced-motion: reduce) {
+  .coin-tip-button,
+  .coin-purse,
+  .coin-hole,
+  .coin,
+  .coin__core,
+  .coin__face {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* 高对比度模式支持 */
+@media (prefers-contrast: high) {
+  .coin-tip-button {
+    border-width: 2px;
+    --bg: #0056b3;
+  }
+}
+
+/* 深色主题支持 */
+@media (prefers-color-scheme: dark) {
+  .coin-tip-button {
+    --bg: #4a9eff;
+  }
+}
+
+/* 焦点状态 */
+.coin-tip-button:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}

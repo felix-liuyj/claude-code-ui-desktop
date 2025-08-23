@@ -1750,6 +1750,11 @@ function ChatInterface({
         if (messages.length > 0) {
             const latestMessage = messages[messages.length - 1];
 
+            // Skip all processing for smart commit and background sessions
+            if (latestMessage.smartCommit || latestMessage.background) {
+                return;
+            }
+
             switch (latestMessage.type) {
                 case 'session-created':
                     // New session created by Claude CLI - we receive the real session ID here

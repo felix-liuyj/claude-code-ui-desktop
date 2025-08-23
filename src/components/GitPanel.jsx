@@ -18,6 +18,7 @@ import {
     X
 } from 'lucide-react';
 import { MicButton } from './MicButton.jsx';
+import Computer3DTyping from './InteractiveWidgets/Computer3DTyping';
 import { apiFetch } from '../utils/api';
 import { useElectron } from '../utils/electron';
 import { useWebSocket } from '../utils/websocket';
@@ -1408,14 +1409,21 @@ function GitPanel({ selectedProject, isMobile }) {
                                 <h3 className="text-lg font-semibold">智能提交中</h3>
                             </div>
 
-                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
                                 {smartCommitProgress}
                             </p>
 
-                            <div className="flex items-center justify-center mb-4">
-                                <div className="relative">
-                                    <div className="w-8 h-8 rounded-full border-4 border-gray-200 dark:border-gray-700"></div>
-                                    <div className="absolute inset-0 w-8 h-8 rounded-full border-4 border-t-transparent border-r-transparent border-purple-500 animate-spin"></div>
+                            <div className="flex items-center justify-center" style={{ 
+                                height: '200px',
+                                marginBottom: '1rem'
+                            }}>
+                                <div style={{ transform: 'scale(0.75)' }}>
+                                    <Computer3DTyping 
+                                        text="Pending..."
+                                        typingSpeed={400}
+                                        pauseDuration={800}
+                                        loop={true}
+                                    />
                                 </div>
                             </div>
 
