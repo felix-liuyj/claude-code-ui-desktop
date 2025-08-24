@@ -10,12 +10,11 @@
 
 /* 3D电脑容器主体 */
 .computer-container {
-  width: 100%;
-  height: 180px;
+  width: min(800px, 90vw);
+  height: min(600px, 70vh);
   position: relative;
   cursor: pointer;
-  margin: 0;
-  padding: 20px 0;
+  margin-top: clamp(50px, 15vh, 200px);
   transform-style: preserve-3d;
   background: transparent;
   overflow: visible;
@@ -24,9 +23,6 @@
   color: rgba(255, 255, 251, 0.8);
   text-transform: uppercase;
   letter-spacing: 2px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
 }
 
 @media (max-width: 1200px) {
@@ -87,36 +83,32 @@
 
 /* 屏幕显示区域 */
 .computer-container .screen {
-  width: 140px;
-  height: 90px;
-  transform: translateZ(45px) translateY(-70px) rotateX(270deg);
+  width: clamp(120px, 30vw, 150px);
+  height: clamp(90px, 20vh, 110px);
+  transform: translateZ(50px) translateY(-80px) translateZ(25px) rotateX(270deg);
   background: linear-gradient(135deg, #a9dffd 0%, #8fd2f8 100%);
-  border-radius: 6px;
+  border-radius: 8px;
   box-shadow: 
-    0 0 3px rgba(169, 223, 253, 0.6),
-    0 0 6px rgba(169, 223, 253, 0.5);
+    0 0 3px rgba(169, 223, 253, 0.8),
+    0 0 6px rgba(169, 223, 253, 0.7),
+    0 0 10px rgba(169, 223, 253, 0.6);
   animation: screen-glow 1s ease-in-out alternate infinite;
   font-family: 'Courier New', monospace;
   font-size: 10px;
-  padding: 8px;
+  padding: 6px;
   color: #000;
   text-transform: none;
   letter-spacing: 0.5px;
   overflow: hidden;
   white-space: pre-wrap;
-  word-wrap: break-word;
-  display: flex;
-  align-items: flex-start;
-  justify-content: flex-start;
 }
 
 /* 键盘主体容器 */
 .computer-container .keyboard {
-  width: 220px;
-  height: 70px;
-  transform: perspective(5000px) rotateX(60deg) rotateZ(-35deg) scale(0.65);
+  width: clamp(200px, 45vw, 250px);
+  height: clamp(60px, 12vh, 80px);
+  transform: perspective(10000px) rotateX(50deg) rotateZ(-25deg);
   transition: transform 0.1s ease-out;
-  position: relative;
 }
 
 .computer-container .keyboard__front {

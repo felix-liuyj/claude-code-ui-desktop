@@ -1419,13 +1419,23 @@ function GitPanel({ selectedProject, isMobile }) {
                                 overflow: 'hidden',
                                 position: 'relative'
                             }}>
-                                <Computer3DTyping 
-                                    text="Analyzing code changes..."
-                                    typingSpeed={100}
-                                    pauseDuration={1000}
-                                    loop={true}
-                                    autoStart={true}
-                                />
+                                <div style={{ 
+                                    transform: 'scale(0.5)', 
+                                    transformOrigin: 'center center',
+                                    width: '100%',
+                                    height: '100%',
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    alignItems: 'center'
+                                }}>
+                                    <Computer3DTyping 
+                                        text="Pending..."
+                                        typingSpeed={400}
+                                        pauseDuration={800}
+                                        loop={true}
+                                        autoStart={true}
+                                    />
+                                </div>
                             </div>
 
                             <div className="text-xs text-center text-gray-500 dark:text-gray-400 mb-4">
