@@ -173,25 +173,18 @@ const Computer3DTyping = ({
     }, 200);
   }, [stopTyping, clearScreen, startTyping]);
 
-  // 当文本改变时重新开始
+  // 初始化时开始
   useEffect(() => {
-    if (autoStart) {
-      restart();
+    if (autoStart && text) {
+      startTyping();
     }
     
     return () => {
       stopTyping();
     };
-  }, [text]);
+  }, []); // 只在组件挂载时执行一次
 
-  // 设置固定角度
-  useEffect(() => {
-    if (!keyboardRef.current) return;
-    
-    // 固定在初始角度
-    keyboardRef.current.style.transform = 
-      `perspective(10000px) rotateX(60deg) rotateZ(-35deg)`;
-  }, []);
+  // 设置固定角度 - 移除因为CSS已处理
 
   // 清理定时器
   useEffect(() => {

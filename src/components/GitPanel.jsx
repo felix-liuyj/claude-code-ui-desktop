@@ -1420,10 +1420,11 @@ function GitPanel({ selectedProject, isMobile }) {
                                 position: 'relative'
                             }}>
                                 <Computer3DTyping 
-                                    text="Pending..."
-                                    typingSpeed={400}
-                                    pauseDuration={800}
+                                    text="Analyzing code changes..."
+                                    typingSpeed={100}
+                                    pauseDuration={1000}
                                     loop={true}
+                                    autoStart={true}
                                 />
                             </div>
 
