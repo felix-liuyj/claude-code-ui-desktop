@@ -10,11 +10,11 @@
 
 /* 3D电脑容器主体 */
 .computer-container {
-  width: min(800px, 90vw);
-  height: min(600px, 70vh);
+  width: min(400px, 90vw);
+  height: min(300px, 35vh);
   position: relative;
   cursor: pointer;
-  margin-top: clamp(50px, 15vh, 200px);
+  margin: 0;
   transform-style: preserve-3d;
   background: radial-gradient(circle at center, #2a2929 0%, #1a1919 100%);
   overflow: hidden;
@@ -83,48 +83,45 @@
 
 /* 屏幕显示区域 */
 .computer-container .screen {
-  width: clamp(250px, 30.3vw, 303px);
-  height: clamp(200px, 24vh, 240px);
-  transform: translateZ(100px) translateY(-200px) translateZ(50px) rotateX(270deg);
+  width: clamp(120px, 30vw, 150px);
+  height: clamp(90px, 20vh, 110px);
+  transform: translateZ(50px) translateY(-80px) translateZ(25px) rotateX(270deg);
   background: linear-gradient(135deg, #a9dffd 0%, #8fd2f8 100%);
-  border-radius: 10px;
+  border-radius: 8px;
   box-shadow: 
-    0 0 5px rgba(169, 223, 253, 0.8),
-    0 0 10px rgba(169, 223, 253, 0.7),
-    0 0 15px rgba(169, 223, 253, 0.6),
-    0 0 20px rgba(169, 223, 253, 0.5),
-    0 0 40px rgba(169, 223, 253, 0.4),
-    0 0 60px rgba(169, 223, 253, 0.3);
+    0 0 3px rgba(169, 223, 253, 0.8),
+    0 0 6px rgba(169, 223, 253, 0.7),
+    0 0 10px rgba(169, 223, 253, 0.6);
   animation: screen-glow 1s ease-in-out alternate infinite;
   font-family: 'Courier New', monospace;
-  font-size: 14px;
-  padding: 10px;
+  font-size: 10px;
+  padding: 6px;
   color: #000;
   text-transform: none;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
   overflow: hidden;
   white-space: pre-wrap;
 }
 
 /* 键盘主体容器 */
 .computer-container .keyboard {
-  width: clamp(400px, 50vw, 500px);
-  height: clamp(120px, 16vh, 160px);
-  transform: perspective(10000px) rotateX(50deg) rotateZ(-25deg);
+  width: clamp(200px, 45vw, 250px);
+  height: clamp(60px, 12vh, 80px);
+  transform: perspective(5000px) rotateX(50deg) rotateZ(-25deg);
   transition: transform 0.1s ease-out;
 }
 
 .computer-container .keyboard__front {
-  width: 500px;
-  height: 25px;
-  transform: rotateX(-90deg) translateZ(80px);
+  width: 250px;
+  height: 12px;
+  transform: rotateX(-90deg) translateZ(40px);
   background-color: #9c9c9c;
 }
 
 .computer-container .keyboard__back {
-  width: 500px;
-  height: 25px;
-  transform: rotateX(90deg) translateZ(80px);
+  width: 250px;
+  height: 12px;
+  transform: rotateX(90deg) translateZ(40px);
   background-color: #fffffb;
 }
 
@@ -132,31 +129,31 @@
   display: flex;
   flex-direction: column;
   justify-content: space-around;
-  width: 500px;
-  height: 160px;
-  transform: rotateY(0deg) translateZ(12.5px);
+  width: 250px;
+  height: 80px;
+  transform: rotateY(0deg) translateZ(6px);
   background-image: linear-gradient(to bottom, #dbf2fe, #343232);
 }
 
 .computer-container .keyboard__bottom {
-  width: 500px;
-  height: 160px;
-  transform: rotateY(180deg) translateZ(12.5px);
+  width: 250px;
+  height: 80px;
+  transform: rotateY(180deg) translateZ(6px);
   background-color: #eae7e5;
-  box-shadow: -20px 40px 0 #0d0c0c, 0 40px 0 #0d0c0c, 5px 0 0 #0d0c0c, 5px 40px 0 #0d0c0c;
+  box-shadow: -10px 20px 0 #0d0c0c, 0 20px 0 #0d0c0c, 2px 0 0 #0d0c0c, 2px 20px 0 #0d0c0c;
 }
 
 .computer-container .keyboard__right {
-  width: 25px;
-  height: 160px;
-  transform: rotateY(90deg) translateZ(250px);
+  width: 12px;
+  height: 80px;
+  transform: rotateY(90deg) translateZ(125px);
   background-color: #fffffb;
 }
 
 .computer-container .keyboard__left {
-  width: 25px;
-  height: 160px;
-  transform: rotateY(90deg) translateZ(-250px);
+  width: 12px;
+  height: 80px;
+  transform: rotateY(90deg) translateZ(-125px);
   background-color: #eae7e5;
 }
 
@@ -165,13 +162,13 @@
   justify-content: space-between;
   flex-wrap: wrap;
   width: 100%;
-  transform: translateZ(7.5px);
-  padding: 0 2px;
+  transform: translateZ(3px);
+  padding: 0 1px;
 }
 
 .computer-container .key {
-  width: clamp(20px, 3vw, 30px);
-  height: clamp(18px, 2.7vw, 27px);
+  width: clamp(10px, 2vw, 15px);
+  height: clamp(9px, 1.8vw, 13px);
   transition: transform 0.05s ease, box-shadow 0.1s ease;
   border: none;
   background: transparent;
@@ -185,130 +182,130 @@
 }
 
 .computer-container .key--w2 {
-  width: clamp(40px, 6vw, 60px);
+  width: clamp(20px, 4vw, 30px);
 }
 
 .computer-container .key--w3 {
-  width: clamp(60px, 9vw, 90px);
+  width: clamp(30px, 6vw, 45px);
 }
 
 .computer-container .key--w6 {
-  width: clamp(130px, 19.5vw, 195px);
+  width: clamp(65px, 15vw, 95px);
 }
 
 .computer-container .key__front {
-  width: 30px;
-  height: 15px;
-  transform: rotateX(-90deg) translateZ(13.5px);
+  width: 15px;
+  height: 7px;
+  transform: rotateX(-90deg) translateZ(6.5px);
   background-color: #838383;
 }
 
 .computer-container .key__front--w2 {
-  width: 60px;
+  width: 30px;
 }
 
 .computer-container .key__front--w3 {
-  width: 90px;
+  width: 45px;
 }
 
 .computer-container .key__front--w6 {
-  width: 195px;
+  width: 95px;
 }
 
 .computer-container .key__back {
-  width: 30px;
-  height: 15px;
-  transform: rotateX(90deg) translateZ(13.5px);
+  width: 15px;
+  height: 7px;
+  transform: rotateX(90deg) translateZ(6.5px);
   background-color: #fffffb;
 }
 
 .computer-container .key__back--w2 {
-  width: 60px;
+  width: 30px;
 }
 
 .computer-container .key__back--w3 {
-  width: 90px;
+  width: 45px;
 }
 
 .computer-container .key__back--w6 {
-  width: 195px;
+  width: 95px;
 }
 
 .computer-container .key__top {
-  width: 30px;
-  height: 27px;
-  transform: rotateY(0deg) translateZ(7.5px);
+  width: 15px;
+  height: 13px;
+  transform: rotateY(0deg) translateZ(3.5px);
   background-color: #fffffb;
   background-image: linear-gradient(to bottom, #f4fbff, #fffffb);
 }
 
 .computer-container .key__top--w2 {
-  width: 60px;
+  width: 30px;
 }
 
 .computer-container .key__top--w3 {
-  width: 90px;
+  width: 45px;
 }
 
 .computer-container .key__top--w6 {
-  width: 195px;
+  width: 95px;
 }
 
 .computer-container .key__bottom {
-  width: 30px;
-  height: 27px;
-  transform: rotateY(180deg) translateZ(7.5px);
+  width: 15px;
+  height: 13px;
+  transform: rotateY(180deg) translateZ(3.5px);
   background-color: #838383;
 }
 
 .computer-container .key__bottom--w2 {
-  width: 60px;
+  width: 30px;
 }
 
 .computer-container .key__bottom--w3 {
-  width: 90px;
+  width: 45px;
 }
 
 .computer-container .key__bottom--w6 {
-  width: 195px;
+  width: 95px;
 }
 
 .computer-container .key__right {
-  width: 15px;
-  height: 27px;
-  transform: rotateY(90deg) translateZ(15px);
+  width: 7px;
+  height: 13px;
+  transform: rotateY(90deg) translateZ(7px);
   background-color: #838383;
 }
 
 .computer-container .key__right--w2 {
-  transform: rotateY(90deg) translateZ(30px);
+  transform: rotateY(90deg) translateZ(15px);
 }
 
 .computer-container .key__right--w3 {
-  transform: rotateY(90deg) translateZ(45px);
+  transform: rotateY(90deg) translateZ(22px);
 }
 
 .computer-container .key__right--w6 {
-  transform: rotateY(90deg) translateZ(97.5px);
+  transform: rotateY(90deg) translateZ(47px);
 }
 
 .computer-container .key__left {
-  width: 15px;
-  height: 27px;
-  transform: rotateY(90deg) translateZ(-15px);
+  width: 7px;
+  height: 13px;
+  transform: rotateY(90deg) translateZ(-7px);
   background-image: linear-gradient(to bottom, #c5c5c5, #b8b8b8);
 }
 
 .computer-container .key__left--w2 {
-  transform: rotateY(90deg) translateZ(-30px);
+  transform: rotateY(90deg) translateZ(-15px);
 }
 
 .computer-container .key__left--w3 {
-  transform: rotateY(90deg) translateZ(-45px);
+  transform: rotateY(90deg) translateZ(-22px);
 }
 
 .computer-container .key__left--w6 {
-  transform: rotateY(90deg) translateZ(-97.5px);
+  transform: rotateY(90deg) translateZ(-47px);
 }
 
 .computer-container .face--key-b1 {
