@@ -83,8 +83,8 @@
 
 /* 屏幕显示区域 */
 .computer-container .screen {
-  width: clamp(120px, 30vw, 150px);
-  height: clamp(90px, 20vh, 110px);
+  width: clamp(180px, 35vw, 220px);
+  height: clamp(110px, 22vh, 140px);
   transform: translateZ(50px) translateY(-80px) translateZ(25px) rotateX(270deg);
   background: linear-gradient(135deg, #a9dffd 0%, #8fd2f8 100%);
   border-radius: 8px;

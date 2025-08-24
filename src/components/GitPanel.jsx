@@ -87,6 +87,16 @@ function GitPanel({ selectedProject, isMobile }) {
         if (messages.length > 0 && smartCommitSessionId) {
             const latestMessage = messages[messages.length - 1];
             
+            // Debug logging
+            console.log('[SmartCommit] Checking message:', {
+                type: latestMessage.type,
+                sessionId: latestMessage.sessionId,
+                dataSessionId: latestMessage.data?.sessionId,
+                smartCommit: latestMessage.smartCommit,
+                dataSmartCommit: latestMessage.data?.smartCommit,
+                currentSessionId: smartCommitSessionId
+            });
+            
             // Process messages related to our smart commit session or general smartCommit messages
             const isRelatedMessage = 
                 latestMessage.data?.sessionId === smartCommitSessionId || 
@@ -95,6 +105,8 @@ function GitPanel({ selectedProject, isMobile }) {
                 (latestMessage.smartCommit && smartCommitSessionId);
             
             if (isRelatedMessage) {
+                console.log('[SmartCommit] Processing related message:', latestMessage.type);
+                
                 switch (latestMessage.type) {
                     case 'claude-response':
                         const messageData = latestMessage.data?.message || latestMessage.data;
@@ -104,6 +116,8 @@ function GitPanel({ selectedProject, isMobile }) {
                             if (messageData.content) {
                                 // Extract relevant progress information from Claude's response
                                 const content = messageData.content;
+                                console.log('[SmartCommit] Assistant content:', content.substring(0, 100));
+                                
                                 if (content.includes('分析') || content.includes('analyzing')) {
                                     setSmartCommitProgress('正在分析代码变动...');
                                 } else if (content.includes('提交') || content.includes('commit')) {
@@ -123,6 +137,8 @@ function GitPanel({ selectedProject, isMobile }) {
                     case 'claude-tool-call':
                         // Track tool usage during smart commit
                         const toolData = latestMessage.data;
+                        console.log('[SmartCommit] Tool call:', toolData?.tool || toolData?.name);
+                        
                         if (toolData?.tool === 'bash' || toolData?.name === 'Bash') {
                             setSmartCommitProgress('正在执行Git操作...');
                         } else if (toolData?.tool === 'edit' || toolData?.name === 'Edit') {
@@ -135,12 +151,15 @@ function GitPanel({ selectedProject, isMobile }) {
                     case 'claude-complete':
                         // Smart commit session completed - check exit code
                         const exitCode = latestMessage.exitCode || latestMessage.data?.exitCode;
+                        console.log('[SmartCommit] Complete event received with exit code:', exitCode);
+                        
                         if (exitCode === 0 || exitCode === undefined) {
                             setSmartCommitProgress('智能提交完成！');
                         } else {
                             setSmartCommitProgress('智能提交完成（可能有警告）');
                         }
                         setTimeout(() => {
+                            console.log('[SmartCommit] Auto-closing modal');
                             setIsSmartCommitting(false);
                             setSmartCommitSessionId(null);
                             fetchGitStatus();
@@ -149,6 +168,7 @@ function GitPanel({ selectedProject, isMobile }) {
                         
                     case 'claude-error':
                         // Smart commit failed
+                        console.log('[SmartCommit] Error event received');
                         setSmartCommitProgress('智能提交失败');
                         setTimeout(() => {
                             setIsSmartCommitting(false);
