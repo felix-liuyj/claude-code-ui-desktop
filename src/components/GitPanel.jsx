@@ -1423,7 +1423,6 @@ function GitPanel({ selectedProject, isMobile }) {
 
                             <div className="flex items-center justify-center" style={{ 
                                 height: '180px',
-                                marginBottom: '1rem',
                                 overflow: 'hidden',
                                 position: 'relative'
                             }}>
@@ -1439,7 +1438,7 @@ function GitPanel({ selectedProject, isMobile }) {
                                     <Computer3DTyping 
                                         text="Pending..."
                                         typingSpeed={400}
-                                        pauseDuration={800}
+                                        pauseDuration={400}
                                         loop={true}
                                         autoStart={true}
                                     />

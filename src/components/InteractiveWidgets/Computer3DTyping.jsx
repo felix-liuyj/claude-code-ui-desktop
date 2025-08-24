@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import './Computer3D.css';
+import './Computer3DTyping.css';
 
 /**
  * 3D电脑键盘自动打字动画组件
