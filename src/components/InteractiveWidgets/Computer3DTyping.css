@@ -10,11 +10,11 @@
 
 /* 3D电脑容器主体 */
 .computer-container {
-    width: min(800px, 90vw);
-    height: min(600px, 70vh);
+    width: 280px;
+    height: 200px;
     position: relative;
     cursor: pointer;
-    margin-top: clamp(50px, 15vh, 200px);
+    margin: 20px auto;
     transform-style: preserve-3d;
     background: transparent;
     overflow: visible;
@@ -23,6 +23,7 @@
     color: rgba(255, 255, 251, 0.8);
     text-transform: uppercase;
     letter-spacing: 2px;
+    transform: scale(0.8);
 }
 
 @media (max-width: 1200px) {
@@ -83,8 +84,8 @@
 
 /* 屏幕显示区域 */
 .computer-container .screen {
-    width: clamp(120px, 30vw, 150px);
-    height: clamp(90px, 20vh, 110px);
+    width: clamp(180px, 35vw, 220px);
+    height: clamp(110px, 22vh, 140px);
     transform: translateZ(50px) translateY(-80px) translateZ(25px) rotateX(270deg);
     background: linear-gradient(135deg, #a9dffd 0%, #8fd2f8 100%);
     border-radius: 8px;
@@ -93,20 +94,25 @@
     0 0 10px rgba(169, 223, 253, 0.6);
     animation: screen-glow 1s ease-in-out alternate infinite;
     font-family: 'Courier New', monospace;
-    font-size: 10px;
-    padding: 6px;
+    font-size: 12px;
+    font-weight: bold;
+    padding: 8px;
     color: #000;
     text-transform: none;
-    letter-spacing: 0.5px;
+    letter-spacing: 1px;
     overflow: hidden;
     white-space: pre-wrap;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 /* 键盘主体容器 */
 .computer-container .keyboard {
-    width: clamp(200px, 45vw, 250px);
-    height: clamp(60px, 12vh, 80px);
-    transform: perspective(10000px) rotateX(50deg) rotateZ(-25deg);
+    width: 250px;
+    height: 80px;
+    transform: perspective(1000px) rotateX(50deg) rotateZ(-25deg);
     transition: transform 0.1s ease-out;
 }
 
@@ -132,6 +138,7 @@
     height: 80px;
     transform: rotateY(0deg) translateZ(6px);
     background-image: linear-gradient(to bottom, #dbf2fe, #343232);
+    padding: 2px;
 }
 
 .computer-container .keyboard__bottom {
@@ -159,20 +166,22 @@
 .computer-container .keys {
     display: flex;
     justify-content: space-between;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     width: 100%;
     transform: translateZ(3px);
-    padding: 0 1px;
+    padding: 0 2px;
+    gap: 1px;
 }
 
 .computer-container .key {
-    width: clamp(10px, 2vw, 15px);
-    height: clamp(9px, 1.8vw, 13px);
+    width: 15px;
+    height: 13px;
     transition: transform 0.05s ease, box-shadow 0.1s ease;
     border: none;
     background: transparent;
     cursor: pointer;
     outline: none;
+    margin: 0.5px;
 }
 
 .computer-container .key:focus {
@@ -181,15 +190,15 @@
 }
 
 .computer-container .key--w2 {
-    width: clamp(20px, 4vw, 30px);
+    width: 30px;
 }
 
 .computer-container .key--w3 {
-    width: clamp(30px, 6vw, 45px);
+    width: 45px;
 }
 
 .computer-container .key--w6 {
-    width: clamp(65px, 15vw, 95px);
+    width: 95px;
 }
 
 .computer-container .key__front {

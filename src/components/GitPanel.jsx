@@ -55,6 +55,7 @@ function GitPanel({ selectedProject, isMobile }) {
     const [confirmAction, setConfirmAction] = useState(null); // { type: 'discard|commit|pull|push', file?: string, message?: string }
     const [isSmartCommitting, setIsSmartCommitting] = useState(false); // Track smart commit progress
     const [smartCommitSessionId, setSmartCommitSessionId] = useState(null); // Track smart commit session
+    const smartCommitTimeoutRef = useRef(null);
     const [smartCommitProgress, setSmartCommitProgress] = useState('正在分析代码变动...'); // Progress message
     const textareaRef = useRef(null);
     const dropdownRef = useRef(null);
@@ -94,7 +95,8 @@ function GitPanel({ selectedProject, isMobile }) {
                 dataSessionId: latestMessage.data?.sessionId,
                 smartCommit: latestMessage.smartCommit,
                 dataSmartCommit: latestMessage.data?.smartCommit,
-                currentSessionId: smartCommitSessionId
+                currentSessionId: smartCommitSessionId,
+                fullMessage: latestMessage
             });
             
             // Process messages related to our smart commit session or general smartCommit messages
@@ -103,6 +105,16 @@ function GitPanel({ selectedProject, isMobile }) {
                 latestMessage.sessionId === smartCommitSessionId ||
                 (latestMessage.data?.smartCommit && smartCommitSessionId) ||
                 (latestMessage.smartCommit && smartCommitSessionId);
+                
+            console.log('[SmartCommit] Message matching result:', {
+                isRelatedMessage,
+                matches: {
+                    dataSessionId: latestMessage.data?.sessionId === smartCommitSessionId,
+                    sessionId: latestMessage.sessionId === smartCommitSessionId,
+                    dataSmartCommit: latestMessage.data?.smartCommit && smartCommitSessionId,
+                    smartCommit: latestMessage.smartCommit && smartCommitSessionId
+                }
+            });
             
             if (isRelatedMessage) {
                 console.log('[SmartCommit] Processing related message:', latestMessage.type);
@@ -160,6 +172,10 @@ function GitPanel({ selectedProject, isMobile }) {
                         }
                         setTimeout(() => {
                             console.log('[SmartCommit] Auto-closing modal');
+                            if (smartCommitTimeoutRef.current) {
+                                clearTimeout(smartCommitTimeoutRef.current);
+                                smartCommitTimeoutRef.current = null;
+                            }
                             setIsSmartCommitting(false);
                             setSmartCommitSessionId(null);
                             fetchGitStatus();
@@ -1173,6 +1189,14 @@ function GitPanel({ selectedProject, isMobile }) {
                                                                     const sessionId = await window.claudeCommitChanges(selectedProject, Array.from(selectedFiles));
                                                                     setSmartCommitSessionId(sessionId);
                                                                     setSmartCommitProgress('正在分析代码变动...');
+                                                                    
+                                                                    // Set a 2-minute timeout to auto-close if no completion event
+                                                                    smartCommitTimeoutRef.current = setTimeout(() => {
+                                                                        console.log('[SmartCommit] Timeout reached, auto-closing modal');
+                                                                        setIsSmartCommitting(false);
+                                                                        setSmartCommitSessionId(null);
+                                                                        fetchGitStatus();
+                                                                    }, 120000); // 2 minutes
                                                                 } catch (error) {
                                                                     console.error('Smart commit failed:', error);
                                                                     setSmartCommitProgress('智能提交失败');

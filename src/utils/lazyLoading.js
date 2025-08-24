@@ -2,16 +2,16 @@
  * 代码分割和懒加载工具
  * 提供组件、资源的按需加载功能
  */
-import React, { lazy, Suspense, useState, useEffect, useRef } from 'react';
+import React, { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import globalCache, { CACHE_PRIORITY } from './progressiveCache';
 
 // 创建懒加载组件的工具函数
 export const createLazyComponent = (importFn, fallback = null) => {
     const LazyComponent = lazy(importFn);
-    
+
     return (props) => (
-        <Suspense fallback={fallback || <DefaultLoadingFallback />}>
-            <LazyComponent {...props} />
+        <Suspense fallback={ fallback || <DefaultLoadingFallback/> }>
+            <LazyComponent { ...props } />
         </Suspense>
     );
 };
@@ -64,14 +64,14 @@ export const createRouteComponent = (importFn, preload = false) => {
 export const useLazyImage = () => {
     const loadImage = async (src, priority = CACHE_PRIORITY.LOW) => {
         // 检查缓存
-        const cached = await globalCache.get(`img_${src}`);
+        const cached = await globalCache.get(`img_${ src }`);
         if (cached) {
             return cached;
         }
 
         return new Promise((resolve, reject) => {
             const img = new Image();
-            
+
             img.onload = async () => {
                 const imageData = {
                     src,
@@ -79,20 +79,20 @@ export const useLazyImage = () => {
                     height: img.naturalHeight,
                     loaded: true
                 };
-                
+
                 // 缓存图片信息
-                await globalCache.set(`img_${src}`, imageData, { 
+                await globalCache.set(`img_${ src }`, imageData, {
                     priority,
                     ttl: 30 * 60 * 1000 // 30分钟
                 });
-                
+
                 resolve(imageData);
             };
-            
+
             img.onerror = () => {
-                reject(new Error(`Failed to load image: ${src}`));
+                reject(new Error(`Failed to load image: ${ src }`));
             };
-            
+
             img.src = src;
         });
     };
@@ -107,15 +107,17 @@ export const useLazyImage = () => {
 };
 
 // 懒加载图片组件
-export const LazyImage = ({ 
-    src, 
-    alt, 
-    className = '', 
-    style = {},
-    placeholder = null,
-    onLoad = () => {},
-    onError = () => {}
-}) => {
+export const LazyImage = ({
+                              src,
+                              alt,
+                              className = '',
+                              style = {},
+                              placeholder = null,
+                              onLoad = () => {
+                              },
+                              onError = () => {
+                              }
+                          }) => {
     const [isLoaded, setIsLoaded] = useState(false);
     const [error, setError] = useState(false);
     const [isInView, setIsInView] = useState(false);
@@ -162,10 +164,11 @@ export const LazyImage = ({
     }, [isInView, src, loadImage, onLoad, onError]);
 
     return (
-        <div ref={imgRef} className={`lazy-image-container ${className}`} style={style}>
-            {!isInView ? (
+        <div ref={ imgRef } className={ `lazy-image-container ${ className }` } style={ style }>
+            { !isInView ? (
                 placeholder || (
-                    <div className="animate-pulse bg-gray-200 dark:bg-gray-700 rounded w-full h-full min-h-[100px]"></div>
+                    <div
+                        className="animate-pulse bg-gray-200 dark:bg-gray-700 rounded w-full h-full min-h-[100px]"></div>
                 )
             ) : error ? (
                 <div className="flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded min-h-[100px]">
@@ -175,12 +178,12 @@ export const LazyImage = ({
                 <div className="animate-pulse bg-gray-200 dark:bg-gray-700 rounded w-full h-full min-h-[100px]"></div>
             ) : (
                 <img
-                    src={src}
-                    alt={alt}
+                    src={ src }
+                    alt={ alt }
                     className="w-full h-full object-cover rounded"
                     loading="lazy"
                 />
-            )}
+            ) }
         </div>
     );
 };
@@ -188,9 +191,9 @@ export const LazyImage = ({
 // 脚本懒加载
 export const loadScript = async (src, options = {}) => {
     const { async = true, defer = false, attributes = {} } = options;
-    
+
     // 检查是否已加载
-    if (document.querySelector(`script[src="${src}"]`)) {
+    if (document.querySelector(`script[src="${ src }"]`)) {
         return Promise.resolve();
     }
 
@@ -205,7 +208,7 @@ export const loadScript = async (src, options = {}) => {
         });
 
         script.onload = () => resolve();
-        script.onerror = () => reject(new Error(`Failed to load script: ${src}`));
+        script.onerror = () => reject(new Error(`Failed to load script: ${ src }`));
 
         document.head.appendChild(script);
     });
@@ -214,7 +217,7 @@ export const loadScript = async (src, options = {}) => {
 // 样式表懒加载
 export const loadStylesheet = async (href, media = 'all') => {
     // 检查是否已加载
-    if (document.querySelector(`link[href="${href}"]`)) {
+    if (document.querySelector(`link[href="${ href }"]`)) {
         return Promise.resolve();
     }
 
@@ -225,7 +228,7 @@ export const loadStylesheet = async (href, media = 'all') => {
         link.media = media;
 
         link.onload = () => resolve();
-        link.onerror = () => reject(new Error(`Failed to load stylesheet: ${href}`));
+        link.onerror = () => reject(new Error(`Failed to load stylesheet: ${ href }`));
 
         document.head.appendChild(link);
     });
@@ -242,7 +245,7 @@ class LazyModuleManager {
     async loadModule(importFn, moduleId) {
         if (this.loadedModules.has(moduleId)) {
             // 从缓存获取
-            const cached = await globalCache.get(`module_${moduleId}`);
+            const cached = await globalCache.get(`module_${ moduleId }`);
             if (cached) return cached;
         }
 
@@ -254,7 +257,7 @@ class LazyModuleManager {
             .then(module => {
                 this.loadedModules.add(moduleId);
                 // 缓存模块引用信息
-                globalCache.set(`module_${moduleId}`, { loaded: true, timestamp: Date.now() }, {
+                globalCache.set(`module_${ moduleId }`, { loaded: true, timestamp: Date.now() }, {
                     priority: CACHE_PRIORITY.HIGH,
                     ttl: 60 * 60 * 1000 // 1小时
                 });
@@ -269,7 +272,7 @@ class LazyModuleManager {
     }
 
     // 预加载模块
-    preloadModule(importFn, moduleId, priority = 'low') => {
+    preloadModule(importFn, moduleId, priority = 'low') {
         if (this.loadedModules.has(moduleId)) return;
 
         const loadFn = () => this.loadModule(importFn, moduleId).catch(console.error);
@@ -298,13 +301,13 @@ export const moduleManager = new LazyModuleManager();
 // 基于网络状态的智能加载策略
 export const getLoadingStrategy = () => {
     const connection = navigator.connection;
-    
+
     if (!connection) {
         return { preload: true, priority: 'medium' };
     }
 
     const { effectiveType, saveData } = connection;
-    
+
     // 数据节省模式
     if (saveData) {
         return { preload: false, priority: 'low' };
@@ -327,7 +330,7 @@ export const getLoadingStrategy = () => {
 // 智能预加载
 export const smartPreload = (resources) => {
     const strategy = getLoadingStrategy();
-    
+
     if (!strategy.preload) {
         console.log('🐌 Slow network detected, skipping preload');
         return;
@@ -335,7 +338,7 @@ export const smartPreload = (resources) => {
 
     resources.forEach(resource => {
         const { type, src, importFn, id } = resource;
-        
+
         switch (type) {
             case 'component':
                 if (importFn && id) {
@@ -359,7 +362,7 @@ export const smartPreload = (resources) => {
 // React组件的代码分割HOC
 export const withCodeSplitting = (importFn, options = {}) => {
     const {
-        fallback = <DefaultLoadingFallback />,
+        fallback = <DefaultLoadingFallback/>,
         preload = false,
         moduleId = null
     } = options;
@@ -376,8 +379,8 @@ export const withCodeSplitting = (importFn, options = {}) => {
     });
 
     return (props) => (
-        <Suspense fallback={fallback}>
-            <LazyComponent {...props} />
+        <Suspense fallback={ fallback }>
+            <LazyComponent { ...props } />
         </Suspense>
     );
 };

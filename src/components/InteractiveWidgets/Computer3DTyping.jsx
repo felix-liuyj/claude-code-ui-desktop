@@ -287,8 +287,10 @@ const Computer3DTyping = ({
                     {/* 第三排字母行 */ }
                     <div className="keys">
                         { createKey('key--w2', 'b3', 'shift-left') }
-                        { Array.from({ length: 10 }, (_, i) => createKey('', '', `letter3-${ i }`)) }
+                        { Array.from({ length: 7 }, (_, i) => createKey('', '', `letter3-${ i }`)) }
                         { createKey('', '', 'letter3-comma') }
+                        { createKey('', '', 'letter3-period') }
+                        { createKey('', '', 'letter3-slash') }
                         { createKey('key--w3', 'b3', 'shift-right') }
                     </div>
 
@@ -297,13 +299,11 @@ const Computer3DTyping = ({
                         { createKey('', 'b3', 'ctrl-left') }
                         { createKey('', 'o3', 'alt-left') }
                         { createKey('', 'b3', 'cmd-left') }
-                        { createKey('', 'b3', 'cmd-right') }
                         { createKey('key--w6', '', 'spacebar') }
+                        { createKey('', 'b3', 'cmd-right') }
                         { createKey('', 'b3', 'alt-right') }
                         { createKey('', 'b3', 'fn') }
                         { createKey('', 'b3', 'ctrl-right') }
-                        { createKey('', 'b3', 'arrow-left') }
-                        { createKey('', 'b3', 'arrow-right') }
                     </div>
                 </div>
 
