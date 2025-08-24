@@ -201,8 +201,8 @@ const Computer3DTyping = ({
   }, [stopTyping]);
 
   // 创建按键组件
-  const createKey = (className = '', colorClass = '') => (
-    <div className={`key flex ${className}`}>
+  const createKey = (className = '', colorClass = '', keyId = '') => (
+    <div key={keyId} className={`key flex ${className}`}>
       <div className={`key__front face ${colorClass ? `face--key-${colorClass}` : ''}`}></div>
       <div className={`key__back face ${colorClass ? `face--key-${colorClass.replace('3', '1')}` : ''}`}></div>
       <div className={`key__right face ${colorClass ? `face--key-${colorClass.replace('3', '1')}` : ''}`}></div>
@@ -250,51 +250,51 @@ const Computer3DTyping = ({
         <div className="keyboard__top face">
           {/* 数字行 */}
           <div className="keys">
-            {createKey('', 'b3')}
-            {Array.from({ length: 10 }, (_, i) => createKey())}
-            {createKey()}
-            {createKey()}
-            {createKey('key--w2', 'b3')}
+            {createKey('', 'b3', 'num-esc')}
+            {Array.from({ length: 10 }, (_, i) => createKey('', '', `num-${i}`))}
+            {createKey('', '', 'num-minus')}
+            {createKey('', '', 'num-equal')}
+            {createKey('key--w2', 'b3', 'num-backspace')}
           </div>
           
           {/* 第一排字母行 */}
           <div className="keys">
-            {createKey('key--w2', 'b3')}
-            {Array.from({ length: 10 }, (_, i) => createKey())}
-            {createKey()}
-            {createKey()}
-            {createKey('key--w2', 'b3')}
+            {createKey('key--w2', 'b3', 'tab')}
+            {Array.from({ length: 10 }, (_, i) => createKey('', '', `letter1-${i}`))}
+            {createKey('', '', 'letter1-bracket1')}
+            {createKey('', '', 'letter1-bracket2')}
+            {createKey('key--w2', 'b3', 'letter1-backslash')}
           </div>
           
           {/* 第二排字母行 */}
           <div className="keys">
-            {createKey('key--w3', 'b3')}
-            {Array.from({ length: 9 }, (_, i) => createKey())}
-            {createKey()}
-            {createKey()}
-            {createKey('key--w2', 'o3')}
+            {createKey('key--w3', 'b3', 'caps')}
+            {Array.from({ length: 9 }, (_, i) => createKey('', '', `letter2-${i}`))}
+            {createKey('', '', 'letter2-semicolon')}
+            {createKey('', '', 'letter2-quote')}
+            {createKey('key--w2', 'o3', 'enter')}
           </div>
           
           {/* 第三排字母行 */}
           <div className="keys">
-            {createKey('key--w2', 'b3')}
-            {Array.from({ length: 10 }, (_, i) => createKey())}
-            {createKey()}
-            {createKey('key--w3', 'b3')}
+            {createKey('key--w2', 'b3', 'shift-left')}
+            {Array.from({ length: 10 }, (_, i) => createKey('', '', `letter3-${i}`))}
+            {createKey('', '', 'letter3-comma')}
+            {createKey('key--w3', 'b3', 'shift-right')}
           </div>
           
           {/* 空格键行 */}
           <div className="keys">
-            {createKey('', 'b3')}
-            {createKey('', 'o3')}
-            {createKey('', 'b3')}
-            {createKey('', 'b3')}
-            {createKey('key--w6')}
-            {createKey('', 'b3')}
-            {createKey('', 'b3')}
-            {createKey('', 'b3')}
-            {createKey('', 'b3')}
-            {createKey('', 'b3')}
+            {createKey('', 'b3', 'ctrl-left')}
+            {createKey('', 'o3', 'alt-left')}
+            {createKey('', 'b3', 'cmd-left')}
+            {createKey('', 'b3', 'cmd-right')}
+            {createKey('key--w6', '', 'spacebar')}
+            {createKey('', 'b3', 'alt-right')}
+            {createKey('', 'b3', 'fn')}
+            {createKey('', 'b3', 'ctrl-right')}
+            {createKey('', 'b3', 'arrow-left')}
+            {createKey('', 'b3', 'arrow-right')}
           </div>
         </div>
         
@@ -302,7 +302,7 @@ const Computer3DTyping = ({
       </div>
 
       {/* 添加光标闪烁动画 */}
-      <style jsx>{`
+      <style>{`
         @keyframes blink {
           0%, 50% { opacity: 1; }
           51%, 100% { opacity: 0; }

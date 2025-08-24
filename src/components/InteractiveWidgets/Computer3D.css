@@ -10,14 +10,14 @@
 
 /* 3D电脑容器主体 */
 .computer-container {
-  width: min(400px, 90vw);
-  height: min(300px, 35vh);
+  width: 100%;
+  height: 180px;
   position: relative;
   cursor: pointer;
   margin: 0;
   transform-style: preserve-3d;
-  background: radial-gradient(circle at center, #2a2929 0%, #1a1919 100%);
-  overflow: hidden;
+  background: transparent;
+  overflow: visible;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   font-weight: 600;
   color: rgba(255, 255, 251, 0.8);
@@ -27,16 +27,16 @@
 
 @media (max-width: 1200px) {
   .computer-container {
-    width: 80vw;
-    height: 60vh;
+    width: 100%;
+    height: 180px;
   }
 }
 
 @media (max-width: 768px) {
   .computer-container {
-    width: 95vw;
-    height: 50vh;
-    margin-top: clamp(30px, 10vh, 100px);
+    width: 100%;
+    height: 160px;
+    margin: 0;
     font-size: 14px;
     letter-spacing: 1px;
   }
@@ -44,9 +44,9 @@
 
 @media (max-width: 480px) {
   .computer-container {
-    width: 100vw;
-    height: 45vh;
-    margin-top: clamp(20px, 5vh, 50px);
+    width: 100%;
+    height: 140px;
+    margin: 0;
     font-size: 12px;
     letter-spacing: 0.5px;
   }
@@ -55,7 +55,7 @@
 /* 高对比度和深色主题支持 */
 @media (prefers-color-scheme: dark) {
   .computer-container {
-    background: radial-gradient(circle at center, #1a1a1a 0%, #0d0d0d 100%);
+    background: transparent;
   }
 }
 
@@ -83,32 +83,36 @@
 
 /* 屏幕显示区域 */
 .computer-container .screen {
-  width: clamp(120px, 30vw, 150px);
-  height: clamp(90px, 20vh, 110px);
-  transform: translateZ(50px) translateY(-80px) translateZ(25px) rotateX(270deg);
+  width: 120px;
+  height: 80px;
+  transform: translateZ(40px) translateY(-65px) rotateX(270deg);
   background: linear-gradient(135deg, #a9dffd 0%, #8fd2f8 100%);
-  border-radius: 8px;
+  border-radius: 6px;
   box-shadow: 
-    0 0 3px rgba(169, 223, 253, 0.8),
-    0 0 6px rgba(169, 223, 253, 0.7),
-    0 0 10px rgba(169, 223, 253, 0.6);
+    0 0 3px rgba(169, 223, 253, 0.6),
+    0 0 6px rgba(169, 223, 253, 0.5);
   animation: screen-glow 1s ease-in-out alternate infinite;
   font-family: 'Courier New', monospace;
-  font-size: 10px;
-  padding: 6px;
+  font-size: 9px;
+  padding: 5px;
   color: #000;
   text-transform: none;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
   overflow: hidden;
   white-space: pre-wrap;
 }
 
 /* 键盘主体容器 */
 .computer-container .keyboard {
-  width: clamp(200px, 45vw, 250px);
-  height: clamp(60px, 12vh, 80px);
-  transform: perspective(5000px) rotateX(50deg) rotateZ(-25deg);
+  width: 220px;
+  height: 70px;
+  transform: perspective(5000px) rotateX(55deg) rotateZ(-30deg) scale(0.8);
   transition: transform 0.1s ease-out;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  margin-left: -110px;
+  margin-top: -35px;
 }
 
 .computer-container .keyboard__front {
