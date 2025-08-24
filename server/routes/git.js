@@ -211,7 +211,10 @@ router.post('/commit', async (req, res) => {
 
         // Clean commit message by removing Claude Code signatures
         let cleanMessage = message;
-        cleanMessage = cleanMessage.replace(/🤖\s*Generated with \[Claude Code\]\(https:\/\/claude\.ai\/code\)/g, '').trim();
+        cleanMessage = cleanMessage
+            .replace(/🤖\s*Generated with \[Claude Code\]\(https:\/\/claude\.ai\/code\)\s*/g, '')
+            .replace(/Co-Authored-By:\s*Claude\s*<noreply@anthropic\.com>\s*/g, '')
+            .trim();
         cleanMessage = cleanMessage.replace(/Co-Authored-By:\s*Claude\s*<noreply@anthropic\.com>/gi, '').trim();
         cleanMessage = cleanMessage.replace(/\n+$/, '').trim();
 
@@ -690,7 +693,10 @@ async function generateWithClaudeCLI(projectPath, files, diff, conventions, lang
             }
             
             // Remove Claude Code signatures and co-authored lines
-            finalMessage = finalMessage.replace(/🤖\s*Generated with \[Claude Code\]\(https:\/\/claude\.ai\/code\)/g, '').trim();
+            finalMessage = finalMessage
+                .replace(/🤖\s*Generated with \[Claude Code\]\(https:\/\/claude\.ai\/code\)\s*/g, '')
+                .replace(/Co-Authored-By:\s*Claude\s*<noreply@anthropic\.com>\s*/g, '')
+                .trim();
             finalMessage = finalMessage.replace(/Co-Authored-By:\s*Claude\s*<noreply@anthropic\.com>/gi, '').trim();
             
             // Remove empty lines at the end
@@ -1108,7 +1114,10 @@ async function generateRuleBasedMessage(files, diff, conventions, language, proj
         }
         
         // Remove Claude Code signatures if they somehow got included
-        message = message.replace(/🤖\s*Generated with \[Claude Code\]\(https:\/\/claude\.ai\/code\)/g, '').trim();
+        message = message
+            .replace(/🤖\s*Generated with \[Claude Code\]\(https:\/\/claude\.ai\/code\)\s*/g, '')
+            .replace(/Co-Authored-By:\s*Claude\s*<noreply@anthropic\.com>\s*/g, '')
+            .trim();
         message = message.replace(/Co-Authored-By:\s*Claude\s*<noreply@anthropic\.com>/gi, '').trim();
         message = message.replace(/\n+$/, '').trim();
         
@@ -1160,7 +1169,10 @@ function generateSimpleCommitMessage(files, diff) {
     }
     
     // Remove Claude Code signatures if they somehow got included
-    message = message.replace(/🤖\s*Generated with \[Claude Code\]\(https:\/\/claude\.ai\/code\)/g, '').trim();
+    message = message
+        .replace(/🤖\s*Generated with \[Claude Code\]\(https:\/\/claude\.ai\/code\)\s*/g, '')
+        .replace(/Co-Authored-By:\s*Claude\s*<noreply@anthropic\.com>\s*/g, '')
+        .trim();
     message = message.replace(/Co-Authored-By:\s*Claude\s*<noreply@anthropic\.com>/gi, '').trim();
     
     return message;

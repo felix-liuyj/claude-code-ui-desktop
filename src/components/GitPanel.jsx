@@ -87,10 +87,14 @@ function GitPanel({ selectedProject, isMobile }) {
         if (messages.length > 0 && smartCommitSessionId) {
             const latestMessage = messages[messages.length - 1];
             
-            // Only process messages related to our smart commit session
-            if (latestMessage.data?.sessionId === smartCommitSessionId || 
-                latestMessage.sessionId === smartCommitSessionId) {
-                
+            // Process messages related to our smart commit session or general smartCommit messages
+            const isRelatedMessage = 
+                latestMessage.data?.sessionId === smartCommitSessionId || 
+                latestMessage.sessionId === smartCommitSessionId ||
+                (latestMessage.data?.smartCommit && smartCommitSessionId) ||
+                (latestMessage.smartCommit && smartCommitSessionId);
+            
+            if (isRelatedMessage) {
                 switch (latestMessage.type) {
                     case 'claude-response':
                         const messageData = latestMessage.data?.message || latestMessage.data;
@@ -106,11 +110,10 @@ function GitPanel({ selectedProject, isMobile }) {
                                     setSmartCommitProgress('正在生成提交消息...');
                                 } else if (content.includes('完成') || content.includes('success')) {
                                     setSmartCommitProgress('智能提交完成！');
-                                    // Auto-close after success
                                     setTimeout(() => {
                                         setIsSmartCommitting(false);
                                         setSmartCommitSessionId(null);
-                                        fetchGitStatus(); // Refresh git status
+                                        fetchGitStatus();
                                     }, 2000);
                                 }
                             }
@@ -130,12 +133,17 @@ function GitPanel({ selectedProject, isMobile }) {
                         break;
                         
                     case 'claude-complete':
-                        // Smart commit session completed
-                        setSmartCommitProgress('智能提交完成！');
+                        // Smart commit session completed - check exit code
+                        const exitCode = latestMessage.exitCode || latestMessage.data?.exitCode;
+                        if (exitCode === 0 || exitCode === undefined) {
+                            setSmartCommitProgress('智能提交完成！');
+                        } else {
+                            setSmartCommitProgress('智能提交完成（可能有警告）');
+                        }
                         setTimeout(() => {
                             setIsSmartCommitting(false);
                             setSmartCommitSessionId(null);
-                            fetchGitStatus(); // Refresh git status
+                            fetchGitStatus();
                         }, 2000);
                         break;
                         
