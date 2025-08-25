@@ -167,6 +167,13 @@ function GitPanel({ selectedProject, isMobile }) {
                         // Smart commit session completed - check exit code
                         const exitCode = latestMessage.exitCode || latestMessage.data?.exitCode;
                         console.log('[SmartCommit] Complete event received with exit code:', exitCode);
+                        console.log('[SmartCommit] Complete event details:', {
+                            messageSessionId: latestMessage.sessionId,
+                            dataSessionId: latestMessage.data?.sessionId,
+                            currentSessionId: smartCommitSessionId,
+                            smartCommitFlag: latestMessage.smartCommit || latestMessage.data?.smartCommit,
+                            fullMessage: latestMessage
+                        });
                         
                         if (exitCode === 0 || exitCode === undefined) {
                             setSmartCommitProgress('智能提交完成！');

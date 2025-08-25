@@ -451,6 +451,76 @@ async function spawnClaude(command, options = {}, ws) {
         claudeProcess.on('close', async (code) => {
             console.log(`Claude CLI process exited with code ${ code }`);
 
+            // For smart commits, clean up commit message after git commit
+            if (smartCommit && code === 0) {
+                try {
+                    console.log('[SmartCommit] Post-processing: cleaning commit message');
+                    
+                    // Import spawn for git operations
+                    const { spawn } = await import('child_process');
+                    
+                    // Check if we just made a commit by looking at git log
+                    const gitLogProcess = spawn('git', ['log', '--format=%B', '-n', '1'], {
+                        cwd: workingDir,
+                        stdio: ['pipe', 'pipe', 'pipe']
+                    });
+                    
+                    let commitMessage = '';
+                    gitLogProcess.stdout.on('data', (data) => {
+                        commitMessage += data.toString();
+                    });
+                    
+                    await new Promise((resolve) => {
+                        gitLogProcess.on('close', async (logCode) => {
+                            if (logCode === 0 && commitMessage.trim()) {
+                                // Check if commit message contains Claude signatures
+                                const hasSignature = commitMessage.includes('Generated with [Claude Code]') || 
+                                                   commitMessage.includes('Co-Authored-By: Claude');
+                                
+                                if (hasSignature) {
+                                    console.log('[SmartCommit] Found Claude signature in commit, cleaning...');
+                                    
+                                    // Clean the commit message
+                                    let cleanedMessage = commitMessage
+                                        .replace(/🤖\s*Generated with \[Claude Code\]\([^)]+\)/gi, '')
+                                        .replace(/Generated with \[Claude Code\]\([^)]+\)/gi, '')
+                                        .replace(/🤖\s*Generated with Claude Code/gi, '')
+                                        .replace(/Co-Authored-By:\s*Claude\s*<[^>]+>/gi, '')
+                                        .replace(/Co-Authored-By:\s*Claude\s*/gi, '')
+                                        .replace(/^\s*🤖\s*$/gm, '')
+                                        .replace(/^\s*Claude\s*$/gm, '')
+                                        .replace(/\n\s*\n\s*\n+/g, '\n\n')
+                                        .trim();
+                                    
+                                    // Amend the commit with cleaned message
+                                    const gitAmendProcess = spawn('git', ['commit', '--amend', '-m', cleanedMessage], {
+                                        cwd: workingDir,
+                                        stdio: ['pipe', 'pipe', 'pipe']
+                                    });
+                                    
+                                    gitAmendProcess.on('close', (amendCode) => {
+                                        if (amendCode === 0) {
+                                            console.log('[SmartCommit] Successfully cleaned commit message');
+                                        } else {
+                                            console.log('[SmartCommit] Failed to amend commit message');
+                                        }
+                                        resolve();
+                                    });
+                                } else {
+                                    console.log('[SmartCommit] No Claude signature found in commit');
+                                    resolve();
+                                }
+                            } else {
+                                console.log('[SmartCommit] Failed to read commit message');
+                                resolve();
+                            }
+                        });
+                    });
+                } catch (error) {
+                    console.error('[SmartCommit] Error during post-processing:', error);
+                }
+            }
+
             // Clean up process reference
             const finalSessionId = capturedSessionId || sessionId || processKey;
             activeClaudeProcesses.delete(finalSessionId);
