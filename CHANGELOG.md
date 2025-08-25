@@ -1,3 +1,51 @@
+## [1.1.2](https://github.com/felix-liuyj/claude-code-ui-desktop/compare/v1.1.1...v1.1.2) (2025-08-25)
+
+### Features
+
+* **app:** 新增自动更新功能和界面优化 ([25732d7](https://github.com/felix-liuyj/claude-code-ui-desktop/commit/25732d7e6bcb0c0b7787e0c8d49014955bae9fee))
+* **commit:** 增强智能提交Claude签名清理和会话ID管理 ([a17de9c](https://github.com/felix-liuyj/claude-code-ui-desktop/commit/a17de9c59575068fb2f17b0bfdf1a71a1b6477dd))
+* **commit:** 增强智能提交后处理和调试功能 ([319dee5](https://github.com/felix-liuyj/claude-code-ui-desktop/commit/319dee553a9dc2a33b11eb7c96ce606d030fdf42))
+* **git:** 增强智能提交调试日志和Computer3D屏幕显示 ([347092d](https://github.com/felix-liuyj/claude-code-ui-desktop/commit/347092dc1f60bc523be3369c4a4343576fb79074))
+* **ui:** 优化3D键盘动画和提交消息生成功能 ([c068531](https://github.com/felix-liuyj/claude-code-ui-desktop/commit/c068531ccf54337193de6c1464d271a3670a2c9d))
+* **ui:** 完善智能提交超时机制和Computer3D组件优化 ([fd5be10](https://github.com/felix-liuyj/claude-code-ui-desktop/commit/fd5be105b92b141f3b08cf2fdd02322030fcc1d1))
+* **ui:** 新增InteractiveWidgets组件模块和智能提交界面优化 ([9e1d041](https://github.com/felix-liuyj/claude-code-ui-desktop/commit/9e1d0415053c5de6ad4b0b94d99251284a9e5625))
+
+### Bug Fixes
+
+* **commit:** 优化Claude代码签名清理和智能提交反馈 ([cf99409](https://github.com/felix-liuyj/claude-code-ui-desktop/commit/cf994098a621b2e64d43b5c30acc5b5a7dbfb8ce))
+* **ui:** 修复智能提交进度弹窗自动关闭逻辑 ([7ba485d](https://github.com/felix-liuyj/claude-code-ui-desktop/commit/7ba485d3077059bcf4c95553abdefd6a41663d20))
+
+### Performance Improvements
+
+* **ui:** 优化版本检查缓存策略和智能提交调试日志 ([ae7e43a](https://github.com/felix-liuyj/claude-code-ui-desktop/commit/ae7e43a0de76ea69e3408471ad18566a3f71ded3))
+## [1.1.2](https://github.com/felix-liuyj/claude-code-ui-desktop/compare/v1.1.1...v1.1.2) (2025-08-25)
+
+### ✨ 新增功能
+
+#### Git 集成增强
+* **智能提交消息优化**: 增强 Claude 签名清理算法，改进会话 ID 管理和后处理流程 ([a17de9c](https://github.com/felix-liuyj/claude-code-ui-desktop/commit/a17de9c), [319dee5](https://github.com/felix-liuyj/claude-code-ui-desktop/commit/319dee5))
+* **调试功能增强**: 完善智能提交 WebSocket 消息调试日志，提供更详细的提交流程跟踪 ([57632a5](https://github.com/felix-liuyj/claude-code-ui-desktop/commit/57632a5))
+
+### 🐛 问题修复
+
+#### UI 体验修复
+* **进度弹窗逻辑**: 修复智能提交进度弹窗自动关闭逻辑，确保用户及时看到提交结果 ([7ba485d](https://github.com/felix-liuyj/claude-code-ui-desktop/commit/7ba485d))
+* **组件清理**: 移除过时的 Computer3D 相关交互组件，简化 UI 结构 ([d691cde](https://github.com/felix-liuyj/claude-code-ui-desktop/commit/d691cde))
+
+#### API 通信优化  
+* **GitHub API 限制处理**: 修复版本检查功能触发 GitHub API 403 错误问题，增加速率限制处理、本地缓存和友好错误提示 ([ae7e43a](https://github.com/felix-liuyj/claude-code-ui-desktop/commit/ae7e43a))
+  - 延长版本检查间隔从 5 分钟至 30 分钟
+  - 添加 1 小时本地缓存机制减少 API 请求
+  - 改进错误处理显示友好提示而非报错
+
+### 🔧 技术改进
+
+#### 构建与配置
+* **Changelog 配置优化**: 改进 changelog 配置格式，增加发布提交格式和标准语义化版本支持 ([cd87c05](https://github.com/felix-liuyj/claude-code-ui-desktop/commit/cd87c05))
+* **组件架构重构**: 优化智能提交超时机制，完善 WebSocket 消息处理流程
+
+---
+
 ## [1.1.1](https://github.com/felix-liuyj/claude-code-ui-desktop/compare/v1.1.0...v1.1.1) (2025-08-22)
 
 ### ✨ 新增功能
