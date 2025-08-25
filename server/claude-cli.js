@@ -309,11 +309,93 @@ async function spawnClaude(command, options = {}, ws) {
                     }
 
                     // Clean Claude Code signatures from response data for smart commits
-                    if (smartCommit && response && response.stdout) {
-                        response.stdout = response.stdout
-                            .replace(/🤖\s*Generated with \[Claude Code\]\(https:\/\/claude\.ai\/code\)/g, '')
-                            .replace(/Co-Authored-By:\s*Claude\s*<noreply@anthropic\.com>/gi, '')
-                            .trim();
+                    if (smartCommit && response) {
+                        console.log('[SmartCommit] Cleaning Claude signatures from response');
+                        
+                        // Helper function to clean Claude signatures from text
+                        const cleanClaudeSignatures = (text) => {
+                            if (!text || typeof text !== 'string') return text;
+                            
+                            let cleaned = text;
+                            
+                            // Remove Claude Code signature variations
+                            cleaned = cleaned.replace(/🤖\s*Generated with \[Claude Code\]\([^)]+\)/gi, '');
+                            cleaned = cleaned.replace(/Generated with \[Claude Code\]\([^)]+\)/gi, '');
+                            cleaned = cleaned.replace(/🤖\s*Generated with Claude Code/gi, '');
+                            
+                            // Remove Co-Authored-By variations
+                            cleaned = cleaned.replace(/Co-Authored-By:\s*Claude\s*<[^>]+>/gi, '');
+                            cleaned = cleaned.replace(/Co-Authored-By:\s*Claude\s*/gi, '');
+                            
+                            // Remove any standalone Claude signatures
+                            cleaned = cleaned.replace(/^\s*🤖\s*$/gm, '');
+                            cleaned = cleaned.replace(/^\s*Claude\s*$/gm, '');
+                            
+                            // Clean up excessive whitespace and newlines
+                            cleaned = cleaned.replace(/\n\s*\n\s*\n+/g, '\n\n');
+                            cleaned = cleaned.replace(/^\s+|\s+$/g, ''); // trim
+                            
+                            return cleaned;
+                        };
+
+                        // Clean signatures from all possible text fields
+                        if (response.stdout) {
+                            const originalStdout = response.stdout;
+                            response.stdout = cleanClaudeSignatures(response.stdout);
+                            if (originalStdout !== response.stdout) {
+                                console.log('[SmartCommit] Cleaned signatures from stdout');
+                            }
+                        }
+                        
+                        // Also clean from message content if it exists
+                        if (response.message && response.message.content) {
+                            if (Array.isArray(response.message.content)) {
+                                response.message.content = response.message.content.map(part => {
+                                    if (part.type === 'text' && part.text) {
+                                        const originalText = part.text;
+                                        const cleanedText = cleanClaudeSignatures(part.text);
+                                        if (originalText !== cleanedText) {
+                                            console.log('[SmartCommit] Cleaned signatures from message content array');
+                                        }
+                                        return { ...part, text: cleanedText };
+                                    }
+                                    return part;
+                                });
+                            } else if (typeof response.message.content === 'string') {
+                                const originalContent = response.message.content;
+                                response.message.content = cleanClaudeSignatures(response.message.content);
+                                if (originalContent !== response.message.content) {
+                                    console.log('[SmartCommit] Cleaned signatures from message content string');
+                                }
+                            }
+                        }
+                        
+                        // Clean from stderr if it exists
+                        if (response.stderr) {
+                            const originalStderr = response.stderr;
+                            response.stderr = cleanClaudeSignatures(response.stderr);
+                            if (originalStderr !== response.stderr) {
+                                console.log('[SmartCommit] Cleaned signatures from stderr');
+                            }
+                        }
+                        
+                        // Clean from any other text fields that might contain the signature
+                        if (response.text) {
+                            const originalText = response.text;
+                            response.text = cleanClaudeSignatures(response.text);
+                            if (originalText !== response.text) {
+                                console.log('[SmartCommit] Cleaned signatures from text field');
+                            }
+                        }
+                        
+                        // Clean from tool results if they exist
+                        if (response.tool_result && response.tool_result.output) {
+                            const originalOutput = response.tool_result.output;
+                            response.tool_result.output = cleanClaudeSignatures(response.tool_result.output);
+                            if (originalOutput !== response.tool_result.output) {
+                                console.log('[SmartCommit] Cleaned signatures from tool result output');
+                            }
+                        }
                     }
 
                     // Send parsed response to WebSocket
@@ -352,10 +434,14 @@ async function spawnClaude(command, options = {}, ws) {
         // Handle stderr
         claudeProcess.stderr.on('data', (data) => {
             console.error('Claude CLI stderr:', data.toString());
+            
+            // For smart commits, ensure we always send the correct session ID
+            const responseSessionId = capturedSessionId || sessionId;
+            
             ws.send(JSON.stringify({
                 type: 'claude-error',
                 error: data.toString(),
-                sessionId: capturedSessionId,
+                sessionId: responseSessionId,
                 background: background,
                 smartCommit: smartCommit
             }));
@@ -369,10 +455,22 @@ async function spawnClaude(command, options = {}, ws) {
             const finalSessionId = capturedSessionId || sessionId || processKey;
             activeClaudeProcesses.delete(finalSessionId);
 
+            // For smart commits, ensure we always send the correct session ID
+            // Use the original sessionId (from frontend) if capturedSessionId is not available
+            const responseSessionId = capturedSessionId || sessionId;
+            
+            console.log('[SmartCommit] Sending claude-complete:', {
+                exitCode: code,
+                sessionId: responseSessionId,
+                originalSessionId: sessionId,
+                capturedSessionId: capturedSessionId,
+                smartCommit: smartCommit
+            });
+
             ws.send(JSON.stringify({
                 type: 'claude-complete',
                 exitCode: code,
-                sessionId: capturedSessionId,
+                sessionId: responseSessionId,
                 background: background,
                 smartCommit: smartCommit,
                 isNewSession: !sessionId && !!command // Flag to indicate this was a new session
@@ -407,10 +505,13 @@ async function spawnClaude(command, options = {}, ws) {
             const finalSessionId = capturedSessionId || sessionId || processKey;
             activeClaudeProcesses.delete(finalSessionId);
 
+            // For smart commits, ensure we always send the correct session ID
+            const responseSessionId = capturedSessionId || sessionId;
+
             ws.send(JSON.stringify({
                 type: 'claude-error',
                 error: error.message,
-                sessionId: capturedSessionId,
+                sessionId: responseSessionId,
                 background: background,
                 smartCommit: smartCommit
             }));
