@@ -98,15 +98,15 @@ function GitPanel({ selectedProject, isMobile }) {
                 fullMessage: latestMessage
             });
             
-            // Process messages related to our smart commit session or general smartCommit messages
-            // For smart commits, we also check the smartCommit flag directly since session IDs might not match
-            const isRelatedMessage = 
+            // Simplified matching: if we're waiting for smart commit and see smartCommit flag, it's ours
+            const isRelatedMessage = smartCommitSessionId && (
+                // Exact session ID match (preferred)
                 latestMessage.data?.sessionId === smartCommitSessionId || 
                 latestMessage.sessionId === smartCommitSessionId ||
-                (latestMessage.data?.smartCommit && smartCommitSessionId) ||
-                (latestMessage.smartCommit && smartCommitSessionId) ||
-                // Also match if this is a smartCommit-flagged message regardless of session ID
-                (smartCommitSessionId && (latestMessage.smartCommit || latestMessage.data?.smartCommit));
+                // Smart commit flag match (fallback for any smart commit operation)
+                latestMessage.data?.smartCommit || 
+                latestMessage.smartCommit
+            );
                 
             console.log('[SmartCommit] Message matching result:', {
                 isRelatedMessage,
@@ -118,6 +118,11 @@ function GitPanel({ selectedProject, isMobile }) {
                     smartCommitFlag: smartCommitSessionId && (latestMessage.smartCommit || latestMessage.data?.smartCommit)
                 }
             });
+            
+            // Log when we're about to process a related message
+            if (isRelatedMessage) {
+                console.log('[SmartCommit] ENTERING message processing for type:', latestMessage.type);
+            }
             
             if (isRelatedMessage) {
                 console.log('[SmartCommit] Processing related message:', latestMessage.type);
@@ -175,13 +180,17 @@ function GitPanel({ selectedProject, isMobile }) {
                             fullMessage: latestMessage
                         });
                         
+                        // For smart commits, always close the modal when we get claude-complete
                         if (exitCode === 0 || exitCode === undefined) {
                             setSmartCommitProgress('智能提交完成！');
                         } else {
                             setSmartCommitProgress('智能提交完成（可能有警告）');
                         }
+                        
+                        // Immediately close the modal for any claude-complete event during smart commit
+                        console.log('[SmartCommit] Scheduling modal auto-close in 2 seconds');
                         setTimeout(() => {
-                            console.log('[SmartCommit] Auto-closing modal');
+                            console.log('[SmartCommit] Auto-closing modal now');
                             if (smartCommitTimeoutRef.current) {
                                 clearTimeout(smartCommitTimeoutRef.current);
                                 smartCommitTimeoutRef.current = null;
