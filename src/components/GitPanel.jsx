@@ -18,7 +18,6 @@ import {
     X
 } from 'lucide-react';
 import { MicButton } from './MicButton.jsx';
-import Computer3DTyping from './InteractiveWidgets/Computer3DTyping';
 import { apiFetch } from '../utils/api';
 import { useElectron } from '../utils/electron';
 import { useWebSocket } from '../utils/websocket';
@@ -100,11 +99,14 @@ function GitPanel({ selectedProject, isMobile }) {
             });
             
             // Process messages related to our smart commit session or general smartCommit messages
+            // For smart commits, we also check the smartCommit flag directly since session IDs might not match
             const isRelatedMessage = 
                 latestMessage.data?.sessionId === smartCommitSessionId || 
                 latestMessage.sessionId === smartCommitSessionId ||
                 (latestMessage.data?.smartCommit && smartCommitSessionId) ||
-                (latestMessage.smartCommit && smartCommitSessionId);
+                (latestMessage.smartCommit && smartCommitSessionId) ||
+                // Also match if this is a smartCommit-flagged message regardless of session ID
+                (smartCommitSessionId && (latestMessage.smartCommit || latestMessage.data?.smartCommit));
                 
             console.log('[SmartCommit] Message matching result:', {
                 isRelatedMessage,
@@ -112,7 +114,8 @@ function GitPanel({ selectedProject, isMobile }) {
                     dataSessionId: latestMessage.data?.sessionId === smartCommitSessionId,
                     sessionId: latestMessage.sessionId === smartCommitSessionId,
                     dataSmartCommit: latestMessage.data?.smartCommit && smartCommitSessionId,
-                    smartCommit: latestMessage.smartCommit && smartCommitSessionId
+                    smartCommit: latestMessage.smartCommit && smartCommitSessionId,
+                    smartCommitFlag: smartCommitSessionId && (latestMessage.smartCommit || latestMessage.data?.smartCommit)
                 }
             });
             
@@ -1465,27 +1468,14 @@ function GitPanel({ selectedProject, isMobile }) {
                                 {smartCommitProgress}
                             </p>
 
-                            <div className="flex items-center justify-center" style={{ 
-                                height: '180px',
-                                overflow: 'hidden',
-                                position: 'relative'
-                            }}>
-                                <div style={{ 
-                                    transform: 'scale(0.5)', 
-                                    transformOrigin: 'center center',
-                                    width: '100%',
-                                    height: '100%',
-                                    display: 'flex',
-                                    justifyContent: 'center',
-                                    alignItems: 'center'
-                                }}>
-                                    <Computer3DTyping 
-                                        text="Pending..."
-                                        typingSpeed={400}
-                                        pauseDuration={400}
-                                        loop={true}
-                                        autoStart={true}
-                                    />
+                            <div className="flex items-center justify-center py-8">
+                                <div className="flex items-center space-x-3">
+                                    <RefreshCw className="w-8 h-8 animate-spin text-purple-500"/>
+                                    <div className="flex space-x-1">
+                                        <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce"></div>
+                                        <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                                        <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                                    </div>
                                 </div>
                             </div>
 
