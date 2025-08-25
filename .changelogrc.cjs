@@ -18,7 +18,9 @@ const config = {
         return commit.type === 'chore' && commit.subject && commit.subject.includes('release v');
     },
     // 添加changelog生成配置
-    releaseCommitMessageFormat: 'chore(release): {{currentTag}}'
+    releaseCommitMessageFormat: 'chore(release): {{currentTag}}',
+    // 设置基础标签匹配
+    tagPrefix: 'v'
 };
 
 module.exports = config;

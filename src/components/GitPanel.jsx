@@ -87,8 +87,8 @@ function GitPanel({ selectedProject, isMobile }) {
         if (messages.length > 0 && smartCommitSessionId) {
             const latestMessage = messages[messages.length - 1];
             
-            // Debug logging - more detailed
-            console.log('[SmartCommit] Checking message:', {
+            // Debug logging - more detailed (using JSON.stringify for Electron console)
+            console.log('[SmartCommit] Checking message:', JSON.stringify({
                 type: latestMessage.type,
                 sessionId: latestMessage.sessionId,
                 dataSessionId: latestMessage.data?.sessionId,
@@ -97,19 +97,19 @@ function GitPanel({ selectedProject, isMobile }) {
                 currentSessionId: smartCommitSessionId,
                 messageType: latestMessage.type,
                 isClaudeComplete: latestMessage.type === 'claude-complete'
-            });
+            }, null, 2));
             
             // Simplified matching: if we're waiting for smart commit and see smartCommit flag, it's ours
             const isRelatedMessage = smartCommitSessionId && (
-                // Exact session ID match (preferred)
+                // Smart commit flag match (primary for debugging)
+                latestMessage.smartCommit || 
+                latestMessage.data?.smartCommit ||
+                // Exact session ID match (secondary)
                 latestMessage.data?.sessionId === smartCommitSessionId || 
-                latestMessage.sessionId === smartCommitSessionId ||
-                // Smart commit flag match (fallback for any smart commit operation)
-                latestMessage.data?.smartCommit || 
-                latestMessage.smartCommit
+                latestMessage.sessionId === smartCommitSessionId
             );
                 
-            console.log('[SmartCommit] Message matching result:', {
+            console.log('[SmartCommit] Message matching result:', JSON.stringify({
                 isRelatedMessage,
                 matches: {
                     dataSessionId: latestMessage.data?.sessionId === smartCommitSessionId,
@@ -118,7 +118,7 @@ function GitPanel({ selectedProject, isMobile }) {
                     smartCommit: latestMessage.smartCommit && smartCommitSessionId,
                     smartCommitFlag: smartCommitSessionId && (latestMessage.smartCommit || latestMessage.data?.smartCommit)
                 }
-            });
+            }, null, 2));
             
             // Log when we're about to process a related message
             if (isRelatedMessage) {

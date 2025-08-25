@@ -1,6 +1,36 @@
 // hooks/useVersionCheck.js
 import { useEffect, useState } from 'react';
 
+// Cache duration: 1 hour
+const CACHE_DURATION = 60 * 60 * 1000;
+const CACHE_KEY_PREFIX = 'version-check-';
+
+const getFromCache = (key) => {
+    try {
+        const cached = localStorage.getItem(key);
+        if (cached) {
+            const { data, timestamp } = JSON.parse(cached);
+            if (Date.now() - timestamp < CACHE_DURATION) {
+                return data;
+            }
+        }
+    } catch (error) {
+        console.warn('Failed to read version cache:', error);
+    }
+    return null;
+};
+
+const setToCache = (key, data) => {
+    try {
+        localStorage.setItem(key, JSON.stringify({
+            data,
+            timestamp: Date.now()
+        }));
+    } catch (error) {
+        console.warn('Failed to write version cache:', error);
+    }
+};
+
 export const useVersionCheck = (owner, repo) => {
     const [updateAvailable, setUpdateAvailable] = useState(false);
     const [latestVersion, setLatestVersion] = useState(null);
@@ -35,6 +65,18 @@ export const useVersionCheck = (owner, repo) => {
         };
 
         const checkVersion = async (currentVer) => {
+            const cacheKey = `${CACHE_KEY_PREFIX}${owner}-${repo}`;
+            
+            // Try to get from cache first
+            const cached = getFromCache(cacheKey);
+            if (cached) {
+                console.log('Using cached version data:', cached);
+                setLatestVersion(cached.latest);
+                const hasUpdate = currentVer && currentVer !== 'unknown' && currentVer !== cached.latest;
+                setUpdateAvailable(hasUpdate);
+                return;
+            }
+            
             try {
                 const response = await fetch(`https://api.github.com/repos/${ owner }/${ repo }/releases/latest`);
                 
@@ -42,6 +84,8 @@ export const useVersionCheck = (owner, repo) => {
                 if (!response.ok) {
                     if (response.status === 404) {
                         console.info('No releases found for this repository yet');
+                    } else if (response.status === 403) {
+                        console.warn('GitHub API rate limit exceeded. Version check will retry later.');
                     } else {
                         console.error('GitHub API error:', response.status, response.statusText);
                     }
@@ -57,6 +101,9 @@ export const useVersionCheck = (owner, repo) => {
                 if (data.tag_name) {
                     const latest = data.tag_name.replace(/^v/, '');
                     setLatestVersion(latest);
+                    
+                    // Cache the result
+                    setToCache(cacheKey, { latest });
                     
                     // Use the passed current version for comparison
                     const hasUpdate = currentVer && currentVer !== 'unknown' && currentVer !== latest;
@@ -83,7 +130,7 @@ export const useVersionCheck = (owner, repo) => {
 
         initVersionCheck();
 
-        const interval = setInterval(() => checkVersion(currentVersion), 5 * 60 * 1000); // Check every 5 minutes
+        const interval = setInterval(() => checkVersion(currentVersion), 30 * 60 * 1000); // Check every 30 minutes to avoid rate limits
         return () => clearInterval(interval);
     }, [owner, repo]); // Remove currentVersion from dependencies
 
