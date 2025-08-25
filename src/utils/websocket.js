@@ -35,6 +35,12 @@ export function useWebSocket() {
             websocket.onmessage = (event) => {
                 try {
                     const data = JSON.parse(event.data);
+                    
+                    // Debug logging for smart commit messages
+                    if (data.type === 'claude-complete' && data.smartCommit) {
+                        console.log('[WebSocket] Received claude-complete for smart commit:', data);
+                    }
+                    
                     setMessages(prev => [...prev, data]);
                 } catch (error) {
                     console.error('Error parsing WebSocket message:', error);

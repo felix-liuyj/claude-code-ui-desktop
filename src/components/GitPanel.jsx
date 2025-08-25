@@ -87,7 +87,7 @@ function GitPanel({ selectedProject, isMobile }) {
         if (messages.length > 0 && smartCommitSessionId) {
             const latestMessage = messages[messages.length - 1];
             
-            // Debug logging
+            // Debug logging - more detailed
             console.log('[SmartCommit] Checking message:', {
                 type: latestMessage.type,
                 sessionId: latestMessage.sessionId,
@@ -95,7 +95,8 @@ function GitPanel({ selectedProject, isMobile }) {
                 smartCommit: latestMessage.smartCommit,
                 dataSmartCommit: latestMessage.data?.smartCommit,
                 currentSessionId: smartCommitSessionId,
-                fullMessage: latestMessage
+                messageType: latestMessage.type,
+                isClaudeComplete: latestMessage.type === 'claude-complete'
             });
             
             // Simplified matching: if we're waiting for smart commit and see smartCommit flag, it's ours
